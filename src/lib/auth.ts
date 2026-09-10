@@ -4,11 +4,23 @@ import { ACCOUNTS_KEY } from "@/lib/constants"
 import type { UserAccount, UserProfile } from "@/types"
 
 async function hashPassword(password: string): Promise<string> {
-  const data = new TextEncoder().encode(`pioniersplanner::${password}`)
-  const buffer = await crypto.subtle.digest("SHA-256", data)
-  return Array.from(new Uint8Array(buffer))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("")
+  const payload = `pioniersplanner::${password}`
+  try {
+    if (globalThis.crypto?.subtle) {
+      const data = new TextEncoder().encode(payload)
+      const buffer = await crypto.subtle.digest("SHA-256", data)
+      return Array.from(new Uint8Array(buffer))
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("")
+    }
+  } catch {
+    // Preview or non-secure contexts can lack SubtleCrypto.
+  }
+  let hash = 0
+  for (let index = 0; index < payload.length; index += 1) {
+    hash = (Math.imul(31, hash) + payload.charCodeAt(index)) | 0
+  }
+  return `fallback:${hash.toString(16)}:${payload.length}`
 }
 
 function readAccounts(): UserAccount[] {
@@ -24,6 +36,15 @@ function writeAccounts(accounts: UserAccount[]) {
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts))
 }
 
+function toProfile(account: UserAccount): UserProfile {
+  return {
+    id: account.id,
+    email: account.email,
+    name: account.name,
+    createdAt: account.createdAt,
+  }
+}
+
 export async function registerAccount(
   name: string,
   email: string,
@@ -37,17 +58,12 @@ export async function registerAccount(
   const account: UserAccount = {
     id: crypto.randomUUID(),
     email: normalized,
-    name: name.trim(),
+    name: name.trim() || normalized.split("@")[0],
     passwordHash: await hashPassword(password),
     createdAt: new Date().toISOString(),
   }
   writeAccounts([...accounts, account])
-  return {
-    id: account.id,
-    email: account.email,
-    name: account.name,
-    createdAt: account.createdAt,
-  }
+  return toProfile(account)
 }
 
 export async function signInAccount(
@@ -61,12 +77,23 @@ export async function signInAccount(
     (item) => item.email === normalized && item.passwordHash === hash
   )
   if (!account) return { error: "invalid" }
-  return {
-    id: account.id,
-    email: account.email,
-    name: account.name,
-    createdAt: account.createdAt,
+  return toProfile(account)
+}
+
+export async function signInOrRegister(
+  email: string,
+  password: string,
+  name?: string
+): Promise<UserProfile | { error: "invalid" }> {
+  const accounts = readAccounts()
+  const normalized = email.trim().toLowerCase()
+  const existing = accounts.find((item) => item.email === normalized)
+  if (!existing) {
+    const created = await registerAccount(name || normalized.split("@")[0], email, password)
+    if ("error" in created) return { error: "invalid" }
+    return created
   }
+  return signInAccount(email, password)
 }
 
 export function deleteStoredAccount(userId: string) {

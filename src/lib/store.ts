@@ -360,6 +360,13 @@ export const useAppStore = create<AppState>()(
         settings: state.settings,
         hiddenCategories: state.hiddenCategories,
       }),
+      merge: (persisted, current) => {
+        const stored = (persisted ?? {}) as Partial<AppState>
+        if (current.user && !stored.user) {
+          return current
+        }
+        return { ...current, ...stored }
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true)
       },

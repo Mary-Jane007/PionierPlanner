@@ -92,6 +92,12 @@ const messages = {
   "auth.demo": { nl: "Open de demomaand", en: "Open the demo month", es: "Abrir el mes de demostración", pap: "Habré e luna di demo" },
   "auth.error": { nl: "E-mail of wachtwoord klopt niet.", en: "Email or password is incorrect.", es: "El correo o la contraseña no es correcto.", pap: "E-mail òf kontraseña no ta korekto." },
   "auth.exists": { nl: "Er bestaat al een account met dit e-mailadres.", en: "An account with this email already exists.", es: "Ya existe una cuenta con este correo.", pap: "Tin kaba un kuenta ku e e-mail aki." },
+  "auth.firstLoginHint": {
+    nl: "Nog geen account? Vul e-mail en wachtwoord in; we maken er dan een voor je.",
+    en: "No account yet? Enter an email and password and we’ll create one for you.",
+    es: "¿Aún no tienes cuenta? Escribe un correo y una contraseña y crearemos una.",
+    pap: "Noch no tin kuenta? Yena e-mail i kontraseña i nos lo krea un pa bo.",
+  },
   "auth.localNote": {
     nl: "Je gegevens blijven op dit apparaat totdat je een cloudaccount koppelt.",
     en: "Your data stays on this device until you connect a cloud account.",

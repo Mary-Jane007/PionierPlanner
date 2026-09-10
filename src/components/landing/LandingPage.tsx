@@ -4,9 +4,10 @@ import Link from "next/link"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
+import { cn } from "@/lib/utils"
 
 const features = [
   "plan",
@@ -32,10 +33,12 @@ export function LandingPage() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Logo />
         <div className="flex gap-2">
-          <Button variant="ghost" render={<Link href="/inloggen" />}>
+          <Link href="/inloggen" className={cn(buttonVariants({ variant: "ghost" }), "h-9 px-3")}>
             {t("landing.login")}
-          </Button>
-          <Button render={<Link href="/inloggen?mode=start" />}>{t("landing.cta")}</Button>
+          </Link>
+          <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "h-9 px-3")}>
+            {t("landing.cta")}
+          </Link>
         </div>
       </header>
 
@@ -52,12 +55,12 @@ export function LandingPage() {
               {t("landing.description")}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button className="h-12 rounded-xl px-6" render={<Link href="/inloggen?mode=start" />}>
+              <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "h-12 rounded-xl px-6")}>
                 {t("landing.cta")}
-              </Button>
-              <Button variant="outline" className="h-12 rounded-xl px-6" render={<Link href="/inloggen" />}>
+              </Link>
+              <Link href="/inloggen" className={cn(buttonVariants({ variant: "outline" }), "h-12 rounded-xl px-6")}>
                 {t("landing.login")}
-              </Button>
+              </Link>
             </div>
           </div>
           <PreviewCard />

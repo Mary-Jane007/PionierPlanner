@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ProgressRing } from "@/components/progress/ProgressRing"
 import { TimelineItem } from "@/components/calendar/CalendarBoard"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
 import { formatHumanDate, formatMonthTitle, greetingKey, isoDate } from "@/lib/dates"
@@ -13,6 +13,7 @@ import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
 import { JW_ORG_PIONEERS } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 export function TodayDashboard() {
   const t = useT()
@@ -78,9 +79,9 @@ export function TodayDashboard() {
                 <Mini label={t("home.next")} value={nextLabel} />
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Button className="h-11 rounded-xl" render={<Link href="/planner" />}>
+                <Link href="/planner" className={cn(buttonVariants(), "h-11 rounded-xl px-4")}>
                   {t("home.viewPlan")}
-                </Button>
+                </Link>
                 <Button
                   variant="outline"
                   className="h-11 rounded-xl"
@@ -160,9 +161,9 @@ export function TodayDashboard() {
           <p className="font-heading mt-2 text-2xl">
             {t("planner.paceText", { n: recommendedWeek })}
           </p>
-          <Button variant="link" className="h-auto px-0" render={<Link href="/tips" />}>
+          <Link href="/tips" className={cn(buttonVariants({ variant: "link" }), "h-auto px-0")}>
             {t("home.readMore")}
-          </Button>
+          </Link>
           <p className="mt-2 text-xs text-muted-foreground">
             {t("pioneer.source")} ·{" "}
             <a className="underline-offset-2 hover:underline" href={JW_ORG_PIONEERS} target="_blank" rel="noreferrer">

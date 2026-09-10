@@ -36,6 +36,17 @@ export function SetupPage() {
   const [availability, setLocalAvailability] = useState(defaultAvailability())
 
   function finish() {
+    if (!useAppStore.getState().user) {
+      useAppStore.getState().login(
+        {
+          id: crypto.randomUUID(),
+          email: "lokaal@pioniersplanner.app",
+          name: name || "Pionier",
+          createdAt: new Date().toISOString(),
+        },
+        { fresh: true }
+      )
+    }
     updateProfile({ name })
     setPioneerGoal(
       type,
@@ -43,7 +54,7 @@ export function SetupPage() {
     )
     setAvailability(availability)
     completeOnboarding()
-    router.push("/vandaag")
+    router.replace("/vandaag")
   }
 
   return (
