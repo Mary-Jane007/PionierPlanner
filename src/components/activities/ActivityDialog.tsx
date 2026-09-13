@@ -159,51 +159,57 @@ function ActivityForm({
     }
   }
 
-  function save(ignoreConflict = false) {
+  function save() {
     const event = buildEvent(editingId ?? crypto.randomUUID())
     if (!event) {
       toast.error(t("activity.error"))
       return
     }
     const conflict = detectScheduleConflict(events, event)
-    if (conflict && !ignoreConflict) {
+    if (
+      conflict &&
+      repeat === "none"
+    ) {
       onConflict({ pending: event, existing: conflict })
       return
     }
-    onSave(event)
 
     if (!editingId && repeat !== "none") {
       const interval = repeat === "weekly" ? 7 : 14
       const created: CalendarEvent[] = []
+      const candidates: CalendarEvent[] = [event]
       let cursor = addDays(parseDate(event.date), interval)
       const lastDate = parseDate(repeatUntil)
       let skipped = 0
 
-      while (cursor <= lastDate && created.length < 52) {
-        const repeatedEvent: CalendarEvent = {
+      while (cursor <= lastDate && candidates.length < 53) {
+        candidates.push({
           ...event,
           id: crypto.randomUUID(),
           date: isoDate(cursor),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
-        if (detectScheduleConflict([...events, event, ...created], repeatedEvent)) {
-          skipped += 1
-        } else {
-          created.push(repeatedEvent)
-        }
+        })
         cursor = addDays(cursor, interval)
       }
 
+      candidates.forEach((candidate) => {
+        if (detectScheduleConflict([...events, ...created], candidate)) {
+          skipped += 1
+        } else {
+          created.push(candidate)
+        }
+      })
+
       created.forEach(onSave)
       if (created.length > 0) {
-        toast.success(
-          t("activity.repeatAdded", { n: created.length + 1 })
-        )
+        toast.success(t("activity.repeatAdded", { n: created.length }))
       }
       if (skipped > 0) {
         toast.info(t("activity.repeatSkipped", { n: skipped }))
       }
+    } else {
+      onSave(event)
     }
     onClose()
   }
