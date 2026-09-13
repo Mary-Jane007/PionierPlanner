@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -18,6 +18,7 @@ import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import type { LocaleCode, PioneerTypeId } from "@/types"
 import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from "@/lib/utils"
 
 export function SetupPage() {
   const t = useT()
@@ -161,13 +162,29 @@ export function SetupPage() {
       ) : null}
 
       <div className="mt-8 flex justify-between">
-        <Button variant="ghost" onClick={() => setStep(Math.max(1, step - 1))}>
+        <button
+          type="button"
+          className={cn(buttonVariants({ variant: "ghost" }), "h-10 px-4")}
+          onClick={() => setStep(Math.max(1, step - 1))}
+        >
           {t("setup.back")}
-        </Button>
+        </button>
         {step < 3 ? (
-          <Button onClick={() => setStep(step + 1)}>{t("setup.next")}</Button>
+          <button
+            type="button"
+            className={cn(buttonVariants(), "h-10 px-4")}
+            onClick={() => setStep(step + 1)}
+          >
+            {t("setup.next")}
+          </button>
         ) : (
-          <Button onClick={finish}>{t("setup.finish")}</Button>
+          <button
+            type="button"
+            className={cn(buttonVariants(), "h-10 px-4")}
+            onClick={finish}
+          >
+            {t("setup.finish")}
+          </button>
         )}
       </div>
     </div>

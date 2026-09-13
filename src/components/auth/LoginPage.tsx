@@ -4,9 +4,13 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { demoProfile, signInOrRegister } from "@/lib/auth"
+import {
+  demoProfile,
+  registerAccount,
+  signInAccount,
+} from "@/lib/auth"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
@@ -23,7 +27,6 @@ export function LoginPage() {
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   const login = useAppStore((s) => s.login)
-  const hydrated = useAppStore((s) => s.hydrated)
 
   function goToApp(onboarded: boolean) {
     router.replace(onboarded ? "/vandaag" : "/setup")
@@ -35,13 +38,17 @@ export function LoginPage() {
     setError("")
     setPending(true)
     try {
-      const result = await signInOrRegister(email, password, name)
+      const result =
+        mode === "signup"
+          ? await registerAccount(name, email, password)
+          : await signInAccount(email, password)
       if ("error" in result) {
-        setError(t("auth.error"))
+        setError(
+          result.error === "exists" ? t("auth.exists") : t("auth.error")
+        )
         return
       }
-      const hadSession = useAppStore.getState().onboarded
-      login(result, { fresh: mode === "signup" || !hadSession })
+      login(result, { fresh: mode === "signup" })
       goToApp(useAppStore.getState().onboarded)
     } catch {
       setError(t("activity.error"))
@@ -67,14 +74,14 @@ export function LoginPage() {
         <h1 className="font-heading text-4xl">{t("auth.welcome")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("auth.localNote")}</p>
 
-        <Button
-          className="mt-8 h-11 rounded-xl"
+        <button
+          className={cn(buttonVariants(), "mt-8 h-11 rounded-xl")}
           onClick={openDemo}
-          disabled={!hydrated || pending}
+          disabled={pending}
           type="button"
         >
           {t("auth.demo")}
-        </Button>
+        </button>
 
         <div className="relative my-8 text-center text-xs tracking-[0.16em] text-muted-foreground uppercase">
           <span className="bg-background px-3">{mode === "signup" ? t("auth.signup") : t("auth.signin")}</span>
@@ -127,28 +134,30 @@ export function LoginPage() {
           ) : (
             <p className="text-xs text-muted-foreground">
               {mode === "signin"
-                ? t("auth.firstLoginHint")
+                ? t("auth.signinHint")
                 : t("auth.localNote")}
             </p>
           )}
           <button
             className={cn(buttonVariants(), "h-11 rounded-xl")}
             type="submit"
-            disabled={!hydrated || pending}
+            disabled={pending}
           >
             {pending ? t("common.loading") : mode === "signup" ? t("auth.signup") : t("auth.signin")}
           </button>
         </form>
 
-        <Button
-          variant="outline"
-          className="mt-3 h-11 rounded-xl"
+        <button
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "mt-3 h-11 rounded-xl"
+          )}
           type="button"
           onClick={openDemo}
-          disabled={!hydrated || pending}
+          disabled={pending}
         >
           {t("auth.google")}
-        </Button>
+        </button>
         <p className="mt-2 text-xs text-muted-foreground">{t("auth.googleHint")}</p>
 
         <button
