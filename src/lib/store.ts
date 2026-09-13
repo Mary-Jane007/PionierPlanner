@@ -24,6 +24,7 @@ import { createDemoData, emptyUserData } from "@/lib/seed"
 export interface AppState {
   hydrated: boolean
   user: UserProfile | null
+  activeProfileId: string | null
   onboarded: boolean
   pioneerType: PioneerTypeId
   customMonthlyHours: number
@@ -93,6 +94,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       hydrated: false,
       user: null,
+      activeProfileId: null,
       onboarded: false,
       pioneerType: "regular",
       customMonthlyHours: DEFAULT_REGULAR_HOURS,
@@ -117,6 +119,7 @@ export const useAppStore = create<AppState>()(
               id: profile.id,
               createdAt: profile.createdAt,
             },
+            activeProfileId: profile.id,
             onboarded: true,
             pioneerType: data.pioneerType,
             customMonthlyHours: data.customMonthlyHours,
@@ -136,6 +139,18 @@ export const useAppStore = create<AppState>()(
           set({
             ...empty,
             user: profile,
+            activeProfileId: profile.id,
+            onboarded: false,
+            timer: idleTimer,
+          })
+          return
+        }
+        if (get().activeProfileId !== profile.id) {
+          const empty = emptyUserData(profile)
+          set({
+            ...empty,
+            user: profile,
+            activeProfileId: profile.id,
             onboarded: false,
             timer: idleTimer,
           })
@@ -143,19 +158,12 @@ export const useAppStore = create<AppState>()(
         }
         set({
           user: profile,
-          onboarded: get().onboarded,
           timer: idleTimer,
         })
       },
       logout: () =>
         set({
           user: null,
-          onboarded: false,
-          events: [],
-          experiences: [],
-          commitments: [],
-          history: [],
-          monthlyGoals: [],
           timer: idleTimer,
         }),
       completeOnboarding: () => set({ onboarded: true }),
@@ -327,6 +335,7 @@ export const useAppStore = create<AppState>()(
       deleteAccountLocal: () => {
         set({
           user: null,
+          activeProfileId: null,
           onboarded: false,
           pioneerType: "regular",
           customMonthlyHours: DEFAULT_REGULAR_HOURS,
@@ -348,6 +357,7 @@ export const useAppStore = create<AppState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
+        activeProfileId: state.activeProfileId,
         onboarded: state.onboarded,
         pioneerType: state.pioneerType,
         customMonthlyHours: state.customMonthlyHours,
