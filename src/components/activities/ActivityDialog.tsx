@@ -23,7 +23,13 @@ import {
 } from "@/components/ui/select"
 import { activitySchema } from "@/lib/validation"
 import { CATEGORY_ORDER } from "@/lib/constants"
-import { isoDate, minutesBetween } from "@/lib/dates"
+import {
+  addDays,
+  endOfMonth,
+  isoDate,
+  minutesBetween,
+  parseDate,
+} from "@/lib/dates"
 import { formatHoursShort } from "@/lib/format"
 import { detectScheduleConflict } from "@/lib/calculations"
 import { useT, useLang } from "@/lib/i18n"
@@ -41,6 +47,8 @@ const serviceTypes: FieldServiceType[] = [
   "bible_study",
   "other",
 ]
+
+type RepeatPattern = "none" | "weekly" | "biweekly"
 
 export function ActivityDialog() {
   const t = useT()
@@ -114,6 +122,10 @@ function ActivityForm({
   const [location, setLocation] = useState(source?.location ?? "")
   const [notes, setNotes] = useState(source?.notes ?? "")
   const [status, setStatus] = useState<ActivityStatus>(source?.status ?? "planned")
+  const [repeat, setRepeat] = useState<RepeatPattern>("none")
+  const [repeatUntil, setRepeatUntil] = useState(
+    isoDate(endOfMonth(parseDate(source?.date ?? isoDate(new Date()))))
+  )
 
   const duration = useMemo(() => {
     try {
@@ -159,6 +171,40 @@ function ActivityForm({
       return
     }
     onSave(event)
+
+    if (!editingId && repeat !== "none") {
+      const interval = repeat === "weekly" ? 7 : 14
+      const created: CalendarEvent[] = []
+      let cursor = addDays(parseDate(event.date), interval)
+      const lastDate = parseDate(repeatUntil)
+      let skipped = 0
+
+      while (cursor <= lastDate && created.length < 52) {
+        const repeatedEvent: CalendarEvent = {
+          ...event,
+          id: crypto.randomUUID(),
+          date: isoDate(cursor),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        if (detectScheduleConflict([...events, event, ...created], repeatedEvent)) {
+          skipped += 1
+        } else {
+          created.push(repeatedEvent)
+        }
+        cursor = addDays(cursor, interval)
+      }
+
+      created.forEach(onSave)
+      if (created.length > 0) {
+        toast.success(
+          t("activity.repeatAdded", { n: created.length + 1 })
+        )
+      }
+      if (skipped > 0) {
+        toast.info(t("activity.repeatSkipped", { n: skipped }))
+      }
+    }
     onClose()
   }
 
@@ -196,7 +242,19 @@ function ActivityForm({
           </Field>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field label={t("activity.date")}>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input
+                type="date"
+                value={date}
+                onChange={(event) => {
+                  const nextDate = event.target.value
+                  setDate(nextDate)
+                  if (repeatUntil < nextDate) {
+                    setRepeatUntil(
+                      isoDate(endOfMonth(parseDate(nextDate)))
+                    )
+                  }
+                }}
+              />
             </Field>
             <Field label={t("activity.start")}>
               <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
@@ -208,6 +266,51 @@ function ActivityForm({
           <p className="text-sm text-muted-foreground">
             {t("activity.duration")}: {formatHoursShort(duration / 60, lang)}
           </p>
+          {!editingId ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label={t("activity.repeat")}>
+                <Select
+                  value={repeat}
+                  onValueChange={(value) => {
+                    const pattern = value as RepeatPattern
+                    setRepeat(pattern)
+                    if (pattern !== "none" && repeatUntil < date) {
+                      setRepeatUntil(
+                        isoDate(endOfMonth(parseDate(date)))
+                      )
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      {t("activity.repeat.none")}
+                    </SelectItem>
+                    <SelectItem value="weekly">
+                      {t("activity.repeat.weekly")}
+                    </SelectItem>
+                    <SelectItem value="biweekly">
+                      {t("activity.repeat.biweekly")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              {repeat !== "none" ? (
+                <Field label={t("activity.repeatUntil")}>
+                  <Input
+                    type="date"
+                    min={date}
+                    value={repeatUntil}
+                    onChange={(event) =>
+                      setRepeatUntil(event.target.value)
+                    }
+                  />
+                </Field>
+              ) : null}
+            </div>
+          ) : null}
           {category === "field_service" ? (
             <>
               <Field label={t("activity.serviceType")}>
