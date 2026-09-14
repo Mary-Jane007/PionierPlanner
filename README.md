@@ -27,7 +27,7 @@ cp .env.example .env
 npm run dev
 ```
 
-De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321).
+De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env`, default 4321).
 
 Gebruik **Open de demomaand** voor een gevulde september-achtige agenda, of maak een eigen account.
 
