@@ -127,8 +127,24 @@ async function checkInBrowser(origin) {
 
   try {
     const page = await browser.newPage()
-    await page.goto(`${origin}/`, { waitUntil: "networkidle0", timeout: 30000 })
+    const failed = []
+    page.on("requestfailed", (request) => {
+      failed.push(`${request.resourceType()} ${request.url()} ${request.failure()?.errorText}`)
+    })
+
+    await page.goto(`${origin}/`, { waitUntil: "domcontentloaded", timeout: 30000 })
     await page.evaluate(() => navigator.serviceWorker.ready)
+    await page.waitForFunction(
+      async () => {
+        const keys = await caches.keys()
+        const name = keys.find((key) => key.startsWith("pioniersplanner-"))
+        if (!name) return false
+        const cache = await caches.open(name)
+        const requests = await cache.keys()
+        return requests.length > 20
+      },
+      { timeout: 20000 },
+    )
 
     const cacheInfo = await page.evaluate(async () => {
       await navigator.serviceWorker.ready
@@ -144,16 +160,42 @@ async function checkInBrowser(origin) {
       `expected a full precache, got ${cacheInfo.count} entries (${cacheInfo.keys})`,
     )
 
+    await page.goto(`${origin}/inloggen/`, { waitUntil: "domcontentloaded", timeout: 15000 })
+    await page.waitForFunction(
+      () => [...document.querySelectorAll("button")].some((button) => button.textContent?.includes("demomaand")),
+      { timeout: 10000 },
+    )
+    await page.evaluate(() => {
+      const button = [...document.querySelectorAll("button")].find((item) =>
+        item.textContent?.includes("demomaand"),
+      )
+      button?.click()
+    })
+    await page.waitForFunction(
+      () => /Vandaag|Planner|Kalender|Goedemorgen|Goedemiddag|Goedenavond/.test(document.body?.innerText || ""),
+      { timeout: 15000 },
+    )
+
+    failed.length = 0
     await page.setOfflineMode(true)
-    for (const path of ["/vandaag/", "/planner/", "/kalender/", "/inloggen/"]) {
+    for (const path of ["/", "/vandaag/", "/planner/", "/kalender/", "/inloggen/", "/download/"]) {
       const response = await page.goto(`${origin}${path}`, {
         waitUntil: "domcontentloaded",
         timeout: 15000,
       })
-      assert(response && response.ok(), `offline navigation failed for ${path}: ${response?.status()}`)
-      const body = await page.evaluate(() => document.body?.innerText || "")
-      assert(body.includes("Pioniersplanner") || body.length > 20, `offline page ${path} rendered empty`)
+      assert(response && (response.ok() || response.status() === 0), `offline navigation failed for ${path}: ${response?.status()}`)
+      await page.waitForFunction(
+        () => {
+          const text = document.body?.innerText || ""
+          const title = document.title || ""
+          return title.includes("Pioniersplanner") && (text.length > 40 || text.includes("offline"))
+        },
+        { timeout: 15000 },
+      )
     }
+
+    const scriptFails = failed.filter((line) => line.startsWith("script ") || line.startsWith("document "))
+    assert(scriptFails.length === 0, `scripts failed while offline:\n${scriptFails.join("\n")}`)
     if (!process.exitCode) {
       console.log(`browser offline ok: ${cacheInfo.count} cached requests (${cacheInfo.name})`)
     }
