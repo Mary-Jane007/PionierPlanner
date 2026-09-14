@@ -61,7 +61,15 @@ export function LandingPage() {
               <Link href="/inloggen" className={cn(buttonVariants({ variant: "outline" }), "h-12 rounded-xl px-6")}>
                 {t("landing.login")}
               </Link>
+              <a
+                href="/downloads/pioniersplanner.apk"
+                download="pioniersplanner.apk"
+                className={cn(buttonVariants({ variant: "secondary" }), "h-12 rounded-xl px-6")}
+              >
+                {t("landing.downloadAndroid")}
+              </a>
             </div>
+            <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.downloadAndroidHint")}</p>
           </div>
           <PreviewCard />
         </section>

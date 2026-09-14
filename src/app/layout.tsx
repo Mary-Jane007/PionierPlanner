@@ -19,12 +19,26 @@ export const metadata: Metadata = {
   description:
     "Plan je tijd. Houd je voortgang bij. Geniet van je dienst. Een onafhankelijke planner voor pioniers.",
   applicationName: "Pioniersplanner",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Pioniersplanner",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", sizes: "512x512" },
+    ],
+  },
 }
 
 export const viewport: Viewport = {
   themeColor: "#29483F",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

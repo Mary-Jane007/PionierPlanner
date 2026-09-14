@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { ThemeProvider, useTheme } from "next-themes"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { RegisterSW } from "@/components/pwa/RegisterSW"
 import { useAppStore } from "@/lib/store"
 
 function ThemeSync() {
@@ -41,6 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <ThemeSync />
+        <RegisterSW />
         {children}
         <Toaster position="top-center" />
       </TooltipProvider>

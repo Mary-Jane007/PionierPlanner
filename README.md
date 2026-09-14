@@ -29,6 +29,14 @@ npm run dev
 
 De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env`, default 4321).
 
+Op je telefoon kun je de site als app installeren (PWA), of de Android-APK downloaden via **Download Android-app**.
+
+```bash
+npm run mobile:apk
+```
+
+Dat zet `public/downloads/pioniersplanner.apk` klaar. Installeer het bestand op Android en sta installatie van onbekende bronnen toe.
+
 Gebruik **Open de demomaand** voor een gevulde september-achtige agenda, of maak een eigen account.
 
 ## Gegevens en privacy

@@ -41,6 +41,18 @@ const messages = {
   },
   "landing.cta": { nl: "Aan de slag", en: "Get started", es: "Empezar", pap: "Kuminsá" },
   "landing.login": { nl: "Inloggen", en: "Sign in", es: "Iniciar sesión", pap: "Ingresá" },
+  "landing.downloadAndroid": {
+    nl: "Download Android-app",
+    en: "Download Android app",
+    es: "Descargar app de Android",
+    pap: "Deskargá app di Android",
+  },
+  "landing.downloadAndroidHint": {
+    nl: "APK-bestand. Sta installatie van onbekende bronnen toe op je telefoon.",
+    en: "APK file. Allow installs from unknown sources on your phone.",
+    es: "Archivo APK. Permite instalar desde fuentes desconocidas.",
+    pap: "Archivo APK. Permiti instala for di fuentenan deskonosí.",
+  },
   "landing.feature.plan.title": { nl: "Slim plannen", en: "Plan smart", es: "Planifica con inteligencia", pap: "Planeá inteligentemente" },
   "landing.feature.plan.text": {
     nl: "Maak een realistische maandplanning op basis van je beschikbaarheid.",
