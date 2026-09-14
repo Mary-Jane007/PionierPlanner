@@ -23,6 +23,7 @@ Standaarddoelen zijn instelbaar (niet hard in de logica gebakken):
 
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
 
