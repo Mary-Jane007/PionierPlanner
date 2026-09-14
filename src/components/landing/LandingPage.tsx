@@ -78,8 +78,16 @@ export function LandingPage() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((item) => (
-            <article key={item} className="card-quiet rounded-3xl p-6">
+          {features.map((item, index) => (
+            <article
+              key={item}
+              className={cn(
+                "rounded-3xl p-6",
+                ["surface-primary", "surface-sage", "surface-warm", "surface-accent", "surface-sage", "surface-primary"][
+                  index
+                ]
+              )}
+            >
               <h2 className="font-heading text-2xl">{t(`landing.feature.${item}.title`)}</h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {t(`landing.feature.${item}.text`)}
@@ -98,21 +106,21 @@ export function LandingPage() {
 
 function PreviewCard() {
   return (
-    <div className="card-quiet rounded-[2rem] p-6 sm:p-8">
+    <div className="surface-sage rounded-[2rem] p-6 sm:p-8">
       <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">Gewone pionier</p>
       <p className="font-heading mt-3 text-5xl">32 / 50 uur</p>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-primary/15">
         <div className="h-full w-[64%] rounded-full bg-primary" />
       </div>
       <p className="mt-3 text-sm text-muted-foreground">Nog 18 uur · Deze week 8 uur</p>
       <div className="mt-6 space-y-3">
-        <div className="rounded-2xl bg-muted/70 px-4 py-3">
-          <p className="text-xs text-muted-foreground">Morgen — 09:00</p>
+        <div className="cat-field_service rounded-2xl px-4 py-3">
+          <p className="text-xs opacity-80">Morgen — 09:00</p>
           <p className="font-medium">Velddienst · 2u</p>
         </div>
-        <div className="rounded-2xl bg-muted/70 px-4 py-3">
-          <p className="text-xs text-muted-foreground">Zaterdag — 09:00</p>
-          <p className="font-medium">Velddienst · 4u</p>
+        <div className="cat-meeting rounded-2xl px-4 py-3">
+          <p className="text-xs opacity-80">Zaterdag — 09:00</p>
+          <p className="font-medium">Weekendvergadering · 2u</p>
         </div>
       </div>
     </div>

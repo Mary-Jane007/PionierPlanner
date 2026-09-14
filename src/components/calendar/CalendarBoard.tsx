@@ -19,6 +19,7 @@ import {
   formatMonthTitle,
   formatWeekdayShort,
   isoDate,
+  isoWeekday,
   isSameMonthDate,
   isToday,
   weekDays,
@@ -120,8 +121,8 @@ export function CalendarBoard() {
               className={cn(
                 "rounded-full border px-3 py-1 text-xs transition-colors",
                 active
-                  ? "border-primary/20 bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground"
+                  ? cn("cat-" + category, "border-transparent")
+                  : "border-border bg-card text-muted-foreground"
               )}
             >
               {t(`category.${category}`)}
@@ -170,7 +171,7 @@ function MonthGrid({
 
   return (
     <div className="card-quiet overflow-hidden rounded-2xl">
-      <div className="grid grid-cols-7 border-b border-border bg-muted/40">
+      <div className="grid grid-cols-7 border-b border-border cal-weekdays">
         {labels.map((day) => (
           <div
             key={day.toISOString()}
@@ -186,6 +187,7 @@ function MonthGrid({
           const dayEvents = events.filter((event) => event.date === date)
           const hours = calculateHoursForDay(events, date)
           const outside = !isSameMonthDate(day, cursor)
+          const weekend = isoWeekday(day) >= 6
           return (
             <DayDroppable
               key={date}
@@ -194,7 +196,8 @@ function MonthGrid({
               className={cn(
                 "min-h-[108px] cursor-pointer border-r border-b border-border p-2 sm:min-h-[128px]",
                 outside && "bg-muted/30 text-muted-foreground",
-                isToday(day) && "bg-primary/6 ring-inset ring-1 ring-primary/25"
+                !outside && weekend && "cal-weekend",
+                isToday(day) && "cal-today"
               )}
             >
               <div className="mb-1 flex items-center justify-between">
@@ -254,7 +257,8 @@ function WeekGrid({
             key={day.toISOString()}
             className={cn(
               "border-b border-r border-border px-2 py-3 text-center",
-              isToday(day) && "bg-primary/6"
+              isoWeekday(day) >= 6 && "cal-weekend",
+              isToday(day) && "cal-today"
             )}
           >
             <p className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">

@@ -359,7 +359,16 @@ function OptionCard({
   const lang = useLang()
   const openActivity = useUiStore((s) => s.openActivity)
   return (
-    <article className="option-card-suggested rounded-2xl p-4">
+    <article
+      className={cn(
+        "rounded-2xl p-4",
+        option.style === "weekend"
+          ? "option-card-weekend"
+          : option.style === "flexible"
+            ? "option-card-flexible"
+            : "option-card-even"
+      )}
+    >
       <h3 className="font-heading text-xl">{t(option.titleKey)}</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         {formatDecimal(option.totalHours, lang)}u

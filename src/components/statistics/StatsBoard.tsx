@@ -22,6 +22,7 @@ import { formatMonthTitle } from "@/lib/dates"
 import { useMonthSnapshot } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
+import { cn } from "@/lib/utils"
 
 export function StatsBoard() {
   const t = useT()
@@ -57,22 +58,22 @@ export function StatsBoard() {
         <h1 className="font-heading text-4xl capitalize">{formatMonthTitle(now, lang)}</h1>
       </header>
 
-      <section className="card-quiet flex flex-col items-center gap-6 rounded-3xl p-8 sm:flex-row">
+      <section className="surface-primary flex flex-col items-center gap-6 rounded-3xl p-8 sm:flex-row">
         <ProgressRing value={snapshot.percent} label={formatPercent(snapshot.percent)} />
         <div className="grid flex-1 grid-cols-2 gap-3">
-          <Stat label={t("planner.completed")} value={`${formatDecimal(snapshot.completed, lang)}u`} />
-          <Stat label={t("planner.remaining")} value={`${formatDecimal(snapshot.remaining, lang)}u`} />
-          <Stat label={t("planner.planned")} value={`${formatDecimal(snapshot.planned, lang)}u`} />
-          <Stat label={t("status.cancelled")} value={`${formatDecimal(snapshot.cancelled, lang)}u`} />
-          <Stat label={t("stats.avgSession")} value={formatHoursShort(snapshot.averageSession, lang)} />
-          <Stat label={t("stats.sessions")} value={String(snapshot.sessionsCompleted)} />
-          <Stat label={t("planner.needWeek")} value={`${formatDecimal(snapshot.weeklyAverage, lang)}u`} />
-          <Stat label={t("planner.projected")} value={`${formatDecimal(snapshot.projected, lang)}u`} />
+          <Stat tone="done" label={t("planner.completed")} value={`${formatDecimal(snapshot.completed, lang)}u`} />
+          <Stat tone="left" label={t("planner.remaining")} value={`${formatDecimal(snapshot.remaining, lang)}u`} />
+          <Stat tone="planned" label={t("planner.planned")} value={`${formatDecimal(snapshot.planned, lang)}u`} />
+          <Stat tone="goal" label={t("status.cancelled")} value={`${formatDecimal(snapshot.cancelled, lang)}u`} />
+          <Stat tone="done" label={t("stats.avgSession")} value={formatHoursShort(snapshot.averageSession, lang)} />
+          <Stat tone="left" label={t("stats.sessions")} value={String(snapshot.sessionsCompleted)} />
+          <Stat tone="goal" label={t("planner.needWeek")} value={`${formatDecimal(snapshot.weeklyAverage, lang)}u`} />
+          <Stat tone="planned" label={t("planner.projected")} value={`${formatDecimal(snapshot.projected, lang)}u`} />
         </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title={t("stats.weekChart")}>
+        <ChartCard title={t("stats.weekChart")} tone="sage">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={weekData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -85,7 +86,7 @@ export function StatsBoard() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title={t("stats.monthChart")}>
+        <ChartCard title={t("stats.monthChart")} tone="warm">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={monthLabels}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -98,22 +99,23 @@ export function StatsBoard() {
         </ChartCard>
       </section>
 
-      <section className="card-quiet rounded-3xl p-6">
+      <section className="surface-sage rounded-3xl p-6">
         <h2 className="font-heading text-3xl">{t("stats.year")}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <Stat label={t("stats.yearTotal")} value={`${formatDecimal(yearTotal, lang)}u`} />
+          <Stat tone="goal" label={t("stats.yearTotal")} value={`${formatDecimal(yearTotal, lang)}u`} />
           <Stat
+            tone="done"
             label={t("stats.yearAverage")}
             value={`${formatDecimal(monthsTracked ? yearTotal / monthsTracked : 0, lang)}u`}
           />
-          <Stat label={t("stats.monthsTracked")} value={String(monthsTracked)} />
-          <Stat label={t("stats.sessions")} value={String(sessionsTotal)} />
+          <Stat tone="planned" label={t("stats.monthsTracked")} value={String(monthsTracked)} />
+          <Stat tone="left" label={t("stats.sessions")} value={String(sessionsTotal)} />
         </div>
         <p className="mt-4 text-sm text-muted-foreground">{t("stats.personal")}</p>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <article className="card-quiet rounded-3xl p-6">
+        <article className="surface-warm rounded-3xl p-6">
           <h2 className="font-heading text-2xl">{t("stats.insights")}</h2>
           <dl className="mt-4 grid gap-3">
             <Row label={t("stats.longest")} value={formatHoursShort((insights.longestSessionMinutes || 0) / 60, lang)} />
@@ -135,12 +137,14 @@ export function StatsBoard() {
             />
           </dl>
         </article>
-        <article className="card-quiet rounded-3xl p-6">
+        <article className="surface-accent rounded-3xl p-6">
           <h2 className="font-heading text-2xl">{t("stats.types")}</h2>
           <ul className="mt-4 space-y-2">
             {types.map((item) => (
-              <li key={item.category} className="flex justify-between text-sm">
-                <span>{t(`category.${item.category}`)}</span>
+              <li key={item.category} className="flex justify-between gap-3 text-sm">
+                <span className={cn("cat-" + item.category, "rounded-full px-2 py-0.5")}>
+                  {t(`category.${item.category}`)}
+                </span>
                 <span>{formatHoursShort(item.hours, lang)}</span>
               </li>
             ))}
@@ -151,18 +155,34 @@ export function StatsBoard() {
   )
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+  title,
+  children,
+  tone = "sage",
+}: {
+  title: string
+  children: React.ReactNode
+  tone?: "sage" | "warm"
+}) {
   return (
-    <article className="card-quiet rounded-3xl p-5">
+    <article className={cn("rounded-3xl p-5", `surface-${tone}`)}>
       <h2 className="font-heading mb-4 text-2xl">{title}</h2>
       {children}
     </article>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone?: "goal" | "done" | "left" | "planned"
+}) {
   return (
-    <div className="rounded-2xl bg-muted/60 p-3">
+    <div className={cn("rounded-2xl p-3", tone ? `stat-${tone}` : "bg-muted/60")}>
       <p className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">{label}</p>
       <p className="font-heading mt-1 text-xl">{value}</p>
     </div>
