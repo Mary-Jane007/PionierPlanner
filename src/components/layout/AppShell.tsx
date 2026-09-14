@@ -16,12 +16,12 @@ import {
 } from "lucide-react"
 import { Logo } from "@/components/brand/Logo"
 import { Button } from "@/components/ui/button"
+import { isoDate } from "@/lib/dates"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
 import { cn } from "@/lib/utils"
 import { ServiceTimer } from "@/components/activities/ServiceTimer"
-import { QuickAdd } from "@/components/layout/QuickAdd"
 import { PageLoader } from "@/components/layout/PageLoader"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ExperienceDialog } from "@/components/experiences/ExperienceDialog"
@@ -52,7 +52,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useT()
   const user = useAppStore((state) => state.user)
   const openActivity = useUiStore((state) => state.openActivity)
-  const setQuickOpen = useUiStore((state) => state.setQuickOpen)
+
+  function openNewActivity() {
+    openActivity({
+      category: "field_service",
+      title: t("category.field_service"),
+      date: isoDate(new Date()),
+      status: "planned",
+    })
+  }
 
   return (
     <div className="min-h-dvh bg-background">
@@ -92,12 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <Button
           className="h-11 w-full rounded-xl"
-          onClick={() =>
-            openActivity({
-              category: "field_service",
-              title: t("category.field_service"),
-            })
-          }
+          onClick={openNewActivity}
         >
           <Plus className="size-4" />
           {t("nav.addActivity")}
@@ -117,7 +120,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             size="icon"
             className="size-10 rounded-full"
             aria-label={t("nav.addActivity")}
-            onClick={() => setQuickOpen(true)}
+            onClick={openNewActivity}
           >
             <Plus className="size-4" />
           </Button>
@@ -158,13 +161,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <button
         type="button"
         className="fixed right-4 bottom-24 z-30 hidden size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-card)] lg:flex"
-        aria-label={t("quick.service")}
-        onClick={() => setQuickOpen(true)}
+        aria-label={t("nav.addActivity")}
+        onClick={openNewActivity}
       >
         <Plus className="size-6" />
       </button>
 
-      <QuickAdd />
       <ActivityDialog />
       <ExperienceDialog />
       <MoveEventSheet />
