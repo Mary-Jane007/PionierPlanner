@@ -319,10 +319,10 @@
 }
 
 .cal-weekdays {
-  background: color-mix(in oklab, var(--sage) 12%, var(--muted));
+  background: color-mix(in oklab, var(--sage) 18%, var(--muted));
 }
 .cal-weekend {
-  background: color-mix(in oklab, var(--warm) 8%, transparent);
+  background: color-mix(in oklab, var(--warm) 14%, var(--card));
 }
 .cal-today {
   background: color-mix(in oklab, var(--primary) 10%, var(--card));
