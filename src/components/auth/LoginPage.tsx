@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
+import { PageLoader } from "@/components/layout/PageLoader"
 import { buttonVariants } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
   demoProfile,
+  rememberEmail,
+  rememberedEmail,
   registerAccount,
   signInAccount,
 } from "@/lib/auth"
@@ -27,9 +30,24 @@ export function LoginPage() {
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   const login = useAppStore((s) => s.login)
+  const user = useAppStore((s) => s.user)
+  const onboarded = useAppStore((s) => s.onboarded)
+  const hydrated = useAppStore((s) => s.hydrated)
 
-  function goToApp(onboarded: boolean) {
-    router.replace(onboarded ? "/vandaag" : "/setup")
+  useEffect(() => {
+    const stored = rememberedEmail()
+    if (!stored) return
+    // localStorage is not available during SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- prefill after mount
+    setEmail(stored)
+  }, [])
+
+  useEffect(() => {
+    if (hydrated && user && onboarded) router.replace("/vandaag")
+  }, [hydrated, user, onboarded, router])
+
+  function goToApp(nextOnboarded: boolean) {
+    router.replace(nextOnboarded ? "/vandaag" : "/setup")
   }
 
   async function submit(event: React.FormEvent) {
@@ -43,11 +61,10 @@ export function LoginPage() {
           ? await registerAccount(name, email, password)
           : await signInAccount(email, password)
       if ("error" in result) {
-        setError(
-          result.error === "exists" ? t("auth.exists") : t("auth.error")
-        )
+        setError(result.error === "exists" ? t("auth.exists") : t("auth.error"))
         return
       }
+      rememberEmail(result.email)
       login(result, { fresh: mode === "signup" })
       goToApp(useAppStore.getState().onboarded)
     } catch {
@@ -59,8 +76,14 @@ export function LoginPage() {
 
   function openDemo() {
     setError("")
-    login(demoProfile(), { demo: true })
+    const profile = demoProfile()
+    rememberEmail(profile.email)
+    login(profile, { demo: true })
     goToApp(true)
+  }
+
+  if (!hydrated || (user && onboarded)) {
+    return <PageLoader />
   }
 
   return (
@@ -73,6 +96,7 @@ export function LoginPage() {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 pb-16">
         <h1 className="font-heading text-4xl">{t("auth.welcome")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("auth.localNote")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
 
         <button
           className={cn(buttonVariants(), "mt-8 h-11 rounded-xl")}
@@ -110,7 +134,7 @@ export function LoginPage() {
               className={fieldClass}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
+              autoComplete="username"
               required
             />
           </label>
@@ -133,9 +157,7 @@ export function LoginPage() {
             </p>
           ) : (
             <p className="text-xs text-muted-foreground">
-              {mode === "signin"
-                ? t("auth.signinHint")
-                : t("auth.localNote")}
+              {mode === "signin" ? t("auth.signinHint") : t("auth.localNote")}
             </p>
           )}
           <button
@@ -148,10 +170,7 @@ export function LoginPage() {
         </form>
 
         <button
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "mt-3 h-11 rounded-xl"
-          )}
+          className={cn(buttonVariants({ variant: "outline" }), "mt-3 h-11 rounded-xl")}
           type="button"
           onClick={openDemo}
           disabled={pending}

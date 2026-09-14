@@ -1,6 +1,6 @@
 "use client"
 
-import { ACCOUNTS_KEY } from "@/lib/constants"
+import { ACCOUNTS_KEY, LAST_EMAIL_KEY } from "@/lib/constants"
 import type { UserAccount, UserProfile } from "@/types"
 
 async function hashPassword(password: string): Promise<string> {
@@ -96,8 +96,29 @@ export async function signInOrRegister(
   return signInAccount(email, password)
 }
 
+export function rememberEmail(email: string) {
+  if (typeof window === "undefined") return
+  const normalized = email.trim().toLowerCase()
+  if (normalized) localStorage.setItem(LAST_EMAIL_KEY, normalized)
+}
+
+export function rememberedEmail(): string {
+  if (typeof window === "undefined") return ""
+  return localStorage.getItem(LAST_EMAIL_KEY) ?? ""
+}
+
+export function forgetRememberedEmail() {
+  if (typeof window === "undefined") return
+  localStorage.removeItem(LAST_EMAIL_KEY)
+}
+
 export function deleteStoredAccount(userId: string) {
-  writeAccounts(readAccounts().filter((account) => account.id !== userId))
+  const remaining = readAccounts().filter((account) => account.id !== userId)
+  writeAccounts(remaining)
+  const last = rememberedEmail()
+  if (last && !remaining.some((account) => account.email === last)) {
+    forgetRememberedEmail()
+  }
 }
 
 export function demoProfile(): UserProfile {

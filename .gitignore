@@ -17,6 +17,18 @@
 /.next/
 /out/
 
+# android / capacitor build
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+android/local.properties
+android/.idea/
+*.iml
+*.apk
+!public/downloads/*.apk
+!public/downloads/*.zip
+
 # production
 /build
 
@@ -30,8 +42,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (keep .env.example as the committed template)
 .env*
+!.env.example
 
 # vercel
 .vercel

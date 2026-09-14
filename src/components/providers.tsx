@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import { ThemeProvider, useTheme } from "next-themes"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { RegisterSW } from "@/components/pwa/RegisterSW"
+import { OfflineBanner } from "@/components/pwa/OfflineBanner"
 import { useAppStore } from "@/lib/store"
 
 function ThemeSync() {
@@ -24,16 +26,15 @@ function ThemeSync() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const unsub = useAppStore.persist.onFinishHydration(() => {
-      useAppStore.getState().setHydrated(true)
-    })
-    void useAppStore.persist.rehydrate()
-    const timeout = window.setTimeout(() => {
-      useAppStore.getState().setHydrated(true)
-    }, 400)
+    let cancelled = false
+    const finish = () => {
+      if (!cancelled) useAppStore.getState().setHydrated(true)
+    }
+    const unsub = useAppStore.persist.onFinishHydration(finish)
+    void Promise.resolve(useAppStore.persist.rehydrate()).finally(finish)
     return () => {
+      cancelled = true
       unsub()
-      window.clearTimeout(timeout)
     }
   }, [])
 
@@ -41,6 +42,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <ThemeSync />
+        <RegisterSW />
+        <OfflineBanner />
         {children}
         <Toaster position="top-center" />
       </TooltipProvider>

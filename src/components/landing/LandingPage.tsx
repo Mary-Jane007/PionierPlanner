@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
+import { PageLoader } from "@/components/layout/PageLoader"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -15,6 +16,7 @@ const features = [
   "stats",
   "journal",
   "tips",
+  "offline",
 ] as const
 
 export function LandingPage() {
@@ -27,6 +29,10 @@ export function LandingPage() {
   useEffect(() => {
     if (hydrated && user && onboarded) router.replace("/vandaag")
   }, [hydrated, user, onboarded, router])
+
+  if (!hydrated || (user && onboarded)) {
+    return <PageLoader />
+  }
 
   return (
     <div className="min-h-dvh bg-background">
@@ -56,12 +62,17 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "h-12 rounded-xl px-6")}>
-                {t("landing.cta")}
+                {t("landing.openApp")}
               </Link>
               <Link href="/inloggen" className={cn(buttonVariants({ variant: "outline" }), "h-12 rounded-xl px-6")}>
                 {t("landing.login")}
               </Link>
+              <Link href="/download" className={cn(buttonVariants({ variant: "ghost" }), "h-12 rounded-xl px-6")}>
+                {t("landing.downloadAndroid")}
+              </Link>
             </div>
+            <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.apkWontOpenHere")}</p>
+            <p className="mt-2 max-w-xl text-xs text-muted-foreground">{t("landing.offlineHint")}</p>
           </div>
           <PreviewCard />
         </section>

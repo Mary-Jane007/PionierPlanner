@@ -198,6 +198,7 @@ export function ProfileBoard() {
         <h2 className="font-heading text-2xl">{t("settings.privacy")}</h2>
         <p className="text-sm text-muted-foreground">{t("exp.visibilityHint")}</p>
         <p className="text-sm text-muted-foreground">{t("auth.localNote")}</p>
+        <p className="text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
       </section>
 
       <section className="card-quiet space-y-3 rounded-3xl p-6">

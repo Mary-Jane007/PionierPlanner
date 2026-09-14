@@ -12,6 +12,7 @@ Persoonlijke planner voor pioniers: kalender, slimme urenplanning, voortgang en 
 - **Statistieken** — uren, projectie, jaaroverzicht en persoonlijke inzichten
 - **Ervaringen** — privé dagboek voor mooie momenten
 - **Inspiratie** — originele tips plus korte samenvattingen met links naar JW.org
+- **Offline** — installeerbare PWA; na de eerste keer laden werkt de planner zonder internet
 
 Standaarddoelen zijn instelbaar (niet hard in de logica gebakken):
 
@@ -23,16 +24,34 @@ Standaarddoelen zijn instelbaar (niet hard in de logica gebakken):
 
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321).
+De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env`, default 4321). Dat adres werkt **niet** op je telefoon (`127.0.0.1` is alleen deze computer).
+
+Publieke site (GitHub Pages): [https://mary-jane007.github.io/PionierPlanner/](https://mary-jane007.github.io/PionierPlanner/)
+
+Op je telefoon kun je de site als **offline webapp (PWA)** installeren, of de Android-APK downloaden via **Download Android-app**. Na de eerste keer laden blijven de pagina’s, iconen en je lokale gegevens beschikbaar zonder internet.
+
+```bash
+npm run build
+npm run preview
+```
+
+`preview` serveert de statische export (inclusief service worker) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next dev` is voor ontwikkelen en registreert de service worker niet.
+
+```bash
+npm run mobile:apk
+```
+
+Dat zet `public/downloads/pioniersplanner.apk` klaar. Installeer het bestand op Android en sta installatie van onbekende bronnen toe.
 
 Gebruik **Open de demomaand** voor een gevulde september-achtige agenda, of maak een eigen account.
 
 ## Gegevens en privacy
 
-Deze versie bewaart alles lokaal in de browser (geen cloud-database). Geschikt om de planner te gebruiken en te beoordelen. Voor productie kun je later Supabase koppelen voor echte accounts en synchronisatie.
+Deze versie bewaart alles lokaal in de browser (geen cloud-database). Je blijft ingelogd op hetzelfde apparaat; alleen **Uitloggen** of **Account verwijderen** wist de sessie. Het laatst gebruikte e-mailadres wordt onthouden. Geschikt om de planner te gebruiken en te beoordelen. Voor productie kun je later Supabase koppelen voor echte accounts en synchronisatie.
 
 - Ervaringen zijn standaard privé
 - Exporteren en account verwijderen staan onder Profiel
