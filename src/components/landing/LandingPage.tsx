@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { DownloadApkButton } from "@/components/landing/DownloadApkButton"
 import { Logo } from "@/components/brand/Logo"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
@@ -61,13 +62,10 @@ export function LandingPage() {
               <Link href="/inloggen" className={cn(buttonVariants({ variant: "outline" }), "h-12 rounded-xl px-6")}>
                 {t("landing.login")}
               </Link>
-              <a
-                href="/downloads/pioniersplanner.apk"
-                download="pioniersplanner.apk"
-                className={cn(buttonVariants({ variant: "secondary" }), "h-12 rounded-xl px-6")}
-              >
-                {t("landing.downloadAndroid")}
-              </a>
+              <DownloadApkButton />
+              <Link href="/download" className={cn(buttonVariants({ variant: "ghost" }), "h-12 rounded-xl px-6")}>
+                {t("download.title")}
+              </Link>
             </div>
             <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.downloadAndroidHint")}</p>
           </div>

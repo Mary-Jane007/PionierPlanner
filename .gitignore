@@ -27,6 +27,7 @@ android/.idea/
 *.iml
 *.apk
 !public/downloads/*.apk
+!public/downloads/*.zip
 
 # production
 /build
