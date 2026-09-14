@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CATEGORY_ORDER } from "@/lib/constants"
 import {
+  addHoursToTime,
   calendarGrid,
   formatMonthTitle,
   formatWeekdayShort,
@@ -22,15 +23,14 @@ import {
   isToday,
   weekDays,
 } from "@/lib/dates"
-import { formatHoursShort } from "@/lib/format"
+import { formatHoursShort, hoursFromMinutes } from "@/lib/format"
 import { calculateHoursForDay } from "@/lib/calculations"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
 import { cn } from "@/lib/utils"
-import { DayDroppable, EventChip } from "@/components/calendar/EventChip"
-import { addHoursToTime } from "@/lib/dates"
-import { hoursFromMinutes } from "@/lib/format"
+import { DayDroppable, EventChip, SlotDroppable } from "@/components/calendar/EventChip"
+import { StartOverDialog } from "@/components/calendar/StartOverDialog"
 import type { CalendarEvent } from "@/types"
 
 export function CalendarBoard() {
@@ -57,11 +57,24 @@ export function CalendarBoard() {
       const date = overId.replace("day-", "")
       moveEvent(dragged.id, date)
     }
-    if (overId.startsWith("slot-")) {
-      const [, date, time] = overId.split("|")
+    if (overId.startsWith("slot-") || overId.startsWith("slot|")) {
+      const parts = overId.split("|")
+      const date = parts[1]
+      const time = parts[2]
+      if (!date || !time) return
       const hours = hoursFromMinutes(dragged.durationMinutes)
       moveEvent(dragged.id, date, time, addHoursToTime(time, hours))
     }
+  }
+
+  function addAt(date: string, startTime = "09:00") {
+    openActivity({
+      date,
+      category: "field_service",
+      title: t("category.field_service"),
+      startTime,
+      endTime: addHoursToTime(startTime, 2),
+    })
   }
 
   return (
@@ -85,6 +98,7 @@ export function CalendarBoard() {
           <Button variant="outline" size="icon" onClick={() => setCursor((d) => addMonths(d, 1))} aria-label="Volgende">
             <ChevronRight />
           </Button>
+          <StartOverDialog monthDate={cursor} />
           <Tabs value={view} onValueChange={(value) => setView(value as typeof view)}>
             <TabsList>
               <TabsTrigger value="month">{t("calendar.month")}</TabsTrigger>
@@ -116,25 +130,21 @@ export function CalendarBoard() {
         })}
       </div>
 
+      {visibleEvents.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("calendar.emptyHint")}</p>
+      ) : null}
+
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         {view === "month" ? (
           <MonthGrid
             cursor={cursor}
             events={visibleEvents}
-            onAdd={(date) =>
-              openActivity({
-                date,
-                category: "field_service",
-                title: t("category.field_service"),
-                startTime: "09:00",
-                endTime: "11:00",
-              })
-            }
+            onAdd={addAt}
             onMove={openMove}
           />
         ) : null}
-        {view === "week" ? <WeekGrid cursor={cursor} events={visibleEvents} /> : null}
-        {view === "day" ? <DayGrid cursor={cursor} events={visibleEvents} /> : null}
+        {view === "week" ? <WeekGrid cursor={cursor} events={visibleEvents} onAdd={addAt} /> : null}
+        {view === "day" ? <DayGrid cursor={cursor} events={visibleEvents} onAdd={addAt} /> : null}
       </DndContext>
     </div>
   )
@@ -151,24 +161,12 @@ function MonthGrid({
   onAdd: (date: string) => void
   onMove: (id: string) => void
 }) {
-  const t = useT()
   const lang = useLang()
   const days = useMemo(
     () => calendarGrid(cursor.getFullYear(), cursor.getMonth()),
     [cursor]
   )
   const labels = weekDays(cursor)
-
-  if (events.length === 0) {
-    return (
-      <div className="card-quiet rounded-2xl px-6 py-16 text-center">
-        <h2 className="font-heading text-2xl">{t("calendar.empty")}</h2>
-        <Button className="mt-4" onClick={() => onAdd(isoDate(new Date()))}>
-          {t("calendar.add")}
-        </Button>
-      </div>
-    )
-  }
 
   return (
     <div className="card-quiet overflow-hidden rounded-2xl">
@@ -192,21 +190,15 @@ function MonthGrid({
             <DayDroppable
               key={date}
               date={date}
+              onClick={() => onAdd(date)}
               className={cn(
-                "min-h-[108px] border-r border-b border-border p-2 sm:min-h-[128px]",
+                "min-h-[108px] cursor-pointer border-r border-b border-border p-2 sm:min-h-[128px]",
                 outside && "bg-muted/30 text-muted-foreground",
                 isToday(day) && "bg-primary/6 ring-inset ring-1 ring-primary/25"
               )}
             >
               <div className="mb-1 flex items-center justify-between">
-                <button
-                  type="button"
-                  className="text-sm"
-                  onClick={() => onAdd(date)}
-                  onDoubleClick={() => onAdd(date)}
-                >
-                  {day.getDate()}
-                </button>
+                <span className="text-sm">{day.getDate()}</span>
                 {hours > 0 ? (
                   <span className="text-[10px] text-primary">
                     {formatHoursShort(hours, lang)}
@@ -240,7 +232,15 @@ function MonthGrid({
   )
 }
 
-function WeekGrid({ cursor, events }: { cursor: Date; events: CalendarEvent[] }) {
+function WeekGrid({
+  cursor,
+  events,
+  onAdd,
+}: {
+  cursor: Date
+  events: CalendarEvent[]
+  onAdd: (date: string, startTime?: string) => void
+}) {
   const lang = useLang()
   const days = weekDays(cursor)
   const hours = Array.from({ length: 14 }, (_, i) => i + 7)
@@ -270,21 +270,24 @@ function WeekGrid({ cursor, events }: { cursor: Date; events: CalendarEvent[] })
             </div>
             {days.map((day) => {
               const date = isoDate(day)
+              const time = `${String(hour).padStart(2, "0")}:00`
               const slotEvents = events.filter(
                 (event) =>
                   event.date === date &&
                   Number(event.startTime.slice(0, 2)) === hour
               )
               return (
-                <DayDroppable
+                <SlotDroppable
                   key={`${date}-${hour}`}
                   date={date}
-                  className="min-h-[64px] border-r border-b border-border p-1"
+                  time={time}
+                  onClick={() => onAdd(date, time)}
+                  className="min-h-[64px] cursor-pointer border-r border-b border-border p-1"
                 >
                   {slotEvents.map((event) => (
                     <EventChip key={event.id} event={event} />
                   ))}
-                </DayDroppable>
+                </SlotDroppable>
               )
             })}
           </Fragment>
@@ -294,32 +297,43 @@ function WeekGrid({ cursor, events }: { cursor: Date; events: CalendarEvent[] })
   )
 }
 
-function DayGrid({ cursor, events }: { cursor: Date; events: CalendarEvent[] }) {
-  const t = useT()
+function DayGrid({
+  cursor,
+  events,
+  onAdd,
+}: {
+  cursor: Date
+  events: CalendarEvent[]
+  onAdd: (date: string, startTime?: string) => void
+}) {
   const date = isoDate(cursor)
-  const dayEvents = events
-    .filter((event) => event.date === date)
-    .sort((a, b) => a.startTime.localeCompare(b.startTime))
-  const openActivity = useUiStore((s) => s.openActivity)
-
-  if (dayEvents.length === 0) {
-    return (
-      <div className="card-quiet rounded-2xl px-6 py-16 text-center">
-        <h2 className="font-heading text-2xl">{t("calendar.empty")}</h2>
-        <Button className="mt-4" onClick={() => openActivity({ date, category: "field_service" })}>
-          {t("calendar.add")}
-        </Button>
-      </div>
-    )
-  }
+  const hours = Array.from({ length: 14 }, (_, i) => i + 7)
 
   return (
-    <div className="space-y-3">
-      {dayEvents.map((event) => (
-        <DayDroppable key={event.id} date={date}>
-          <TimelineItem event={event} />
-        </DayDroppable>
-      ))}
+    <div className="card-quiet overflow-hidden rounded-2xl">
+      {hours.map((hour) => {
+        const time = `${String(hour).padStart(2, "0")}:00`
+        const slotEvents = events.filter(
+          (event) =>
+            event.date === date && Number(event.startTime.slice(0, 2)) === hour
+        )
+        return (
+          <SlotDroppable
+            key={time}
+            date={date}
+            time={time}
+            onClick={() => onAdd(date, time)}
+            className="flex min-h-[64px] cursor-pointer gap-3 border-b border-border px-3 py-2"
+          >
+            <p className="w-14 shrink-0 pt-1 text-xs text-muted-foreground">{time}</p>
+            <div className="min-w-0 flex-1 space-y-1">
+              {slotEvents.map((event) => (
+                <TimelineItem key={event.id} event={event} />
+              ))}
+            </div>
+          </SlotDroppable>
+        )
+      })}
     </div>
   )
 }
@@ -331,8 +345,14 @@ export function TimelineItem({ event }: { event: CalendarEvent }) {
   return (
     <button
       type="button"
-      onClick={() => openActivity(event, event.id)}
-      className="card-quiet flex w-full gap-4 rounded-2xl p-4 text-left"
+      onClick={(e) => {
+        e.stopPropagation()
+        openActivity(event, event.id)
+      }}
+      className={cn(
+        "cat-" + event.category,
+        "flex w-full gap-4 rounded-2xl p-4 text-left"
+      )}
     >
       <div className="w-16 shrink-0 text-sm tabular-nums text-muted-foreground">
         <p>{event.startTime}</p>

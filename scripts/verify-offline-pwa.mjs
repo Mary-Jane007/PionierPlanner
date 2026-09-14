@@ -162,12 +162,12 @@ async function checkInBrowser(origin) {
 
     await page.goto(`${origin}/inloggen/`, { waitUntil: "domcontentloaded", timeout: 15000 })
     await page.waitForFunction(
-      () => [...document.querySelectorAll("button")].some((button) => button.textContent?.includes("demomaand")),
+      () => [...document.querySelectorAll("button")].some((button) => button.textContent?.includes("lege planner")),
       { timeout: 10000 },
     )
     await page.evaluate(() => {
       const button = [...document.querySelectorAll("button")].find((item) =>
-        item.textContent?.includes("demomaand"),
+        item.textContent?.includes("lege planner"),
       )
       button?.click()
     })

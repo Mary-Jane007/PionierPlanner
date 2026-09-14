@@ -26,11 +26,18 @@ export function dateLocale(lang: LocaleCode): Locale {
 }
 
 export function isoDate(date: Date): string {
+  if (Number.isNaN(date.getTime())) return format(new Date(), "yyyy-MM-dd")
   return format(date, "yyyy-MM-dd")
 }
 
 export function parseDate(value: string): Date {
   return parseISO(value)
+}
+
+export function isValidIsoDate(value: string | null | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const parsed = parseISO(value)
+  return !Number.isNaN(parsed.getTime())
 }
 
 export function combineDateTime(date: string, time: string): Date {

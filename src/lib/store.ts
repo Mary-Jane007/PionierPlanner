@@ -18,8 +18,11 @@ import type {
   UserSettings,
 } from "@/types"
 import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } from "@/lib/constants"
+import { detectScheduleConflict } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
+
+export type CalendarClearScope = "month" | "planned" | "all"
 
 export interface AppState {
   hydrated: boolean
@@ -63,7 +66,8 @@ export interface AppState {
   resetTimer: () => void
   applySuggestedBlocks: (
     blocks: { date: string; startTime: string; endTime: string }[]
-  ) => void
+  ) => { added: number; skipped: number }
+  clearCalendar: (scope: CalendarClearScope, monthDate?: Date) => void
   exportData: () => string
   deleteAccountLocal: () => void
 }
@@ -301,20 +305,47 @@ export const useAppStore = create<AppState>()(
       resetTimer: () => set({ timer: idleTimer }),
       applySuggestedBlocks: (blocks) => {
         const now = new Date().toISOString()
-        const extra: CalendarEvent[] = blocks.map((block) => ({
-          id: crypto.randomUUID(),
-          title: "Velddienst",
-          category: "field_service",
-          date: block.date,
-          startTime: block.startTime,
-          endTime: block.endTime,
-          durationMinutes: minutesBetween(block.startTime, block.endTime),
-          status: "planned",
-          serviceType: "house_to_house",
-          createdAt: now,
-          updatedAt: now,
-        }))
-        set({ events: [...get().events, ...extra] })
+        const current = get().events
+        const extra: CalendarEvent[] = []
+        let skipped = 0
+        for (const block of blocks) {
+          const candidate: CalendarEvent = {
+            id: crypto.randomUUID(),
+            title: "Velddienst",
+            category: "field_service",
+            date: block.date,
+            startTime: block.startTime,
+            endTime: block.endTime,
+            durationMinutes: minutesBetween(block.startTime, block.endTime),
+            status: "planned",
+            serviceType: "house_to_house",
+            createdAt: now,
+            updatedAt: now,
+          }
+          if (detectScheduleConflict([...current, ...extra], candidate)) {
+            skipped += 1
+            continue
+          }
+          extra.push(candidate)
+        }
+        if (extra.length) set({ events: [...current, ...extra] })
+        return { added: extra.length, skipped }
+      },
+      clearCalendar: (scope, monthDate = new Date()) => {
+        if (scope === "all") {
+          set({ events: [] })
+          return
+        }
+        const year = monthDate.getFullYear()
+        const month = monthDate.getMonth()
+        const prefix = `${year}-${String(month + 1).padStart(2, "0")}`
+        set({
+          events: get().events.filter((event) => {
+            if (!event.date.startsWith(prefix)) return true
+            if (scope === "month") return false
+            return event.status === "completed"
+          }),
+        })
       },
       exportData: () => {
         const state = get()

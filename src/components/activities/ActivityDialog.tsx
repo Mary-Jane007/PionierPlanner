@@ -27,6 +27,7 @@ import {
   addDays,
   endOfMonth,
   isoDate,
+  isValidIsoDate,
   minutesBetween,
   parseDate,
 } from "@/lib/dates"
@@ -64,7 +65,7 @@ export function ActivityDialog() {
   const setEventStatus = useAppStore((s) => s.setEventStatus)
   const existing = events.find((event) => event.id === editingId)
   const source = existing ?? prefill
-  const formKey = `${editingId ?? "new"}-${source?.date ?? ""}-${source?.startTime ?? ""}`
+  const formKey = `${editingId ?? "new"}-${source?.date ?? ""}-${source?.startTime ?? ""}-${source?.endTime ?? ""}-${source?.title ?? ""}-${source?.category ?? ""}`
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && close()}>
@@ -110,11 +111,12 @@ function ActivityForm({
   onDelete: (id: string) => void
   onComplete: (id: string, status: CalendarEvent["status"]) => void
 }) {
+  const initialDate = isValidIsoDate(source?.date) ? source.date : isoDate(new Date())
   const [title, setTitle] = useState(
     source?.title ?? (source?.category === "field_service" ? t("category.field_service") : "")
   )
   const [category, setCategory] = useState<ActivityCategory>(source?.category ?? "field_service")
-  const [date, setDate] = useState(source?.date ?? isoDate(new Date()))
+  const [date, setDate] = useState(initialDate)
   const [startTime, setStartTime] = useState(source?.startTime ?? "09:00")
   const [endTime, setEndTime] = useState(source?.endTime ?? "11:00")
   const [companion, setCompanion] = useState(source?.companion ?? "")
@@ -123,9 +125,7 @@ function ActivityForm({
   const [notes, setNotes] = useState(source?.notes ?? "")
   const [status, setStatus] = useState<ActivityStatus>(source?.status ?? "planned")
   const [repeat, setRepeat] = useState<RepeatPattern>("none")
-  const [repeatUntil, setRepeatUntil] = useState(
-    isoDate(endOfMonth(parseDate(source?.date ?? isoDate(new Date()))))
-  )
+  const [repeatUntil, setRepeatUntil] = useState(isoDate(endOfMonth(parseDate(initialDate))))
 
   const duration = useMemo(() => {
     try {
@@ -253,6 +253,7 @@ function ActivityForm({
                 value={date}
                 onChange={(event) => {
                   const nextDate = event.target.value
+                  if (!isValidIsoDate(nextDate)) return
                   setDate(nextDate)
                   if (repeatUntil < nextDate) {
                     setRepeatUntil(
