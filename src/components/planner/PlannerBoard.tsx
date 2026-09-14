@@ -34,6 +34,7 @@ import {
   addHoursToTime,
   formatWeekdayLong,
   isoDate,
+  isValidIsoDate,
   parseDate,
   weekDays,
 } from "@/lib/dates"
@@ -695,7 +696,6 @@ function WhatIfDialog({ open, onClose }: { open: boolean; onClose: () => void })
   const projected = snapshot.completed + snapshot.planned + hours
   const remaining = Math.max(0, snapshot.target - (snapshot.completed + hours))
   const startTime = "09:00"
-  const endTime = addHoursToTime(startTime, hours)
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
@@ -705,7 +705,14 @@ function WhatIfDialog({ open, onClose }: { open: boolean; onClose: () => void })
         </DialogHeader>
         <p className="text-sm text-muted-foreground">{t("whatif.intro")}</p>
         <div className="grid grid-cols-2 gap-3">
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => {
+              const next = e.target.value
+              if (isValidIsoDate(next)) setDate(next)
+            }}
+          />
           <Input type="number" min={1} max={6} step={0.5} value={hours} onChange={(e) => setHours(Number(e.target.value))} />
         </div>
         <div className="whatif-preview rounded-2xl p-4 text-sm">
@@ -724,10 +731,12 @@ function WhatIfDialog({ open, onClose }: { open: boolean; onClose: () => void })
         </div>
         <Button
           onClick={() => {
+            const nextDate = isValidIsoDate(date) ? date : isoDate(new Date())
+            const nextHours = Number.isFinite(hours) && hours > 0 ? hours : 2
             openActivity({
-              date,
+              date: nextDate,
               startTime,
-              endTime,
+              endTime: addHoursToTime(startTime, nextHours),
               category: "field_service",
               title: t("category.field_service"),
               status: "planned",
