@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "pioniersplanner-48f35fc2c98f"
+const CACHE_NAME = "pioniersplanner-ea076cac28f7"
 const PRECACHE_URLS = [
   "./",
   "./404.html",
@@ -8,6 +8,9 @@ const PRECACHE_URLS = [
   "./__next.__PAGE__.txt",
   "./__next._full.txt",
   "./__next._tree.txt",
+  "./_next/static/Aiyrx--pKEuBoc_rZ79hE/_buildManifest.js",
+  "./_next/static/Aiyrx--pKEuBoc_rZ79hE/_clientMiddlewareManifest.js",
+  "./_next/static/Aiyrx--pKEuBoc_rZ79hE/_ssgManifest.js",
   "./_next/static/chunks/0bmo_2__aoqc_.js",
   "./_next/static/chunks/0bxp07tng-lny.js",
   "./_next/static/chunks/0cz1d0mv5g_q7.js",
@@ -56,9 +59,6 @@ const PRECACHE_URLS = [
   "./_next/static/media/d3fe2f289711ac3f-s.1l2zhvq5eocqf.woff2",
   "./_next/static/media/favicon.2vob68tjqpejf.ico",
   "./_next/static/media/icon.12tltj8k60c69.svg",
-  "./_next/static/s005mu7g6Iq-YylGoxunc/_buildManifest.js",
-  "./_next/static/s005mu7g6Iq-YylGoxunc/_clientMiddlewareManifest.js",
-  "./_next/static/s005mu7g6Iq-YylGoxunc/_ssgManifest.js",
   "./_not-found/",
   "./_not-found/__next._full.txt",
   "./_not-found/__next._not-found.__PAGE__.txt",
