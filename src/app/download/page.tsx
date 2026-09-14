@@ -34,6 +34,15 @@ export default function DownloadPage() {
           <li>{t("download.step3")}</li>
           <li>{t("download.step4")}</li>
         </ol>
+        <section className="mt-14">
+          <h2 className="font-heading text-3xl">{t("download.pwaTitle")}</h2>
+          <p className="mt-3 text-muted-foreground">{t("download.pwaText")}</p>
+          <ol className="mt-6 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-muted-foreground">
+            <li>{t("download.pwaStep1")}</li>
+            <li>{t("download.pwaStep2")}</li>
+            <li>{t("download.pwaStep3")}</li>
+          </ol>
+        </section>
       </main>
     </div>
   )

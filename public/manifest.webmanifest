@@ -1,14 +1,19 @@
 {
   "name": "Pioniersplanner",
   "short_name": "Pioniersplanner",
-  "description": "Persoonlijke planner voor pioniers: kalender, urenplanning, voortgang en ervaringen.",
+  "description": "Persoonlijke planner voor pioniers: kalender, urenplanning, voortgang en ervaringen. Werkt offline.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
   "background_color": "#F7F5EF",
   "theme_color": "#29483F",
   "lang": "nl",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "categories": ["productivity", "lifestyle"],
   "icons": [
     {
       "src": "icons/icon-192.png",

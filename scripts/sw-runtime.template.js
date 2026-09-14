@@ -1,6 +1,6 @@
-/* Development / pre-build fallback. `npm run build` replaces out/sw.js with a full precache. */
-const CACHE_NAME = "pioniersplanner-dev"
-const PRECACHE_URLS = ["./", "./index.html", "./manifest.webmanifest", "./offline.html"]
+/* eslint-disable no-restricted-globals */
+const CACHE_NAME = "__CACHE_NAME__"
+const PRECACHE_URLS = __PRECACHE_URLS__
 const NAV_FALLBACKS = ["./index.html", "./", "./offline.html"]
 
 self.addEventListener("install", (event) => {
@@ -56,7 +56,7 @@ async function precache() {
         const response = await fetch(url, { cache: "reload", credentials: "same-origin" })
         if (response.ok) await cache.put(url, response)
       } catch {
-        // Ignore missing shell files during `next dev`.
+        // One missing file must not fail the whole install.
       }
     }),
   )
@@ -111,10 +111,7 @@ async function matchFallbacks(cache) {
     const hit = await cache.match(url, { ignoreSearch: true })
     if (hit) return hit
   }
-  return new Response("Offline", {
-    status: 503,
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
-  })
+  return offlineResponse()
 }
 
 async function cachedResponseOrOffline(cache, request) {
@@ -122,4 +119,14 @@ async function cachedResponseOrOffline(cache, request) {
   if (cached) return cached
   if (isNavigation(request)) return matchFallbacks(cache)
   return new Response("", { status: 503, statusText: "Offline" })
+}
+
+function offlineResponse() {
+  return new Response(
+    `<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><body style="font-family:system-ui;background:#F7F5EF;color:#29483F;padding:2rem"><h1>Pioniersplanner</h1><p>Je bent offline. Open de app opnieuw zodra je verbinding hebt, of installeer hem op je startscherm.</p></body></html>`,
+    {
+      status: 503,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    },
+  )
 }

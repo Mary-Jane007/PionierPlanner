@@ -52,6 +52,12 @@ const messages = {
     es: "Un APK no se abre en un ordenador ni en esta vista previa. Usa Abrir la app aquí, o instálalo en un teléfono Android.",
     pap: "Un APK no ta habri riba komputadó ni den e preview aki. Usa Habrí e app, òf instala e archivo riba un telefòn Android.",
   },
+  "landing.offlineHint": {
+    nl: "Na de eerste keer laden werkt de webapp offline. Op je telefoon: deel het menu van Chrome of Safari en kies Toevoegen aan startscherm.",
+    en: "After the first load, the web app works offline. On your phone, open the Chrome or Safari menu and choose Add to Home Screen.",
+    es: "Tras la primera carga, la webapp funciona sin conexión. En el teléfono, abre el menú de Chrome o Safari y elige Añadir a pantalla de inicio.",
+    pap: "Despues di e prome karga, e webapp ta traha offline. Riba telefòn, habri e menú di Chrome òf Safari i skohe Gasta na pantaya inisial.",
+  },
   "landing.login": { nl: "Inloggen", en: "Sign in", es: "Iniciar sesión", pap: "Ingresá" },
   "landing.downloadAndroid": {
     nl: "Download Android-app",
@@ -131,6 +137,36 @@ const messages = {
     es: "Después abre Pioniersplanner desde la pantalla de inicio.",
     pap: "Despues habri Pioniersplanner for di bo pantaya inisial.",
   },
+  "download.pwaTitle": {
+    nl: "Of installeer als app (offline)",
+    en: "Or install as an app (offline)",
+    es: "O instálala como app (sin conexión)",
+    pap: "Òf instala komo app (offline)",
+  },
+  "download.pwaText": {
+    nl: "De webapp slaat de planner, kalender en je gegevens lokaal op. Na één keer online openen kun je hem zonder internet gebruiken.",
+    en: "The web app stores the planner, calendar, and your data locally. After opening it once online, you can use it without internet.",
+    es: "La webapp guarda el planificador, el calendario y tus datos en el dispositivo. Tras abrirla una vez con conexión, funciona sin internet.",
+    pap: "E webapp ta warda e planner, kalènder i bo dato lokalmente. Despues di habri un biaha online, bo por usé sin internet.",
+  },
+  "download.pwaStep1": {
+    nl: "Open Pioniersplanner in Chrome (Android) of Safari (iPhone).",
+    en: "Open Pioniersplanner in Chrome (Android) or Safari (iPhone).",
+    es: "Abre Pioniersplanner en Chrome (Android) o Safari (iPhone).",
+    pap: "Habri Pioniersplanner den Chrome (Android) òf Safari (iPhone).",
+  },
+  "download.pwaStep2": {
+    nl: "Kies Toevoegen aan startscherm / Installeren.",
+    en: "Choose Add to Home Screen / Install.",
+    es: "Elige Añadir a pantalla de inicio / Instalar.",
+    pap: "Skohe Gasta na pantaya inisial / Instalá.",
+  },
+  "download.pwaStep3": {
+    nl: "Open de app vanaf je startscherm. Je planning blijft bewaard, ook offline.",
+    en: "Open the app from your home screen. Your plan stays saved, including offline.",
+    es: "Abre la app desde la pantalla de inicio. Tu plan se conserva, también sin conexión.",
+    pap: "Habri e app for di bo pantaya inisial. Bo plan ta keda wardá, tambe offline.",
+  },
   "landing.feature.plan.title": { nl: "Slim plannen", en: "Plan smart", es: "Planifica con inteligencia", pap: "Planeá inteligentemente" },
   "landing.feature.plan.text": {
     nl: "Maak een realistische maandplanning op basis van je beschikbaarheid.",
@@ -165,6 +201,18 @@ const messages = {
     en: "Find relevant tips and JW.org resources.",
     es: "Descubre consejos y recursos de JW.org.",
     pap: "Deskubrí tips i recurnonan di JW.org.",
+  },
+  "landing.feature.offline.title": {
+    nl: "Werkt offline",
+    en: "Works offline",
+    es: "Funciona sin conexión",
+    pap: "Ta traha offline",
+  },
+  "landing.feature.offline.text": {
+    nl: "Installeer de webapp. Na de eerste keer laden plan je verder zonder internet.",
+    en: "Install the web app. After the first load you can keep planning without internet.",
+    es: "Instala la webapp. Tras la primera carga puedes seguir planificando sin internet.",
+    pap: "Instalá e webapp. Despues di e prome karga bo por sigui planeá sin internet.",
   },
   "auth.welcome": { nl: "Welkom bij Pioniersplanner", en: "Welcome to Pioneer Planner", es: "Bienvenido a Planificador de pioneros", pap: "Bon bini na Pionero Planner" },
   "auth.email": { nl: "E-mail", en: "Email", es: "Correo", pap: "E-mail" },

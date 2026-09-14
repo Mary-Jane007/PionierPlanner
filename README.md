@@ -12,6 +12,7 @@ Persoonlijke planner voor pioniers: kalender, slimme urenplanning, voortgang en 
 - **Statistieken** — uren, projectie, jaaroverzicht en persoonlijke inzichten
 - **Ervaringen** — privé dagboek voor mooie momenten
 - **Inspiratie** — originele tips plus korte samenvattingen met links naar JW.org
+- **Offline** — installeerbare PWA; na de eerste keer laden werkt de planner zonder internet
 
 Standaarddoelen zijn instelbaar (niet hard in de logica gebakken):
 
@@ -31,7 +32,14 @@ De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env
 
 Publieke site (GitHub Pages): [https://mary-jane007.github.io/PionierPlanner/](https://mary-jane007.github.io/PionierPlanner/)
 
-Op je telefoon kun je de site als app installeren (PWA), of de Android-APK downloaden via **Download Android-app**.
+Op je telefoon kun je de site als **offline webapp (PWA)** installeren, of de Android-APK downloaden via **Download Android-app**. Na de eerste keer laden blijven de pagina’s, iconen en je lokale gegevens beschikbaar zonder internet.
+
+```bash
+npm run build
+npm run preview
+```
+
+`preview` serveert de statische export (inclusief service worker) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next dev` is voor ontwikkelen en registreert de service worker niet.
 
 ```bash
 npm run mobile:apk

@@ -17,7 +17,7 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Pioniersplanner",
   description:
-    "Plan je tijd. Houd je voortgang bij. Geniet van je dienst. Een onafhankelijke planner voor pioniers.",
+    "Plan je tijd. Houd je voortgang bij. Geniet van je dienst. Werkt offline. Een onafhankelijke planner voor pioniers.",
   applicationName: "Pioniersplanner",
   manifest: "/manifest.webmanifest",
   appleWebApp: {

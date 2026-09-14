@@ -15,6 +15,7 @@ const features = [
   "stats",
   "journal",
   "tips",
+  "offline",
 ] as const
 
 export function LandingPage() {
@@ -66,6 +67,7 @@ export function LandingPage() {
               </Link>
             </div>
             <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.apkWontOpenHere")}</p>
+            <p className="mt-2 max-w-xl text-xs text-muted-foreground">{t("landing.offlineHint")}</p>
           </div>
           <PreviewCard />
         </section>
