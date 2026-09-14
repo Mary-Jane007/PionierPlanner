@@ -8,6 +8,7 @@ import { useUiStore } from "@/lib/ui-store"
 import { Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
+import { cn } from "@/lib/utils"
 
 export function ActivitiesBoard() {
   const t = useT()
@@ -38,7 +39,13 @@ export function ActivitiesBoard() {
       ) : (
         <div className="space-y-2">
           {sorted.map((event) => (
-            <article key={event.id} className="card-quiet flex items-center justify-between gap-3 rounded-2xl px-4 py-3">
+            <article
+              key={event.id}
+              className={cn(
+                "card-quiet flex items-center justify-between gap-3 rounded-2xl px-4 py-3",
+                `stripe-${event.category}`
+              )}
+            >
               <button type="button" className="flex-1 text-left" onClick={() => openActivity(event, event.id)}>
                 <p className="text-xs text-muted-foreground">
                   {formatHumanDate(parseDate(event.date), lang)} · {event.startTime}–{event.endTime}

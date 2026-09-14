@@ -50,7 +50,7 @@ export function TodayDashboard() {
           </p>
         </header>
 
-        <section className="card-quiet rounded-3xl p-6 sm:p-8">
+        <section className="surface-sage rounded-3xl p-6 sm:p-8">
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
             {t(`pioneer.${pioneerType}`)}
           </p>
@@ -69,14 +69,16 @@ export function TodayDashboard() {
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <Mini
+                  tone="sage"
                   label={t("home.thisWeek")}
                   value={t("home.hoursPlanned", { n: formatDecimal(snapshot.weekHours, lang) })}
                 />
                 <Mini
+                  tone="warm"
                   label={t("home.today")}
                   value={t("home.hoursPlanned", { n: formatDecimal(snapshot.todayHours, lang) })}
                 />
-                <Mini label={t("home.next")} value={nextLabel} />
+                <Mini tone="accent" label={t("home.next")} value={nextLabel} />
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Link href="/planner" className={cn(buttonVariants(), "h-11 rounded-xl px-4")}>
@@ -100,7 +102,7 @@ export function TodayDashboard() {
           </div>
         </section>
 
-        <section className="card-quiet rounded-3xl p-6">
+        <section className={cn("rounded-3xl p-6", `health-${snapshot.health}`)}>
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
             {t("home.bestNext")}
           </p>
@@ -114,7 +116,7 @@ export function TodayDashboard() {
             <StartTimerButton />
           </div>
           {todayEvents.length === 0 ? (
-            <div className="card-quiet rounded-3xl px-6 py-10 text-center">
+            <div className="surface-primary rounded-3xl px-6 py-10 text-center">
               <h3 className="font-heading text-2xl">{t("empty.month")}</h3>
               <p className="mt-2 text-muted-foreground">{t("empty.monthText")}</p>
               <Button className="mt-4" onClick={() => openActivity({ date: today, category: "field_service" })}>
@@ -132,7 +134,7 @@ export function TodayDashboard() {
       </div>
 
       <aside className="space-y-4">
-        <article className="card-quiet rounded-3xl p-5">
+        <article className="surface-warm rounded-3xl p-5">
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
             {t("home.encouragement")}
           </p>
@@ -147,14 +149,14 @@ export function TodayDashboard() {
             {t("home.originalTip")}
           </p>
         </article>
-        <article className="card-quiet rounded-3xl p-5">
+        <article className="surface-sage rounded-3xl p-5">
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
             {t("home.tip")}
           </p>
           <h2 className="font-heading mt-3 text-2xl">{tip.title}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{tip.text}</p>
         </article>
-        <article className="card-quiet rounded-3xl p-5">
+        <article className="surface-primary rounded-3xl p-5">
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
             {t("planner.pace")}
           </p>
@@ -176,9 +178,17 @@ export function TodayDashboard() {
   )
 }
 
-function Mini({ label, value }: { label: string; value: string }) {
+function Mini({
+  label,
+  value,
+  tone = "sage",
+}: {
+  label: string
+  value: string
+  tone?: "sage" | "warm" | "accent"
+}) {
   return (
-    <div className="rounded-2xl bg-muted/60 px-3 py-3">
+    <div className={cn("rounded-2xl px-3 py-3", `surface-${tone}`)}>
       <p className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">{label}</p>
       <p className="mt-1 text-sm font-medium">{value}</p>
     </div>

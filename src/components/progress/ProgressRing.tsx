@@ -24,7 +24,7 @@ export function ProgressRing({
           r={radius}
           fill="none"
           stroke="currentColor"
-          className="text-muted"
+          className="text-sage/45"
           strokeWidth={stroke}
         />
         <circle

@@ -75,7 +75,7 @@
   --chart-4: #a3b4a8;
   --chart-5: #d9c3ae;
   --radius: 0.8rem;
-  --sidebar: #f3f0e8;
+  --sidebar: #eef3ef;
   --sidebar-foreground: #252925;
   --sidebar-primary: #29483f;
   --sidebar-primary-foreground: #f7f5ef;
@@ -170,115 +170,171 @@
   border: 1px solid var(--border);
 }
 
-.cat-field_service {
-  background: color-mix(in oklab, var(--primary) 12%, white);
-  color: var(--primary);
-}
-.dark .cat-field_service {
-  background: color-mix(in oklab, var(--primary) 18%, transparent);
-  color: var(--primary);
-}
-.cat-work {
-  background: #eef1f3;
-  color: #4d5c66;
-}
-.dark .cat-work {
-  background: rgb(174 181 175 / 12%);
-  color: #c5ced3;
-}
-.cat-meeting {
-  background: color-mix(in oklab, var(--accent) 16%, white);
-  color: #8a5a38;
-}
-.dark .cat-meeting {
-  background: color-mix(in oklab, var(--accent) 18%, transparent);
-  color: var(--accent);
-}
-.cat-personal {
-  background: color-mix(in oklab, var(--accent) 14%, white);
-  color: #7a5340;
-}
-.dark .cat-personal {
-  background: color-mix(in oklab, var(--accent) 16%, transparent);
-  color: var(--accent);
-}
-.cat-rest {
-  background: color-mix(in oklab, var(--sage) 16%, white);
-  color: #3f5348;
-}
-.dark .cat-rest {
-  background: color-mix(in oklab, var(--sage) 18%, transparent);
-  color: var(--sage);
-}
-.cat-other {
-  background: color-mix(in oklab, var(--warm) 12%, white);
-  color: #6b5340;
-}
-.dark .cat-other {
-  background: color-mix(in oklab, var(--warm) 14%, transparent);
-  color: var(--warm);
-}
-
-.stat-goal {
-  background: color-mix(in oklab, var(--primary) 9%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-.stat-done {
-  background: color-mix(in oklab, var(--sage) 14%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 22%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-.stat-left {
-  background: color-mix(in oklab, var(--warm) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 20%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-.stat-planned {
-  background: color-mix(in oklab, var(--accent) 11%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-
-.planner-pace,
-.planner-week,
-.planner-suggest {
-  background: color-mix(in oklab, var(--primary) 5%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 14%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-
-.planner-week-row {
-  background: color-mix(in oklab, var(--sage) 8%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 14%, var(--border));
-}
-
-.option-card-suggested,
-.whatif-preview {
-  background: color-mix(in oklab, var(--primary) 6%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 16%, var(--border));
-}
-
-.health-balanced {
-  background: color-mix(in oklab, var(--sage) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 20%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-.health-full {
-  background: color-mix(in oklab, var(--warm) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 20%, var(--border));
-  box-shadow: var(--shadow-card);
-}
-.health-space {
+.surface-primary {
   background: color-mix(in oklab, var(--primary) 8%, var(--card));
   border: 1px solid color-mix(in oklab, var(--primary) 16%, var(--border));
   box-shadow: var(--shadow-card);
 }
-.health-adjust {
+.surface-sage {
+  background: color-mix(in oklab, var(--sage) 12%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 20%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.surface-warm {
+  background: color-mix(in oklab, var(--warm) 11%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 20%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.surface-accent {
   background: color-mix(in oklab, var(--accent) 12%, var(--card));
   border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
   box-shadow: var(--shadow-card);
 }
+
+.cat-field_service {
+  background: color-mix(in oklab, var(--primary) 16%, white);
+  color: var(--primary);
+}
+.dark .cat-field_service {
+  background: color-mix(in oklab, var(--primary) 22%, transparent);
+  color: var(--primary);
+}
+.cat-work {
+  background: color-mix(in oklab, var(--chart-4) 28%, white);
+  color: #3f5348;
+}
+.dark .cat-work {
+  background: color-mix(in oklab, var(--chart-4) 18%, transparent);
+  color: #c5ced3;
+}
+.cat-meeting {
+  background: color-mix(in oklab, var(--accent) 22%, white);
+  color: #8a5a38;
+}
+.dark .cat-meeting {
+  background: color-mix(in oklab, var(--accent) 22%, transparent);
+  color: var(--accent);
+}
+.cat-personal {
+  background: color-mix(in oklab, var(--warm) 18%, white);
+  color: #7a5340;
+}
+.dark .cat-personal {
+  background: color-mix(in oklab, var(--warm) 20%, transparent);
+  color: var(--accent);
+}
+.cat-rest {
+  background: color-mix(in oklab, var(--sage) 22%, white);
+  color: #3f5348;
+}
+.dark .cat-rest {
+  background: color-mix(in oklab, var(--sage) 22%, transparent);
+  color: var(--sage);
+}
+.cat-other {
+  background: color-mix(in oklab, var(--chart-5) 42%, white);
+  color: #6b5340;
+}
+.dark .cat-other {
+  background: color-mix(in oklab, var(--chart-5) 18%, transparent);
+  color: var(--warm);
+}
+
+.stat-goal {
+  background: color-mix(in oklab, var(--primary) 12%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.stat-done {
+  background: color-mix(in oklab, var(--sage) 18%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 26%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.stat-left {
+  background: color-mix(in oklab, var(--warm) 16%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 24%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.stat-planned {
+  background: color-mix(in oklab, var(--accent) 15%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+
+.planner-pace {
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.planner-week {
+  background: color-mix(in oklab, var(--sage) 10%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 18%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.planner-suggest {
+  background: color-mix(in oklab, var(--warm) 9%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 18%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+
+.planner-week-row {
+  background: color-mix(in oklab, var(--card) 70%, white);
+  border: 1px solid color-mix(in oklab, var(--sage) 16%, var(--border));
+}
+
+.option-card-suggested,
+.option-card-even,
+.whatif-preview {
+  background: color-mix(in oklab, var(--primary) 9%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+}
+.option-card-weekend {
+  background: color-mix(in oklab, var(--warm) 12%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 20%, var(--border));
+}
+.option-card-flexible {
+  background: color-mix(in oklab, var(--sage) 12%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 20%, var(--border));
+}
+
+.health-balanced {
+  background: color-mix(in oklab, var(--sage) 16%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 24%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.health-full {
+  background: color-mix(in oklab, var(--warm) 15%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 24%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.health-space {
+  background: color-mix(in oklab, var(--primary) 10%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.health-adjust {
+  background: color-mix(in oklab, var(--accent) 15%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+
+.cal-weekdays {
+  background: color-mix(in oklab, var(--sage) 12%, var(--muted));
+}
+.cal-weekend {
+  background: color-mix(in oklab, var(--warm) 8%, transparent);
+}
+.cal-today {
+  background: color-mix(in oklab, var(--primary) 10%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 32%, transparent);
+}
+
+.stripe-field_service { border-left: 4px solid var(--primary); }
+.stripe-work { border-left: 4px solid var(--sage); }
+.stripe-meeting { border-left: 4px solid var(--accent); }
+.stripe-personal { border-left: 4px solid var(--warm); }
+.stripe-rest { border-left: 4px solid var(--chart-4); }
+.stripe-other { border-left: 4px solid var(--chart-5); }
 
 input[type="date"],
 input[type="time"],
