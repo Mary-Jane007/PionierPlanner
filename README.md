@@ -27,13 +27,9 @@ cp .env.example .env
 npm run dev
 ```
 
-De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env`, default 4321).
+De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env`, default 4321). Dat adres werkt **niet** op je telefoon (`127.0.0.1` is alleen deze computer).
 
-**Op je telefoon:** `127.0.0.1` is alleen deze computer. Open de publieke site in Chrome op je telefoon:
-
-https://robertson-framework-cheats-separated.trycloudflare.com/
-
-(Deze tunnel blijft werken zolang de lokale server draait.) Blijvende URL na GitHub Pages: https://mary-jane007.github.io/PionierPlanner/
+Publieke site (GitHub Pages): [https://mary-jane007.github.io/PionierPlanner/](https://mary-jane007.github.io/PionierPlanner/)
 
 Op je telefoon kun je de site als app installeren (PWA), of de Android-APK downloaden via **Download Android-app**.
 
