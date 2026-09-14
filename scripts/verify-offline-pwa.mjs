@@ -91,7 +91,7 @@ async function withPreview(run) {
       8000,
     )
     const onData = (chunk) => {
-      if (String(chunk).includes("offline PWA preview")) {
+      if (String(chunk).includes("static export")) {
         clearTimeout(timer)
         resolve(true)
       }
