@@ -188,7 +188,11 @@ async function checkInBrowser(origin) {
         () => {
           const text = document.body?.innerText || ""
           const title = document.title || ""
-          return title.includes("Pioniersplanner") && (text.length > 40 || text.includes("offline"))
+          return (
+            title.includes("Pioniersplanner") &&
+            text.includes("Je bent offline") &&
+            (text.length > 40 || text.includes("offline"))
+          )
         },
         { timeout: 15000 },
       )

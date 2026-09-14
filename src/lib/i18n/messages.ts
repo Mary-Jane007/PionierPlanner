@@ -547,6 +547,12 @@ const messages = {
   "common.loading": { nl: "Even geduld…", en: "Just a moment…", es: "Un momento…", pap: "Un momentu…" },
   "common.hours": { nl: "uur", en: "hours", es: "horas", pap: "ora" },
   "common.of": { nl: "/", en: "/", es: "/", pap: "/" },
+  "pwa.offline": {
+    nl: "Je bent offline. De planner blijft lokaal werken.",
+    en: "You are offline. The planner keeps working on this device.",
+    es: "Estás sin conexión. El planificador sigue funcionando en este dispositivo.",
+    pap: "Bo ta offline. E planner ta sigui traha riba e aparato aki.",
+  },
 } as const
 
 type Vars = Record<string, string | number>

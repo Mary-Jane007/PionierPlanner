@@ -5,6 +5,7 @@ import { ThemeProvider, useTheme } from "next-themes"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { RegisterSW } from "@/components/pwa/RegisterSW"
+import { OfflineBanner } from "@/components/pwa/OfflineBanner"
 import { useAppStore } from "@/lib/store"
 
 function ThemeSync() {
@@ -43,6 +44,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <TooltipProvider>
         <ThemeSync />
         <RegisterSW />
+        <OfflineBanner />
         {children}
         <Toaster position="top-center" />
       </TooltipProvider>
