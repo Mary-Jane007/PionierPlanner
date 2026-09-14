@@ -22,6 +22,7 @@ import { useUiStore } from "@/lib/ui-store"
 import { cn } from "@/lib/utils"
 import { ServiceTimer } from "@/components/activities/ServiceTimer"
 import { QuickAdd } from "@/components/layout/QuickAdd"
+import { PageLoader } from "@/components/layout/PageLoader"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ExperienceDialog } from "@/components/experiences/ExperienceDialog"
 import { MoveEventSheet } from "@/components/calendar/MoveEventSheet"
@@ -186,11 +187,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [hydrated, user, onboarded, router])
 
   if (!hydrated) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-background">
-        <div className="h-40 w-40 animate-pulse rounded-full bg-muted" />
-      </div>
-    )
+    return <PageLoader />
   }
   if (!user || !onboarded) return null
   return <AppShell>{children}</AppShell>

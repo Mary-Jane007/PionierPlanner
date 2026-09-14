@@ -17,7 +17,7 @@ import type {
   UserProfile,
   UserSettings,
 } from "@/types"
-import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, STORAGE_KEY } from "@/lib/constants"
+import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } from "@/lib/constants"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
 
@@ -109,6 +109,9 @@ export const useAppStore = create<AppState>()(
       hiddenCategories: [],
       setHydrated: (value) => set({ hydrated: value }),
       login: (profile, options) => {
+        if (typeof window !== "undefined" && profile.email) {
+          localStorage.setItem(LAST_EMAIL_KEY, profile.email)
+        }
         if (options?.demo) {
           const data = createDemoData()
           set({
@@ -333,6 +336,9 @@ export const useAppStore = create<AppState>()(
         )
       },
       deleteAccountLocal: () => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(LAST_EMAIL_KEY)
+        }
         set({
           user: null,
           activeProfileId: null,

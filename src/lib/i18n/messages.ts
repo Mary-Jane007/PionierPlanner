@@ -242,6 +242,12 @@ const messages = {
     es: "Tus datos permanecen en este dispositivo hasta que conectes una cuenta en la nube.",
     pap: "Bo dato ta keda riba e aparato aki te ora bo konektá un kuenta den nube.",
   },
+  "auth.staySignedIn": {
+    nl: "Je blijft ingelogd op dit apparaat. Alleen Uitloggen of Account verwijderen wist de sessie. Je e-mailadres wordt onthouden.",
+    en: "You stay signed in on this device. Only Sign out or Delete account clears the session. Your email address is remembered.",
+    es: "Sigues conectado en este dispositivo. Solo Cerrar sesión o Eliminar cuenta borra la sesión. Se recuerda tu correo.",
+    pap: "Bo ta keda ingresá riba e aparato aki. Solamente Sali òf Kita kuenta ta kita e seshon. Bo e-mail ta wordu kordá.",
+  },
   "setup.title": { nl: "Laten we je planner inrichten", en: "Let’s set up your planner", es: "Configuremos tu planificador", pap: "Laga nos konfigurá bo planner" },
   "setup.next": { nl: "Volgende", en: "Next", es: "Siguiente", pap: "Siguiente" },
   "setup.back": { nl: "Terug", en: "Back", es: "Atrás", pap: "Bèk" },

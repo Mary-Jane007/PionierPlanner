@@ -51,7 +51,7 @@ Gebruik **Open de demomaand** voor een gevulde september-achtige agenda, of maak
 
 ## Gegevens en privacy
 
-Deze versie bewaart alles lokaal in de browser (geen cloud-database). Geschikt om de planner te gebruiken en te beoordelen. Voor productie kun je later Supabase koppelen voor echte accounts en synchronisatie.
+Deze versie bewaart alles lokaal in de browser (geen cloud-database). Je blijft ingelogd op hetzelfde apparaat; alleen **Uitloggen** of **Account verwijderen** wist de sessie. Het laatst gebruikte e-mailadres wordt onthouden. Geschikt om de planner te gebruiken en te beoordelen. Voor productie kun je later Supabase koppelen voor echte accounts en synchronisatie.
 
 - Ervaringen zijn standaard privé
 - Exporteren en account verwijderen staan onder Profiel

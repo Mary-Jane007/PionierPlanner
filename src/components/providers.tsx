@@ -26,16 +26,15 @@ function ThemeSync() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const unsub = useAppStore.persist.onFinishHydration(() => {
-      useAppStore.getState().setHydrated(true)
-    })
-    void useAppStore.persist.rehydrate()
-    const timeout = window.setTimeout(() => {
-      useAppStore.getState().setHydrated(true)
-    }, 400)
+    let cancelled = false
+    const finish = () => {
+      if (!cancelled) useAppStore.getState().setHydrated(true)
+    }
+    const unsub = useAppStore.persist.onFinishHydration(finish)
+    void Promise.resolve(useAppStore.persist.rehydrate()).finally(finish)
     return () => {
+      cancelled = true
       unsub()
-      window.clearTimeout(timeout)
     }
   }, [])
 

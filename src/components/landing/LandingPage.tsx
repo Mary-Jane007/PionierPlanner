@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
+import { PageLoader } from "@/components/layout/PageLoader"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -28,6 +29,10 @@ export function LandingPage() {
   useEffect(() => {
     if (hydrated && user && onboarded) router.replace("/vandaag")
   }, [hydrated, user, onboarded, router])
+
+  if (!hydrated || (user && onboarded)) {
+    return <PageLoader />
+  }
 
   return (
     <div className="min-h-dvh bg-background">

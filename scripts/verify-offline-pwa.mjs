@@ -176,6 +176,25 @@ async function checkInBrowser(origin) {
       { timeout: 15000 },
     )
 
+    const stored = await page.evaluate(() => ({
+      lastEmail: localStorage.getItem("pioniersplanner-last-email"),
+      session: localStorage.getItem("pioniersplanner-v1"),
+    }))
+    assert(
+      stored.lastEmail === "demo@pioniersplanner.app",
+      `last email was not stored (${stored.lastEmail})`,
+    )
+    assert(
+      Boolean(stored.session && (stored.session.includes("demo-user") || stored.session.includes("Marisol"))),
+      "signed-in user was not persisted to localStorage",
+    )
+
+    await page.goto(`${origin}/`, { waitUntil: "domcontentloaded", timeout: 15000 })
+    await page.waitForFunction(
+      () => /Vandaag|Goedenavond|Goedemorgen|Goedemiddag|Marisol/.test(document.body?.innerText || ""),
+      { timeout: 15000 },
+    )
+
     failed.length = 0
     await page.setOfflineMode(true)
     for (const path of ["/", "/vandaag/", "/planner/", "/kalender/", "/inloggen/", "/download/"]) {
