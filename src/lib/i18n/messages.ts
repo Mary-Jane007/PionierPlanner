@@ -40,6 +40,18 @@ const messages = {
     pap: "Pionero Planner ta yuda bo planeá servicio, agenda, ora i experensia na un lugá sosegá.",
   },
   "landing.cta": { nl: "Aan de slag", en: "Get started", es: "Empezar", pap: "Kuminsá" },
+  "landing.openApp": {
+    nl: "Open de app",
+    en: "Open the app",
+    es: "Abrir la app",
+    pap: "Habrí e app",
+  },
+  "landing.apkWontOpenHere": {
+    nl: "Een APK opent niet op een computer of in deze preview. Gebruik Open de app hier, of installeer het bestand op een Android-telefoon.",
+    en: "An APK will not open on a computer or in this preview. Use Open the app here, or install the file on an Android phone.",
+    es: "Un APK no se abre en un ordenador ni en esta vista previa. Usa Abrir la app aquí, o instálalo en un teléfono Android.",
+    pap: "Un APK no ta habri riba komputadó ni den e preview aki. Usa Habrí e app, òf instala e archivo riba un telefòn Android.",
+  },
   "landing.login": { nl: "Inloggen", en: "Sign in", es: "Iniciar sesión", pap: "Ingresá" },
   "landing.downloadAndroid": {
     nl: "Download Android-app",
