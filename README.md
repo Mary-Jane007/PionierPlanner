@@ -39,7 +39,14 @@ npm run build
 npm run preview
 ```
 
-`preview` serveert de statische export (inclusief service worker) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next dev` is voor ontwikkelen en registreert de service worker niet.
+`preview` / `npm start` serveert de statische export (inclusief service worker) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next start` werkt niet: de app is een static export (`output: "export"`). `next dev` is voor ontwikkelen en registreert de service worker niet.
+
+## Render
+
+De app is een statische export. Gebruik geen Native Next.js-service met `next start`.
+
+- **Static Site (aanbevolen):** Build `npm ci && npm run build`, publish directory `out`. `render.yaml` beschrijft dit.
+- **Web Service:** Build `npm ci && npm run build`, Start `npm start` (serveert `out/` via `scripts/preview.mjs`, luistert op `PORT`).
 
 ```bash
 npm run mobile:apk

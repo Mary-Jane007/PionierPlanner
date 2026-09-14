@@ -17,7 +17,9 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".txt": "text/plain; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8",
-  ".woff": "font/woff",
+    ".apk": "application/vnd.android.package-archive",
+    ".zip": "application/zip",
+    ".woff": "font/woff",
   ".woff2": "font/woff2",
 }
 
@@ -75,5 +77,5 @@ createServer((req, res) => {
   res.writeHead(200, headers)
   createReadStream(file).pipe(res)
 }).listen(port, host, () => {
-  console.log(`Pioniersplanner (offline PWA preview) on http://127.0.0.1:${port}/`)
+  console.log(`Pioniersplanner static export on http://127.0.0.1:${port}/`)
 })
