@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { buttonVariants } from "@/components/ui/button"
+import { withBase } from "@/lib/base-path"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
-const APK_PATH = "/downloads/pioniersplanner.apk"
-const ZIP_PATH = "/downloads/pioniersplanner-android.zip"
+const APK_PATH = withBase("/downloads/pioniersplanner.apk")
+const ZIP_PATH = withBase("/downloads/pioniersplanner-android.zip")
 
 function isAndroidDevice() {
   if (typeof navigator === "undefined") return false

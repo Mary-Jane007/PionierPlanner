@@ -1,12 +1,25 @@
-import type { NextConfig } from "next";
+const isGithubPages = process.env.GITHUB_PAGES === "true";
+const basePath = isGithubPages ? "/PionierPlanner" : "";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   output: "export",
   images: { unoptimized: true },
   trailingSlash: true,
-  // Cursor Preview opens the dev server through 127.0.0.1. Next.js 16
-  // otherwise blocks its development assets and HMR requests as cross-origin.
-  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  basePath,
+  assetPrefix: basePath || undefined,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
+  // Phone previews, tunnels, and GitHub Pages hosts besides localhost.
+  allowedDevOrigins: [
+    "127.0.0.1",
+    "localhost",
+    "**.trycloudflare.com",
+    "**.loca.lt",
+    "**.github.io",
+    "**.cursor.sh",
+    "**.cursor.app",
+  ],
 };
 
 export default nextConfig;
