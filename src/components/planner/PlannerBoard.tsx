@@ -1,6 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { toast } from "sonner"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,6 +12,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { calculateCompletedHours } from "@/lib/calculations"
 import {
   generateSuggestedSchedule,
@@ -18,6 +31,7 @@ import {
 } from "@/lib/planner/algorithm"
 import { formatDecimal, formatHoursShort } from "@/lib/format"
 import {
+  addHoursToTime,
   formatWeekdayLong,
   isoDate,
   parseDate,
@@ -27,16 +41,41 @@ import { useMonthSnapshot } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
+import { cn } from "@/lib/utils"
 import { DEFAULT_AUXILIARY_HOURS, DEFAULT_REGULAR_HOURS } from "@/lib/constants"
 import type {
   AvailabilitySlot,
+  CalendarEvent,
   DayPart,
   PioneerTypeId,
   PlanningStyle,
   SessionPreference,
+  SuggestedBlock,
   SuggestedOption,
 } from "@/types"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
+import { StartOverDialog } from "@/components/calendar/StartOverDialog"
+
+function suggestedPrefill(block: SuggestedBlock, title: string): Partial<CalendarEvent> {
+  return {
+    date: block.date,
+    startTime: block.startTime,
+    endTime: block.endTime,
+    category: "field_service",
+    title,
+    status: "planned",
+    serviceType: "house_to_house",
+  }
+}
+
+function reportApply(
+  result: { added: number; skipped: number },
+  t: (key: string, vars?: Record<string, string | number>) => string
+) {
+  if (result.added) toast.success(t("planner.added", { n: result.added }))
+  if (result.skipped) toast.info(t("planner.skipped", { n: result.skipped }))
+  if (!result.added && !result.skipped) toast.info(t("planner.nothingAdded"))
+}
 
 export function PlannerBoard() {
   const t = useT()
@@ -88,6 +127,7 @@ export function PlannerBoard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <StartTimerButton />
+          <StartOverDialog />
           <Button variant="outline" onClick={() => setWhatIfOpen(true)}>
             {t("planner.whatIf")}
           </Button>
@@ -99,14 +139,14 @@ export function PlannerBoard() {
       </header>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label={t("planner.goal")} value={`${snapshot.target}u`} />
-        <Stat label={t("planner.completed")} value={`${formatDecimal(snapshot.completed, lang)}u`} />
-        <Stat label={t("planner.remaining")} value={`${formatDecimal(snapshot.remaining, lang)}u`} />
-        <Stat label={t("planner.planned")} value={`${formatDecimal(snapshot.planned, lang)}u`} />
+        <Stat tone="goal" label={t("planner.goal")} value={`${snapshot.target}u`} />
+        <Stat tone="done" label={t("planner.completed")} value={`${formatDecimal(snapshot.completed, lang)}u`} />
+        <Stat tone="left" label={t("planner.remaining")} value={`${formatDecimal(snapshot.remaining, lang)}u`} />
+        <Stat tone="planned" label={t("planner.planned")} value={`${formatDecimal(snapshot.planned, lang)}u`} />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <article className="card-quiet rounded-3xl p-5 lg:col-span-2">
+        <article className="planner-pace rounded-3xl p-5 lg:col-span-2">
           <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
             {t("planner.pace")}
           </p>
@@ -114,9 +154,9 @@ export function PlannerBoard() {
             {t("planner.paceText", { n: formatDecimal(snapshot.requiredWeekly, lang) })}
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <Stat label={t("planner.needWeek")} value={`${formatDecimal(snapshot.requiredWeekly, lang)}u`} />
-            <Stat label={t("planner.needDay")} value={`${formatDecimal(snapshot.requiredDaily, lang)}u`} />
-            <Stat label={t("planner.projected")} value={`${formatDecimal(snapshot.projected, lang)}u`} />
+            <Stat tone="goal" label={t("planner.needWeek")} value={`${formatDecimal(snapshot.requiredWeekly, lang)}u`} />
+            <Stat tone="left" label={t("planner.needDay")} value={`${formatDecimal(snapshot.requiredDaily, lang)}u`} />
+            <Stat tone="planned" label={t("planner.projected")} value={`${formatDecimal(snapshot.projected, lang)}u`} />
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
             {under > 0.4
@@ -124,7 +164,7 @@ export function PlannerBoard() {
               : t("planner.over", { n: formatDecimal(snapshot.projected - snapshot.target, lang) })}
           </p>
         </article>
-        <article className="card-quiet rounded-3xl p-5">
+        <article className={cn("rounded-3xl p-5", `health-${snapshot.health}`)}>
           <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
             {t("planner.health")}
           </p>
@@ -140,17 +180,18 @@ export function PlannerBoard() {
       <WeeklyBoard />
 
       {under > 1 ? (
-        <section className="card-quiet rounded-3xl p-6">
+        <section className="planner-suggest rounded-3xl p-6">
           <h2 className="font-heading text-3xl">{t("planner.review")}</h2>
           <p className="mt-2 text-muted-foreground">
             {t("planner.possible")}
           </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("planner.suggestHint")}</p>
           <div className="mt-5 grid gap-4 lg:grid-cols-3">
             {recovery.map((option) => (
               <OptionCard
                 key={option.id}
                 option={option}
-                onUse={() => apply(option.blocks)}
+                onUse={() => reportApply(apply(option.blocks), t)}
               />
             ))}
           </div>
@@ -169,9 +210,17 @@ export function PlannerBoard() {
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone?: "goal" | "done" | "left" | "planned"
+}) {
   return (
-    <div className="card-quiet rounded-2xl p-4">
+    <div className={cn("rounded-2xl p-4", tone ? `stat-${tone}` : "card-quiet")}>
       <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
       <p className="font-heading mt-1 text-2xl">{value}</p>
     </div>
@@ -189,7 +238,7 @@ function WeeklyBoard() {
   const remaining = Math.max(0, snapshot.requiredWeekly - snapshot.weekHours)
 
   return (
-    <section className="card-quiet rounded-3xl p-6">
+    <section className="planner-week rounded-3xl p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-heading text-3xl">{t("planner.weekTitle")}</h2>
@@ -207,30 +256,94 @@ function WeeklyBoard() {
         {days.map((day) => {
           const date = isoDate(day)
           const items = events.filter(
-            (event) => event.date === date && event.category === "field_service" && event.status !== "cancelled"
+            (event) => event.date === date && event.status !== "cancelled"
           )
-          const hours = items.reduce((sum, event) => sum + event.durationMinutes / 60, 0)
+          const hours = items
+            .filter((event) => event.category === "field_service")
+            .reduce((sum, event) => sum + event.durationMinutes / 60, 0)
           return (
-            <button
+            <div
               key={date}
-              type="button"
-              onClick={() => openActivity({ date, category: "field_service" })}
-              className="flex items-center justify-between rounded-2xl bg-muted/50 px-4 py-3 text-left"
+              className="planner-week-row flex items-start justify-between gap-3 rounded-2xl px-4 py-3"
             >
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{formatWeekdayLong(day, lang)}</p>
-                <p className="text-xs text-muted-foreground">
-                  {items.length === 0
-                    ? "—"
-                    : items.map((item) => `${item.startTime}–${item.endTime}`).join(" · ")}
-                </p>
+                {items.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">—</p>
+                ) : (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {items.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={cn("cat-" + item.category, "rounded-md px-2 py-1 text-left text-xs")}
+                        onClick={() => openActivity(item, item.id)}
+                      >
+                        {item.startTime}–{item.endTime} {item.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <p className="text-sm">{hours ? formatHoursShort(hours, lang) : "—"}</p>
-            </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <p className="text-sm">{hours ? formatHoursShort(hours, lang) : "—"}</p>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label={t("calendar.add")}
+                  onClick={() =>
+                    openActivity({
+                      date,
+                      category: "field_service",
+                      title: t("category.field_service"),
+                    })
+                  }
+                >
+                  <Plus />
+                </Button>
+              </div>
+            </div>
           )
         })}
       </div>
     </section>
+  )
+}
+
+function ConfirmSlotsButton({
+  disabled,
+  className,
+  onConfirm,
+}: {
+  disabled?: boolean
+  className?: string
+  onConfirm: () => void
+}) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger render={<Button className={className} disabled={disabled} />}>
+        {t("planner.addFreeSlots")}
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("planner.addFreeSlots")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("planner.addFreeConfirm")}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("activity.cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              onConfirm()
+              setOpen(false)
+            }}
+          >
+            {t("planner.addFreeSlots")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
@@ -243,22 +356,35 @@ function OptionCard({
 }) {
   const t = useT()
   const lang = useLang()
+  const openActivity = useUiStore((s) => s.openActivity)
   return (
-    <article className="rounded-2xl border border-border p-4">
+    <article className="option-card-suggested rounded-2xl p-4">
       <h3 className="font-heading text-xl">{t(option.titleKey)}</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         {formatDecimal(option.totalHours, lang)}u
       </p>
-      <ul className="mt-3 space-y-1 text-sm">
+      <ul className="mt-3 space-y-2 text-sm">
         {option.blocks.slice(0, 6).map((block) => (
-          <li key={`${block.date}-${block.startTime}`}>
-            {formatWeekdayLong(parseDate(block.date), lang)} — {formatHoursShort(block.hours, lang)}
+          <li key={`${block.date}-${block.startTime}`} className="flex items-center justify-between gap-2">
+            <span>
+              {formatWeekdayLong(parseDate(block.date), lang)} {block.startTime}–{block.endTime} ·{" "}
+              {formatHoursShort(block.hours, lang)}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => openActivity(suggestedPrefill(block, t("category.field_service")))}
+            >
+              {t("planner.editBlock")}
+            </Button>
           </li>
         ))}
       </ul>
-      <Button className="mt-4 w-full" onClick={onUse} disabled={option.blocks.length === 0}>
-        {t("planner.usePlan")}
-      </Button>
+      <ConfirmSlotsButton
+        className="mt-4 w-full"
+        disabled={option.blocks.length === 0}
+        onConfirm={onUse}
+      />
     </article>
   )
 }
@@ -425,13 +551,14 @@ function MonthWizard({ open, onClose }: { open: boolean; onClose: () => void }) 
         ) : null}
         {step === 6 ? (
           <Step title={t("planner.step.suggest")}>
+            <p className="text-sm text-muted-foreground">{t("planner.suggestHint")}</p>
             <div className="grid gap-3">
               {options.map((option) => (
                 <OptionCard
                   key={option.id}
                   option={option}
                   onUse={() => {
-                    apply(option.blocks)
+                    reportApply(apply(option.blocks), t)
                     onClose()
                     setStep(1)
                   }}
@@ -562,11 +689,13 @@ function WhatIfDialog({ open, onClose }: { open: boolean; onClose: () => void })
   const t = useT()
   const lang = useLang()
   const snapshot = useMonthSnapshot()
-  const apply = useAppStore((s) => s.applySuggestedBlocks)
+  const openActivity = useUiStore((s) => s.openActivity)
   const [date, setDate] = useState(isoDate(new Date()))
   const [hours, setHours] = useState(3)
   const projected = snapshot.completed + snapshot.planned + hours
   const remaining = Math.max(0, snapshot.target - (snapshot.completed + hours))
+  const startTime = "09:00"
+  const endTime = addHoursToTime(startTime, hours)
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
@@ -579,7 +708,7 @@ function WhatIfDialog({ open, onClose }: { open: boolean; onClose: () => void })
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input type="number" min={1} max={6} step={0.5} value={hours} onChange={(e) => setHours(Number(e.target.value))} />
         </div>
-        <div className="rounded-2xl bg-muted p-4 text-sm">
+        <div className="whatif-preview rounded-2xl p-4 text-sm">
           <p>
             {t("planner.completed")}: {formatDecimal(snapshot.completed, lang)} / {snapshot.target}
           </p>
@@ -595,13 +724,14 @@ function WhatIfDialog({ open, onClose }: { open: boolean; onClose: () => void })
         </div>
         <Button
           onClick={() => {
-            apply([
-              {
-                date,
-                startTime: "09:00",
-                endTime: `${String(9 + Math.floor(hours)).padStart(2, "0")}:${hours % 1 ? "30" : "00"}`,
-              },
-            ])
+            openActivity({
+              date,
+              startTime,
+              endTime,
+              category: "field_service",
+              title: t("category.field_service"),
+              status: "planned",
+            })
             onClose()
           }}
         >
@@ -626,6 +756,7 @@ function FillWeekDialog({
   const t = useT()
   const lang = useLang()
   const apply = useAppStore((s) => s.applySuggestedBlocks)
+  const openActivity = useUiStore((s) => s.openActivity)
   const blocks = useMemo(
     () => suggestWeekFill(input, Math.max(1, hoursNeeded)).filter((block) => {
       const week = weekDays(new Date())
@@ -643,26 +774,37 @@ function FillWeekDialog({
         <p className="text-sm text-muted-foreground">
           {t("planner.fillNeed", { n: formatDecimal(hoursNeeded, lang) })}
         </p>
+        <p className="text-sm text-muted-foreground">{t("planner.suggestHint")}</p>
         {blocks.length === 0 ? (
           <p>{t("planner.noSlot")}</p>
         ) : (
           <ul className="space-y-2 text-sm">
             {blocks.map((block) => (
-              <li key={`${block.date}-${block.startTime}`}>
-                {formatWeekdayLong(parseDate(block.date), lang)} {block.startTime}–{block.endTime} · {formatHoursShort(block.hours, lang)}
+              <li key={`${block.date}-${block.startTime}`} className="flex items-center justify-between gap-2">
+                <span>
+                  {formatWeekdayLong(parseDate(block.date), lang)} {block.startTime}–{block.endTime} · {formatHoursShort(block.hours, lang)}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    openActivity(suggestedPrefill(block, t("category.field_service")))
+                    onClose()
+                  }}
+                >
+                  {t("planner.editBlock")}
+                </Button>
               </li>
             ))}
           </ul>
         )}
-        <Button
+        <ConfirmSlotsButton
           disabled={blocks.length === 0}
-          onClick={() => {
-            apply(blocks)
+          onConfirm={() => {
+            reportApply(apply(blocks), t)
             onClose()
           }}
-        >
-          {t("timer.add")}
-        </Button>
+        />
       </DialogContent>
     </Dialog>
   )

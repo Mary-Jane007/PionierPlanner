@@ -5,6 +5,7 @@ import { formatHumanDate, parseDate } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
+import { Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
 
@@ -47,11 +48,21 @@ export function ActivitiesBoard() {
                   {t(`category.${event.category}`)} · {formatHoursShort(event.durationMinutes / 60, lang)} · {t(`status.${event.status}`)}
                 </p>
               </button>
-              {event.status === "planned" ? (
-                <Button variant="secondary" size="sm" onClick={() => setEventStatus(event.id, "completed")}>
-                  {t("activity.complete")}
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openActivity(event, event.id)}
+                >
+                  <Pencil />
+                  {t("activity.edit")}
                 </Button>
-              ) : null}
+                {event.status === "planned" ? (
+                  <Button variant="secondary" size="sm" onClick={() => setEventStatus(event.id, "completed")}>
+                    {t("activity.complete")}
+                  </Button>
+                ) : null}
+              </div>
             </article>
           ))}
         </div>

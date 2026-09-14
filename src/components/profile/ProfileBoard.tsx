@@ -18,6 +18,7 @@ import { useT, useLang } from "@/lib/i18n"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
 import { deleteStoredAccount } from "@/lib/auth"
 import type { LocaleCode, ThemeMode } from "@/types"
+import { StartOverDialog } from "@/components/calendar/StartOverDialog"
 
 export function ProfileBoard() {
   const t = useT()
@@ -203,6 +204,8 @@ export function ProfileBoard() {
 
       <section className="card-quiet space-y-3 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.data")}</h2>
+        <StartOverDialog />
+        <p className="text-xs text-muted-foreground">{t("calendar.clearConfirm")}</p>
         <Button variant="outline" onClick={exportFile}>
           {t("settings.export")}
         </Button>

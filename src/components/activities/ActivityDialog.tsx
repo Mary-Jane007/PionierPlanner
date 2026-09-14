@@ -64,7 +64,7 @@ export function ActivityDialog() {
   const setEventStatus = useAppStore((s) => s.setEventStatus)
   const existing = events.find((event) => event.id === editingId)
   const source = existing ?? prefill
-  const formKey = `${editingId ?? "new"}-${source?.date ?? ""}-${source?.startTime ?? ""}`
+  const formKey = `${editingId ?? "new"}-${source?.date ?? ""}-${source?.startTime ?? ""}-${source?.endTime ?? ""}-${source?.title ?? ""}-${source?.category ?? ""}`
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && close()}>

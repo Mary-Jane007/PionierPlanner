@@ -54,7 +54,7 @@ npm run mobile:apk
 
 Dat zet `public/downloads/pioniersplanner.apk` klaar. Installeer het bestand op Android en sta installatie van onbekende bronnen toe.
 
-Gebruik **Open de demomaand** voor een gevulde september-achtige agenda, of maak een eigen account.
+Gebruik **Open met een lege planner** om zonder voorbeeldactiviteiten te beginnen, of maak een eigen account.
 
 ## Gegevens en privacy
 
