@@ -16,7 +16,7 @@ export function OfflineBanner() {
 
     async function pingWeb() {
       try {
-        await fetch(`${withBase("/__online_check")}?t=${Date.now()}`, {
+        await fetch(`${withBase("/__online_check/")}?t=${Date.now()}`, {
           method: "GET",
           cache: "no-store",
         })

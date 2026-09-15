@@ -37,7 +37,7 @@ function shouldBypass(url) {
   if (url.pathname.includes("/downloads/") && /\.(apk|zip)$/i.test(url.pathname)) return true
   if (url.pathname.includes("webpack-hmr")) return true
   if (url.pathname.includes("/_next/webpack")) return true
-  if (url.pathname.endsWith("/__online_check")) return true
+  if (url.pathname.includes("__online_check")) return true
   if (url.searchParams.has("__online_check")) return true
   return false
 }
