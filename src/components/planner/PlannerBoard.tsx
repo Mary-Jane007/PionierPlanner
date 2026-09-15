@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -479,9 +480,13 @@ function MonthWizard({ open, onClose }: { open: boolean; onClose: () => void }) 
                   <span>
                     {item.title} · {t(`weekday.${item.weekday}`)} {item.startTime}–{item.endTime}
                   </span>
-                  <Button variant="ghost" size="sm" onClick={() => removeCommitment(item.id)}>
+                  <ConfirmDeleteButton
+                    title={t("activity.delete")}
+                    description={t("planner.commitmentDelete")}
+                    onConfirm={() => removeCommitment(item.id)}
+                  >
                     {t("activity.delete")}
-                  </Button>
+                  </ConfirmDeleteButton>
                 </div>
               ))}
               <div className="grid grid-cols-2 gap-2">

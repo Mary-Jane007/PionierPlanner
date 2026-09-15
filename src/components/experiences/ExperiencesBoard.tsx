@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { Heart, Search, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { formatHumanDate, parseDate } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
@@ -117,9 +118,13 @@ export function ExperiencesBoard() {
                 <Button variant="ghost" size="sm" onClick={() => openExperience(item.id)}>
                   {t("activity.edit")}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => deleteExperience(item.id)}>
+                <ConfirmDeleteButton
+                  title={t("activity.delete")}
+                  description={t("exp.deleteConfirm")}
+                  onConfirm={() => deleteExperience(item.id)}
+                >
                   {t("activity.delete")}
-                </Button>
+                </ConfirmDeleteButton>
               </div>
             </article>
           ))}
