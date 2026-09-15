@@ -129,3 +129,13 @@ export function demoProfile(): UserProfile {
     createdAt: "2026-01-12T09:00:00.000Z",
   }
 }
+
+export function isAppOwner(user: UserProfile | null): boolean {
+  if (!user) return false
+  const accounts = readAccounts()
+  if (accounts.length === 0) return true
+  const oldest = accounts.reduce((first, account) =>
+    account.createdAt < first.createdAt ? account : first
+  )
+  return oldest.id === user.id
+}

@@ -54,6 +54,24 @@ export const experienceSchema = z.object({
   visibility: z.enum(["private", "share_ready"]),
 })
 
+export const tipSchema = z.object({
+  title: z.string().min(1).max(120),
+  text: z.string().min(1).max(2000),
+  scriptureReference: z.string().min(1).max(80),
+  reflection: z.string().min(1).max(2000),
+  category: z.enum([
+    "pioneering",
+    "ministry",
+    "studies",
+    "return",
+    "informal",
+    "time",
+    "study",
+    "encourage",
+    "challenges",
+  ]),
+})
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
