@@ -9,6 +9,9 @@ const nextConfig = {
   assetPrefix: basePath || undefined,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL ||
+      (isGithubPages ? "https://pionierplanner.onrender.com" : ""),
   },
   // Phone previews, tunnels, and GitHub Pages hosts besides localhost.
   allowedDevOrigins: [

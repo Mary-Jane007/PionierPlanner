@@ -30,23 +30,25 @@ npm run dev
 
 De app draait op [http://127.0.0.1:4321](http://127.0.0.1:4321) (`PORT` in `.env`, default 4321). Dat adres werkt **niet** op je telefoon (`127.0.0.1` is alleen deze computer).
 
-Publieke site (GitHub Pages): [https://mary-jane007.github.io/PionierPlanner/](https://mary-jane007.github.io/PionierPlanner/)
+Publieke site: [https://pionierplanner.onrender.com](https://pionierplanner.onrender.com)
 
-Op je telefoon kun je de site als **offline webapp (PWA)** installeren, of de Android-APK downloaden via **Download Android-app**. Na de eerste keer laden blijven de pagina’s, iconen en je lokale gegevens beschikbaar zonder internet.
+Op je telefoon open je dezelfde site (of installeer je hem als **offline webapp**). Een account dat je maakt, werkt op computer én telefoon: e-mail en wachtwoord worden in de cloud bewaard.
 
 ```bash
 npm run build
 npm run preview
 ```
 
-`preview` / `npm start` serveert de statische export (inclusief service worker) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next start` werkt niet: de app is een static export (`output: "export"`). `next dev` is voor ontwikkelen en registreert de service worker niet.
+`preview` / `npm start` serveert de statische export (inclusief service worker) en de cloud-API (`/api/cloud`) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next start` werkt niet: de app is een static export (`output: "export"`). `next dev` start de API ernaast (via `scripts/dev.mjs`).
 
 ## Render
 
-De app is een statische export. Gebruik geen Native Next.js-service met `next start`.
+De app is een statische export plus een kleine Node-API voor accounts.
 
-- **Static Site (aanbevolen):** Build `npm ci && npm run build`, publish directory `out`. `render.yaml` beschrijft dit.
 - **Web Service:** Build `npm ci && npm run build`, Start `npm start` (serveert `out/` via `scripts/preview.mjs`, luistert op `PORT`).
+- Zet **`DATABASE_URL`** (Neon) en **`AUTH_SECRET`** in de Render-omgeving. Zonder die variabelen blijft inloggen alleen lokaal.
+
+`render.yaml` beschrijft dit.
 
 ```bash
 npm run mobile:apk
@@ -58,11 +60,11 @@ Gebruik **Open met een lege planner** om zonder voorbeeldactiviteiten te beginne
 
 ## Gegevens en privacy
 
-Deze versie bewaart alles lokaal in de browser (geen cloud-database). Je blijft ingelogd op hetzelfde apparaat; alleen **Uitloggen** of **Account verwijderen** wist de sessie. Het laatst gebruikte e-mailadres wordt onthouden. Geschikt om de planner te gebruiken en te beoordelen. Voor productie kun je later Supabase koppelen voor echte accounts en synchronisatie.
+Nieuwe accounts worden in de cloud bewaard (Neon). Daarmee log je overal in met hetzelfde e-mailadres en wachtwoord. De planner-gegevens van dat account synchroniseren mee. “Open met een lege planner” blijft alleen lokaal.
 
 - Ervaringen zijn standaard privé
 - Exporteren en account verwijderen staan onder Profiel
-- Wachtwoorden worden lokaal gehashed; dit is geen vervanging van een echte authenticatieserver
+- Wachtwoorden worden op de server gehashed; tokens blijven op het apparaat tot je uitlogt
 
 ## Stack
 

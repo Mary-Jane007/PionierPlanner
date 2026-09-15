@@ -34,6 +34,7 @@ self.addEventListener("fetch", (event) => {
 })
 
 function shouldBypass(url) {
+  if (url.pathname.includes("/api/cloud")) return true
   if (url.pathname.includes("/downloads/") && /\.(apk|zip)$/i.test(url.pathname)) return true
   if (url.pathname.includes("webpack-hmr")) return true
   if (url.pathname.includes("/_next/webpack")) return true
