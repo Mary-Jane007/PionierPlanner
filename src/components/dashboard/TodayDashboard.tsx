@@ -21,13 +21,14 @@ export function TodayDashboard() {
   const user = useAppStore((s) => s.user)
   const pioneerType = useAppStore((s) => s.pioneerType)
   const events = useAppStore((s) => s.events)
+  const customTips = useAppStore((s) => s.customTips)
   const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
   const now = new Date()
   const today = isoDate(now)
   const greeting = greetingKey(now)
-  const daily = getDailyContent(lang, now)
-  const tip = getDailyTip(lang, now)
+  const daily = getDailyContent(lang, now, customTips)
+  const tip = getDailyTip(lang, now, customTips)
   const todayEvents = events
     .filter((event) => event.date === today && event.status !== "cancelled")
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -154,6 +155,9 @@ export function TodayDashboard() {
             {t("home.tip")}
           </p>
           <h2 className="font-heading mt-3 text-2xl">{tip.title}</h2>
+          {tip.scriptureReference ? (
+            <p className="mt-3 text-sm text-primary">{tip.scriptureReference}</p>
+          ) : null}
           <p className="mt-2 text-sm text-muted-foreground">{tip.text}</p>
         </article>
         <article className="surface-primary rounded-3xl p-5">

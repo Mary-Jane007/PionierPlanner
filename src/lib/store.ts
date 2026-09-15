@@ -21,6 +21,7 @@ import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } 
 import { detectScheduleConflict } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
+import type { PioneerTip } from "@/lib/tips"
 
 export type CalendarClearScope = "month" | "planned" | "all"
 
@@ -40,6 +41,7 @@ export interface AppState {
   settings: UserSettings
   timer: TimerState
   hiddenCategories: ActivityCategory[]
+  customTips: PioneerTip[]
   setHydrated: (value: boolean) => void
   login: (profile: UserProfile, options?: { demo?: boolean; fresh?: boolean }) => void
   logout: () => void
@@ -59,6 +61,8 @@ export interface AppState {
   deleteExperience: (id: string) => void
   toggleFavorite: (id: string) => void
   toggleCategory: (category: ActivityCategory) => void
+  upsertCustomTip: (tip: PioneerTip) => void
+  deleteCustomTip: (id: string) => void
   startTimer: () => void
   pauseTimer: () => void
   tickTimer: () => void
@@ -111,6 +115,7 @@ export const useAppStore = create<AppState>()(
       settings: DEFAULT_SETTINGS,
       timer: idleTimer,
       hiddenCategories: [],
+      customTips: [],
       setHydrated: (value) => set({ hydrated: value }),
       login: (profile, options) => {
         if (typeof window !== "undefined" && profile.email) {
@@ -262,6 +267,18 @@ export const useAppStore = create<AppState>()(
             : [...hidden, category],
         })
       },
+      upsertCustomTip: (tip) => {
+        const tips = get().customTips
+        const index = tips.findIndex((item) => item.id === tip.id)
+        if (index === -1) set({ customTips: [tip, ...tips] })
+        else {
+          const next = [...tips]
+          next[index] = tip
+          set({ customTips: next })
+        }
+      },
+      deleteCustomTip: (id) =>
+        set({ customTips: get().customTips.filter((item) => item.id !== id) }),
       startTimer: () =>
         set({
           timer: {
@@ -361,6 +378,7 @@ export const useAppStore = create<AppState>()(
             experiences: state.experiences,
             history: state.history,
             settings: state.settings,
+            customTips: state.customTips,
           },
           null,
           2
@@ -406,6 +424,7 @@ export const useAppStore = create<AppState>()(
         history: state.history,
         settings: state.settings,
         hiddenCategories: state.hiddenCategories,
+        customTips: state.customTips,
       }),
       merge: (persisted, current) => {
         const stored = (persisted ?? {}) as Partial<AppState>
