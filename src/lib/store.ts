@@ -14,6 +14,7 @@ import type {
   PlanningStyle,
   SessionPreference,
   TimerState,
+  UserAccount,
   UserProfile,
   UserSettings,
 } from "@/types"
@@ -21,7 +22,7 @@ import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } 
 import { detectScheduleConflict } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
-import { rememberEmail, updateStoredAccountName } from "@/lib/auth"
+import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
 import type { PioneerTip } from "@/lib/tips"
 
 export type CalendarClearScope = "month" | "planned" | "all"
@@ -74,6 +75,7 @@ export interface AppState {
   ) => { added: number; skipped: number }
   clearCalendar: (scope: CalendarClearScope, monthDate?: Date) => void
   exportData: () => string
+  importBackup: (json: string) => { ok: true; signedIn: boolean } | { error: "invalid" }
   deleteAccountLocal: () => void
 }
 
@@ -372,7 +374,11 @@ export const useAppStore = create<AppState>()(
         const state = get()
         return JSON.stringify(
           {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            accounts: readStoredAccounts(),
             user: state.user,
+            onboarded: state.onboarded,
             pioneerType: state.pioneerType,
             customMonthlyHours: state.customMonthlyHours,
             monthlyGoals: state.monthlyGoals,
@@ -382,11 +388,49 @@ export const useAppStore = create<AppState>()(
             experiences: state.experiences,
             history: state.history,
             settings: state.settings,
+            hiddenCategories: state.hiddenCategories,
             customTips: state.customTips,
           },
           null,
           2
         )
+      },
+      importBackup: (json) => {
+        let parsed: Record<string, unknown>
+        try {
+          parsed = JSON.parse(json) as Record<string, unknown>
+        } catch {
+          return { error: "invalid" }
+        }
+        const data = parsed
+        const incomingAccounts = Array.isArray(data.accounts) ? (data.accounts as UserAccount[]) : []
+        const user = (data.user ?? null) as UserProfile | null
+        if (!user && incomingAccounts.length === 0 && !Array.isArray(data.events)) {
+          return { error: "invalid" }
+        }
+        mergeStoredAccounts(incomingAccounts)
+        const pioneerType = (data.pioneerType as PioneerTypeId | undefined) ?? "regular"
+        set({
+          user,
+          activeProfileId: user?.id ?? null,
+          onboarded: Boolean(data.onboarded ?? user),
+          pioneerType,
+          customMonthlyHours:
+            typeof data.customMonthlyHours === "number" ? data.customMonthlyHours : DEFAULT_REGULAR_HOURS,
+          monthlyGoals: Array.isArray(data.monthlyGoals) ? data.monthlyGoals : [],
+          events: Array.isArray(data.events) ? data.events : [],
+          availability: Array.isArray(data.availability) ? data.availability : [],
+          commitments: Array.isArray(data.commitments) ? data.commitments : [],
+          experiences: Array.isArray(data.experiences) ? data.experiences : [],
+          history: Array.isArray(data.history) ? data.history : [],
+          settings: { ...DEFAULT_SETTINGS, ...(data.settings as UserSettings | undefined) },
+          hiddenCategories: Array.isArray(data.hiddenCategories) ? data.hiddenCategories : [],
+          customTips: Array.isArray(data.customTips) ? data.customTips : [],
+          timer: idleTimer,
+          hydrated: true,
+        })
+        if (user?.email) rememberEmail(user.email)
+        return { ok: true, signedIn: Boolean(user) }
       },
       deleteAccountLocal: () => {
         if (typeof window !== "undefined") {

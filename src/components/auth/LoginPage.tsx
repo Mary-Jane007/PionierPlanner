@@ -14,10 +14,12 @@ import {
   registerAccount,
   resetAccountPassword,
   signInAccount,
+  storedAccountCount,
 } from "@/lib/auth"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
+import { ImportBackupButton } from "@/components/profile/ImportBackupButton"
 
 type AuthMode = "signin" | "signup" | "reset"
 
@@ -91,6 +93,10 @@ export function LoginPage() {
           ? await registerAccount(name, email, password)
           : await signInAccount(email, password)
       if ("error" in result) {
+        if (mode !== "signup" && result.error === "missing") {
+          setError(t("auth.notOnThisDevice"))
+          return
+        }
         setError(result.error === "exists" ? t("auth.exists") : t("auth.error"))
         return
       }
@@ -134,6 +140,13 @@ export function LoginPage() {
         </p>
         {mode !== "reset" ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
+        ) : null}
+        {mode === "signin" ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {storedAccountCount() === 0
+              ? t("auth.noLocalAccounts")
+              : t("auth.localAccounts", { n: storedAccountCount() })}
+          </p>
         ) : null}
 
         {mode !== "reset" ? (
@@ -248,6 +261,16 @@ export function LoginPage() {
           >
             {t("auth.forgot")}
           </button>
+        ) : null}
+
+        {mode !== "reset" ? (
+          <ImportBackupButton
+            variant="outline"
+            className="mt-3 h-11 w-full rounded-xl"
+            onImported={(signedIn) => {
+              if (signedIn) goToApp(useAppStore.getState().onboarded)
+            }}
+          />
         ) : null}
 
         {mode !== "reset" ? (
