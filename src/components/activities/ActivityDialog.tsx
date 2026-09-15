@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -364,16 +365,18 @@ function ActivityForm({
           </Field>
           <DialogFooter className="sticky bottom-0">
             {editingId ? (
-              <Button
-                type="button"
+              <ConfirmDeleteButton
                 variant="destructive"
-                onClick={() => {
+                size="default"
+                title={t("activity.delete")}
+                description={t("activity.deleteConfirm")}
+                onConfirm={() => {
                   onDelete(editingId)
                   onClose()
                 }}
               >
                 {t("activity.delete")}
-              </Button>
+              </ConfirmDeleteButton>
             ) : null}
             {editingId && status !== "completed" ? (
               <Button

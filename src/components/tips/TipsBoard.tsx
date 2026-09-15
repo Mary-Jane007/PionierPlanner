@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { TipDialog } from "@/components/tips/TipDialog"
 import { isAppOwner } from "@/lib/auth"
 import { useT, useLang } from "@/lib/i18n"
@@ -113,9 +114,13 @@ export function TipsBoard() {
                   <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
                     {t("tips.editTitle")}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => deleteCustomTip(item.id)}>
+                  <ConfirmDeleteButton
+                    title={t("activity.delete")}
+                    description={t("tips.deleteConfirm")}
+                    onConfirm={() => deleteCustomTip(item.id)}
+                  >
                     {t("activity.delete")}
-                  </Button>
+                  </ConfirmDeleteButton>
                 </div>
               ) : null}
             </article>

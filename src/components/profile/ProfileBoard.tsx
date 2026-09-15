@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -198,15 +199,19 @@ export function ProfileBoard() {
         <Button variant="outline" onClick={() => logout()}>
           {t("settings.logout")}
         </Button>
-        <Button
+        <ConfirmDeleteButton
           variant="destructive"
-          onClick={() => {
+          size="default"
+          title={t("settings.deleteTitle")}
+          description={t("settings.deleteConfirm")}
+          confirmLabel={t("settings.delete")}
+          onConfirm={() => {
             if (user) deleteStoredAccount(user.id)
             deleteAccountLocal()
           }}
         >
           {t("settings.delete")}
-        </Button>
+        </ConfirmDeleteButton>
         <p className="text-xs text-muted-foreground">{t("settings.deleteConfirm")}</p>
       </section>
     </div>
