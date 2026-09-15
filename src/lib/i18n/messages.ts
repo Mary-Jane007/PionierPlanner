@@ -578,6 +578,7 @@ const messages = {
     pap: "Tip práktiko di pionero ku un teksto bíbliko ku ta keda.",
   },
   "tips.add": { nl: "+ Tip toevoegen", en: "+ Add tip", es: "+ Añadir consejo", pap: "+ Sumá tip" },
+  "tips.all": { nl: "Alle tips", en: "All tips", es: "Todos los consejos", pap: "Tur tip" },
   "tips.editTitle": { nl: "Tip bewerken", en: "Edit tip", es: "Editar consejo", pap: "Editá tip" },
   "tips.newTitle": { nl: "Nieuwe tip", en: "New tip", es: "Nuevo consejo", pap: "Tip nobo" },
   "tips.scripture": { nl: "Bijbeltekst", en: "Bible verse", es: "Texto bíblico", pap: "Teksto bíbliko" },

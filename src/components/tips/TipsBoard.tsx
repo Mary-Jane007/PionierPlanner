@@ -74,7 +74,7 @@ export function TipsBoard() {
 
       <div className="flex flex-wrap gap-2">
         <FilterChip active={category === "all"} onClick={() => setCategory("all")}>
-          {t("calendar.filter.all")}
+          {t("tips.all")}
         </FilterChip>
         {TIP_CATEGORIES.map((item) => (
           <FilterChip key={item} active={category === item} onClick={() => setCategory(item)}>
@@ -111,7 +111,7 @@ export function TipsBoard() {
               {owner && item.ownerAdded ? (
                 <div className="mt-4 flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
-                    {t("activity.edit")}
+                    {t("tips.editTitle")}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => deleteCustomTip(item.id)}>
                     {t("activity.delete")}
