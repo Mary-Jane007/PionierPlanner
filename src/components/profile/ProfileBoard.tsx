@@ -18,6 +18,7 @@ import { deleteStoredAccount } from "@/lib/auth"
 import type { LocaleCode, ThemeMode } from "@/types"
 import { StartOverDialog } from "@/components/calendar/StartOverDialog"
 import { AccountSettings } from "@/components/profile/AccountSettings"
+import { ImportBackupButton } from "@/components/profile/ImportBackupButton"
 
 export function ProfileBoard() {
   const t = useT()
@@ -195,6 +196,8 @@ export function ProfileBoard() {
         <Button variant="outline" onClick={exportFile}>
           {t("settings.export")}
         </Button>
+        <ImportBackupButton className="h-8" />
+        <p className="text-xs text-muted-foreground">{t("settings.exportHint")}</p>
         <Button variant="outline" onClick={() => logout()}>
           {t("settings.logout")}
         </Button>

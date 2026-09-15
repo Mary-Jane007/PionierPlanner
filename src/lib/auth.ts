@@ -3,24 +3,38 @@
 import { ACCOUNTS_KEY, LAST_EMAIL_KEY } from "@/lib/constants"
 import type { UserAccount, UserProfile } from "@/types"
 
-async function hashPassword(password: string): Promise<string> {
+async function sha256Hash(password: string): Promise<string | null> {
   const payload = `pioniersplanner::${password}`
   try {
-    if (globalThis.crypto?.subtle) {
-      const data = new TextEncoder().encode(payload)
-      const buffer = await crypto.subtle.digest("SHA-256", data)
-      return Array.from(new Uint8Array(buffer))
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join("")
-    }
+    if (!globalThis.crypto?.subtle) return null
+    const data = new TextEncoder().encode(payload)
+    const buffer = await crypto.subtle.digest("SHA-256", data)
+    return Array.from(new Uint8Array(buffer))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("")
   } catch {
-    // Preview or non-secure contexts can lack SubtleCrypto.
+    return null
   }
+}
+
+function fallbackHash(password: string): string {
+  const payload = `pioniersplanner::${password}`
   let hash = 0
   for (let index = 0; index < payload.length; index += 1) {
     hash = (Math.imul(31, hash) + payload.charCodeAt(index)) | 0
   }
   return `fallback:${hash.toString(16)}:${payload.length}`
+}
+
+async function hashPassword(password: string): Promise<string> {
+  return (await sha256Hash(password)) ?? fallbackHash(password)
+}
+
+async function passwordMatches(password: string, storedHash: string): Promise<boolean> {
+  const candidates = new Set<string>([fallbackHash(password)])
+  const sha = await sha256Hash(password)
+  if (sha) candidates.add(sha)
+  return candidates.has(storedHash)
 }
 
 function readAccounts(): UserAccount[] {
@@ -66,17 +80,49 @@ export async function registerAccount(
   return toProfile(account)
 }
 
+export function readStoredAccounts(): UserAccount[] {
+  return readAccounts()
+}
+
+export function writeStoredAccounts(accounts: UserAccount[]) {
+  writeAccounts(accounts)
+}
+
+export function storedAccountCount(): number {
+  return readAccounts().length
+}
+
+export function findStoredAccount(email: string): UserAccount | undefined {
+  const normalized = email.trim().toLowerCase()
+  return readAccounts().find((account) => account.email === normalized)
+}
+
+export function mergeStoredAccounts(incoming: UserAccount[]) {
+  const current = readAccounts()
+  const byId = new Map(current.map((account) => [account.id, account]))
+  for (const account of incoming) {
+    if (!account?.id || !account.email || !account.passwordHash) continue
+    byId.set(account.id, {
+      id: account.id,
+      email: account.email.trim().toLowerCase(),
+      name: account.name || account.email,
+      passwordHash: account.passwordHash,
+      createdAt: account.createdAt || new Date().toISOString(),
+    })
+  }
+  const merged = [...byId.values()]
+  const byEmail = new Map<string, UserAccount>()
+  for (const account of merged) byEmail.set(account.email, account)
+  writeAccounts([...byEmail.values()])
+}
+
 export async function signInAccount(
   email: string,
   password: string
-): Promise<UserProfile | { error: "invalid" }> {
-  const accounts = readAccounts()
-  const normalized = email.trim().toLowerCase()
-  const hash = await hashPassword(password)
-  const account = accounts.find(
-    (item) => item.email === normalized && item.passwordHash === hash
-  )
-  if (!account) return { error: "invalid" }
+): Promise<UserProfile | { error: "invalid" | "missing" }> {
+  const account = findStoredAccount(email)
+  if (!account) return { error: "missing" }
+  if (!(await passwordMatches(password, account.passwordHash))) return { error: "invalid" }
   return toProfile(account)
 }
 
@@ -84,7 +130,7 @@ export async function signInOrRegister(
   email: string,
   password: string,
   name?: string
-): Promise<UserProfile | { error: "invalid" }> {
+): Promise<UserProfile | { error: "invalid" | "missing" }> {
   const accounts = readAccounts()
   const normalized = email.trim().toLowerCase()
   const existing = accounts.find((item) => item.email === normalized)
@@ -141,8 +187,9 @@ export async function changeAccountPassword(
   const accounts = readAccounts()
   const index = accounts.findIndex((account) => account.id === userId)
   if (index === -1) return { error: "missing" }
-  const currentHash = await hashPassword(currentPassword)
-  if (accounts[index].passwordHash !== currentHash) return { error: "invalid" }
+  if (!(await passwordMatches(currentPassword, accounts[index].passwordHash))) {
+    return { error: "invalid" }
+  }
   const next = [...accounts]
   next[index] = { ...next[index], passwordHash: await hashPassword(newPassword) }
   writeAccounts(next)
