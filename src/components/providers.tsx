@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { RegisterSW } from "@/components/pwa/RegisterSW"
 import { OfflineBanner } from "@/components/pwa/OfflineBanner"
+import { CloudSync } from "@/components/cloud/CloudSync"
+import { NativeShell } from "@/components/native/NativeShell"
 import { useAppStore } from "@/lib/store"
 
 function ThemeSync() {
@@ -43,7 +45,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <TooltipProvider>
         <ThemeSync />
         <RegisterSW />
+        <NativeShell />
         <OfflineBanner />
+        <CloudSync />
         {children}
         <Toaster position="top-center" />
       </TooltipProvider>

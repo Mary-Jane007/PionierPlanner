@@ -3,18 +3,33 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0 --port ${PORT:-4321}",
+    "dev": "node scripts/dev.mjs",
+    "dev:next": "next dev --hostname 0.0.0.0 --port ${PORT:-4321}",
+    "cloud": "node scripts/cloud-server.mjs",
     "build": "next build && node scripts/generate-sw.mjs",
     "start": "node scripts/preview.mjs",
     "preview": "node scripts/preview.mjs",
     "pwa:verify": "node scripts/verify-offline-pwa.mjs",
     "lint": "eslint",
     "icons": "node scripts/generate-icons.mjs",
-    "mobile:sync": "npm run build && npx cap sync android",
-    "mobile:apk": "bash scripts/build-apk.sh"
+    "mobile:assets": "bash scripts/mobile-assets.sh",
+    "mobile:sync": "npm run build && npx cap sync",
+    "android": "npm run build && npx cap sync android",
+    "android:apk": "bash scripts/build-apk.sh",
+    "android:aab": "bash scripts/build-aab.sh",
+    "ios": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.6.9",
+    "@capacitor/keyboard": "^7.0.6",
+    "@capacitor/network": "^7.0.4",
+    "@capacitor/splash-screen": "^7.0.3",
+    "@capacitor/status-bar": "^7.0.6",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -26,6 +41,7 @@
     "lucide-react": "^1.44.0",
     "next": "16.3.4",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hook-form": "^7.87.0",
@@ -35,12 +51,12 @@
     "tailwind-merge": "^3.6.0",
     "tw-animate-css": "^1.4.0",
     "zod": "^4.6.1",
-    "zustand": "^5.0.15",
-    "@capacitor/android": "^7.4.3",
-    "@capacitor/core": "^7.4.3",
-    "@capacitor/splash-screen": "^7.0.3"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.4.3",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -48,8 +64,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@capacitor/cli": "^7.4.3",
-    "@resvg/resvg-js": "^2.6.2"
+    "typescript": "^5"
   }
 }

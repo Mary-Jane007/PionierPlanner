@@ -3,13 +3,22 @@
 import { useEffect } from "react"
 
 import { withBase } from "@/lib/base-path"
+import { isNativeApp } from "@/lib/native"
+
+async function unregisterWorkers() {
+  const registrations = await navigator.serviceWorker.getRegistrations()
+  for (const registration of registrations) void registration.unregister()
+}
 
 export function RegisterSW() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return
+    // Capacitor's JS object exists on the web too; only skip the PWA worker in the native shell.
+    if (isNativeApp() || process.env.NODE_ENV !== "production") {
+      void unregisterWorkers()
+      return
+    }
     if (!window.isSecureContext) return
-    if ("Capacitor" in window) return
 
     const scriptUrl = withBase("/sw.js")
     const scope = withBase("/")

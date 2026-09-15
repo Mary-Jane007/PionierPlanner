@@ -1,6 +1,10 @@
 import { createReadStream, existsSync, statSync } from "node:fs"
 import { createServer } from "node:http"
 import { extname, join, normalize, relative, resolve, sep } from "node:path"
+import { loadEnvFile } from "./load-env.mjs"
+import { handleCloudRequest } from "./cloud-api.mjs"
+
+loadEnvFile()
 
 const root = resolve(process.cwd(), "out")
 const port = Number(process.env.PORT || 4321)
@@ -17,9 +21,9 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".txt": "text/plain; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8",
-    ".apk": "application/vnd.android.package-archive",
-    ".zip": "application/zip",
-    ".woff": "font/woff",
+  ".apk": "application/vnd.android.package-archive",
+  ".zip": "application/zip",
+  ".woff": "font/woff",
   ".woff2": "font/woff2",
 }
 
@@ -47,7 +51,9 @@ if (!existsSync(root)) {
   process.exit(1)
 }
 
-createServer((req, res) => {
+createServer(async (req, res) => {
+  if (await handleCloudRequest(req, res)) return
+
   const urlPath = new URL(req.url || "/", `http://${req.headers.host || "127.0.0.1"}`).pathname
   let file = safeFile(urlPath)
 
@@ -77,5 +83,5 @@ createServer((req, res) => {
   res.writeHead(200, headers)
   createReadStream(file).pipe(res)
 }).listen(port, host, () => {
-  console.log(`Pioniersplanner static export on http://127.0.0.1:${port}/`)
+  console.log(`Pioniersplanner on http://127.0.0.1:${port}/`)
 })

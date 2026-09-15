@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# stray capacitor-assets PWA output (real icons live in public/icons)
+/icons
+
 # android / capacitor build
 android/.gradle/
 android/app/build/
@@ -28,6 +31,16 @@ android/.idea/
 *.apk
 !public/downloads/*.apk
 !public/downloads/*.zip
+*.aab
+!public/downloads/*.aab
+
+# android / ios signing and generated native build output
+android/release.keystore
+android/keystore.properties
+ios/App/Pods/
+ios/App/App/public/
+ios/DerivedData/
+*.xcuserstate
 
 # production
 /build
