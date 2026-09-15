@@ -37,7 +37,7 @@ export function LoginPage() {
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
-  const [cloudOn, setCloudOn] = useState<boolean | null>(null)
+  const [cloudOn, setCloudOn] = useState(true)
   const login = useAppStore((s) => s.login)
   const user = useAppStore((s) => s.user)
   const onboarded = useAppStore((s) => s.onboarded)
@@ -116,11 +116,12 @@ export function LoginPage() {
         setError(result.error === "exists" ? t("auth.exists") : t("auth.error"))
         return
       }
-      rememberEmail(result.profile.email)
-      login(result.profile, { fresh: mode === "signup", snapshot: result.snapshot })
+      const profile = result.profile
+      rememberEmail(profile.email)
+      login(profile, { fresh: mode === "signup", snapshot: result.snapshot ?? null })
       goToApp(useAppStore.getState().onboarded)
     } catch {
-      setError(t("activity.error"))
+      setError(t("auth.offline"))
     } finally {
       setPending(false)
     }

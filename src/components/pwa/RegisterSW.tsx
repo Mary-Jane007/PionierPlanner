@@ -6,8 +6,13 @@ import { withBase } from "@/lib/base-path"
 
 export function RegisterSW() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return
+    if (process.env.NODE_ENV !== "production") {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) void registration.unregister()
+      })
+      return
+    }
     if (!window.isSecureContext) return
     if ("Capacitor" in window) return
 

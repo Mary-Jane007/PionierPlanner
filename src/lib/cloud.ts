@@ -42,7 +42,12 @@ type CloudFail = { error: CloudError }
 
 function apiBase() {
   const explicit = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
-  return `${explicit}/api/cloud`
+  if (explicit) return `${explicit}/api/cloud`
+  if (typeof window !== "undefined") {
+    const { protocol, hostname, port } = window.location
+    if (port === "4321") return `${protocol}//${hostname}:4322/api/cloud`
+  }
+  return "/api/cloud"
 }
 
 export function cloudToken(): string {
@@ -71,7 +76,7 @@ async function request<T>(
   }
   if (token) headers.set("Authorization", `Bearer ${token}`)
   try {
-    const response = await fetch(`${apiBase()}${path}`, { ...init, headers })
+    const response = await fetch(`${apiBase()}${path}`, { ...init, headers, cache: "no-store" })
     let data: Record<string, unknown> = {}
     try {
       data = (await response.json()) as Record<string, unknown>
