@@ -22,6 +22,7 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: "true"
+          NEXT_PUBLIC_API_URL: https://pionierplanner.onrender.com
       - run: touch out/.nojekyll
       - uses: peaceiris/actions-gh-pages@v4
         with:

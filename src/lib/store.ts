@@ -23,6 +23,7 @@ import { detectScheduleConflict } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
 import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
+import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
 import type { PioneerTip } from "@/lib/tips"
 
 export type CalendarClearScope = "month" | "planned" | "all"
@@ -45,7 +46,12 @@ export interface AppState {
   hiddenCategories: ActivityCategory[]
   customTips: PioneerTip[]
   setHydrated: (value: boolean) => void
-  login: (profile: UserProfile, options?: { demo?: boolean; fresh?: boolean }) => void
+  login: (
+    profile: UserProfile,
+    options?: { demo?: boolean; fresh?: boolean; snapshot?: PlannerSnapshot | null }
+  ) => void
+  applyPlannerSnapshot: (snapshot: PlannerSnapshot, profile?: UserProfile) => void
+  exportSnapshot: () => PlannerSnapshot
   logout: () => void
   completeOnboarding: () => void
   updateProfile: (patch: Partial<UserProfile>) => void
@@ -149,6 +155,10 @@ export const useAppStore = create<AppState>()(
           })
           return
         }
+        if (options?.snapshot) {
+          get().applyPlannerSnapshot(options.snapshot, profile)
+          return
+        }
         if (options?.fresh) {
           const empty = emptyUserData(profile)
           set({
@@ -176,11 +186,13 @@ export const useAppStore = create<AppState>()(
           timer: idleTimer,
         })
       },
-      logout: () =>
+      logout: () => {
+        clearCloudSession()
         set({
           user: null,
           timer: idleTimer,
-        }),
+        })
+      },
       completeOnboarding: () => set({ onboarded: true }),
       updateProfile: (patch) => {
         const user = get().user
@@ -432,10 +444,57 @@ export const useAppStore = create<AppState>()(
         if (user?.email) rememberEmail(user.email)
         return { ok: true, signedIn: Boolean(user) }
       },
+      exportSnapshot: () => {
+        const state = get()
+        return {
+          version: 1 as const,
+          updatedAt: new Date().toISOString(),
+          user: state.user,
+          onboarded: state.onboarded,
+          pioneerType: state.pioneerType,
+          customMonthlyHours: state.customMonthlyHours,
+          monthlyGoals: state.monthlyGoals,
+          events: state.events,
+          availability: state.availability,
+          commitments: state.commitments,
+          experiences: state.experiences,
+          history: state.history,
+          settings: state.settings,
+          hiddenCategories: state.hiddenCategories,
+          customTips: state.customTips,
+        }
+      },
+      applyPlannerSnapshot: (snapshot, profile) => {
+        const user = profile ?? (snapshot.user as UserProfile | null)
+        if (!user) return
+        const pioneerType = (snapshot.pioneerType as PioneerTypeId | undefined) ?? "regular"
+        set({
+          user,
+          activeProfileId: user.id,
+          onboarded: Boolean(snapshot.onboarded ?? user),
+          pioneerType,
+          customMonthlyHours:
+            typeof snapshot.customMonthlyHours === "number"
+              ? snapshot.customMonthlyHours
+              : DEFAULT_REGULAR_HOURS,
+          monthlyGoals: Array.isArray(snapshot.monthlyGoals) ? snapshot.monthlyGoals : [],
+          events: Array.isArray(snapshot.events) ? snapshot.events : [],
+          availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
+          commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
+          experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
+          history: Array.isArray(snapshot.history) ? snapshot.history : [],
+          settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
+          hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
+          customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
+          timer: idleTimer,
+        })
+        if (user.email) rememberEmail(user.email)
+      },
       deleteAccountLocal: () => {
         if (typeof window !== "undefined") {
           localStorage.removeItem(LAST_EMAIL_KEY)
         }
+        clearCloudSession()
         set({
           user: null,
           activeProfileId: null,
