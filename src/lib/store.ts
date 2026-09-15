@@ -21,6 +21,7 @@ import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } 
 import { detectScheduleConflict } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
+import { rememberEmail, updateStoredAccountName } from "@/lib/auth"
 import type { PioneerTip } from "@/lib/tips"
 
 export type CalendarClearScope = "month" | "planned" | "all"
@@ -182,7 +183,10 @@ export const useAppStore = create<AppState>()(
       updateProfile: (patch) => {
         const user = get().user
         if (!user) return
-        set({ user: { ...user, ...patch } })
+        const next = { ...user, ...patch }
+        set({ user: next })
+        if (patch.name !== undefined) updateStoredAccountName(user.id, next.name)
+        if (patch.email !== undefined && next.email) rememberEmail(next.email)
       },
       setPioneerGoal: (type, hours) => {
         const now = new Date()

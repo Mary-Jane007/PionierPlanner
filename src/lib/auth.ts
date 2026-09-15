@@ -96,6 +96,111 @@ export async function signInOrRegister(
   return signInAccount(email, password)
 }
 
+export function hasStoredAccount(userId: string): boolean {
+  return readAccounts().some((account) => account.id === userId)
+}
+
+export function updateStoredAccountName(userId: string, name: string) {
+  const accounts = readAccounts()
+  const index = accounts.findIndex((account) => account.id === userId)
+  if (index === -1) return
+  const nextName = name.trim()
+  if (!nextName) return
+  const next = [...accounts]
+  next[index] = { ...next[index], name: nextName }
+  writeAccounts(next)
+}
+
+function emailTaken(accounts: UserAccount[], email: string, exceptId?: string): boolean {
+  return accounts.some((account) => account.email === email && account.id !== exceptId)
+}
+
+export async function updateAccountEmail(
+  userId: string,
+  email: string
+): Promise<UserProfile | { error: "exists" | "missing" | "invalid" }> {
+  const normalized = email.trim().toLowerCase()
+  if (!normalized.includes("@") || !normalized.includes(".")) return { error: "invalid" }
+  const accounts = readAccounts()
+  const index = accounts.findIndex((account) => account.id === userId)
+  if (index === -1) return { error: "missing" }
+  if (emailTaken(accounts, normalized, userId)) return { error: "exists" }
+  const next = [...accounts]
+  next[index] = { ...next[index], email: normalized }
+  writeAccounts(next)
+  rememberEmail(normalized)
+  return toProfile(next[index])
+}
+
+export async function changeAccountPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ ok: true } | { error: "invalid" | "missing" | "weak" }> {
+  if (newPassword.trim().length < 6) return { error: "weak" }
+  const accounts = readAccounts()
+  const index = accounts.findIndex((account) => account.id === userId)
+  if (index === -1) return { error: "missing" }
+  const currentHash = await hashPassword(currentPassword)
+  if (accounts[index].passwordHash !== currentHash) return { error: "invalid" }
+  const next = [...accounts]
+  next[index] = { ...next[index], passwordHash: await hashPassword(newPassword) }
+  writeAccounts(next)
+  return { ok: true }
+}
+
+export async function resetAccountPassword(
+  email: string,
+  newPassword: string
+): Promise<{ ok: true } | { error: "missing" | "weak" }> {
+  if (newPassword.trim().length < 6) return { error: "weak" }
+  const normalized = email.trim().toLowerCase()
+  const accounts = readAccounts()
+  const index = accounts.findIndex((account) => account.email === normalized)
+  if (index === -1) return { error: "missing" }
+  const next = [...accounts]
+  next[index] = { ...next[index], passwordHash: await hashPassword(newPassword) }
+  writeAccounts(next)
+  rememberEmail(normalized)
+  return { ok: true }
+}
+
+export async function saveAccountCredentials(
+  profile: UserProfile,
+  email: string,
+  password: string
+): Promise<UserProfile | { error: "exists" | "invalid" | "weak" }> {
+  const normalized = email.trim().toLowerCase()
+  if (!normalized.includes("@") || !normalized.includes(".")) return { error: "invalid" }
+  if (password.trim().length < 6) return { error: "weak" }
+  const accounts = readAccounts()
+  if (emailTaken(accounts, normalized, profile.id)) return { error: "exists" }
+  const passwordHash = await hashPassword(password)
+  const index = accounts.findIndex((account) => account.id === profile.id)
+  if (index === -1) {
+    const account: UserAccount = {
+      id: profile.id,
+      email: normalized,
+      name: profile.name.trim() || normalized.split("@")[0],
+      passwordHash,
+      createdAt: profile.createdAt,
+    }
+    writeAccounts([...accounts, account])
+    rememberEmail(normalized)
+    return toProfile(account)
+  }
+  const next = [...accounts]
+  next[index] = {
+    ...next[index],
+    email: normalized,
+    name: profile.name.trim() || next[index].name,
+    passwordHash,
+  }
+  writeAccounts(next)
+  rememberEmail(normalized)
+  return toProfile(next[index])
+}
+
 export function rememberEmail(email: string) {
   if (typeof window === "undefined") return
   const normalized = email.trim().toLowerCase()

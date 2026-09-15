@@ -1,6 +1,5 @@
 "use client"
 
-import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,18 +12,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ANNUAL_REFERENCE_HOURS, DEFAULT_AUXILIARY_HOURS, DEFAULT_REGULAR_HOURS, JW_ORG_PIONEERS } from "@/lib/constants"
-import { dateLocale } from "@/lib/dates"
-import { useT, useLang } from "@/lib/i18n"
+import { useT } from "@/lib/i18n"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
 import { deleteStoredAccount } from "@/lib/auth"
 import type { LocaleCode, ThemeMode } from "@/types"
 import { StartOverDialog } from "@/components/calendar/StartOverDialog"
+import { AccountSettings } from "@/components/profile/AccountSettings"
 
 export function ProfileBoard() {
   const t = useT()
-  const lang = useLang()
   const user = useAppStore((s) => s.user)
-  const updateProfile = useAppStore((s) => s.updateProfile)
   const pioneerType = useAppStore((s) => s.pioneerType)
   const customHours = useAppStore((s) => s.customMonthlyHours)
   const setPioneerGoal = useAppStore((s) => s.setPioneerGoal)
@@ -52,18 +49,7 @@ export function ProfileBoard() {
         <h1 className="font-heading text-4xl">{user?.name}</h1>
       </header>
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
-        <h2 className="font-heading text-2xl">{t("settings.account")}</h2>
-        <label className="grid gap-1.5">
-          <Label>{t("auth.name")}</Label>
-          <Input value={user?.name ?? ""} onChange={(e) => updateProfile({ name: e.target.value })} />
-        </label>
-        <p className="text-sm text-muted-foreground">{user?.email}</p>
-        <p className="text-sm text-muted-foreground">
-          {t("settings.created")}:{" "}
-          {user ? format(new Date(user.createdAt), "d MMMM yyyy", { locale: dateLocale(lang) }) : "—"}
-        </p>
-      </section>
+      <AccountSettings />
 
       <section className="card-quiet space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.goal")}</h2>
