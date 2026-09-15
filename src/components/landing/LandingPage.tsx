@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
 import { PageLoader } from "@/components/layout/PageLoader"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
+import { isNativeApp } from "@/lib/native"
 import { useAppStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
@@ -25,6 +26,11 @@ export function LandingPage() {
   const user = useAppStore((s) => s.user)
   const onboarded = useAppStore((s) => s.onboarded)
   const hydrated = useAppStore((s) => s.hydrated)
+  const [native, setNative] = useState(false)
+
+  useEffect(() => {
+    setNative(isNativeApp())
+  }, [])
 
   useEffect(() => {
     if (hydrated && user && onboarded) router.replace("/vandaag")
@@ -36,13 +42,13 @@ export function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <Logo />
         <div className="flex gap-2">
-          <Link href="/inloggen" className={cn(buttonVariants({ variant: "ghost" }), "h-9 px-3")}>
+          <Link href="/inloggen" className={cn(buttonVariants({ variant: "ghost" }), "min-h-11 px-3")}>
             {t("landing.login")}
           </Link>
-          <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "h-9 px-3")}>
+          <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "min-h-11 px-3")}>
             {t("landing.cta")}
           </Link>
         </div>
@@ -52,7 +58,7 @@ export function LandingPage() {
         <section className="grid items-center gap-10 py-12 lg:grid-cols-2 lg:py-20">
           <div>
             <p className="text-xs tracking-[0.2em] text-accent uppercase">{t("app.name")}</p>
-            <h1 className="font-heading mt-4 text-5xl leading-[1.05] sm:text-6xl">
+            <h1 className="font-heading mt-4 text-4xl leading-[1.05] sm:text-5xl lg:text-6xl">
               {t("landing.heroTitle")}
               <br />
               {t("landing.heroSubtitle")}
@@ -67,11 +73,15 @@ export function LandingPage() {
               <Link href="/inloggen" className={cn(buttonVariants({ variant: "outline" }), "h-12 rounded-xl px-6")}>
                 {t("landing.login")}
               </Link>
+              {native ? null : (
               <Link href="/download" className={cn(buttonVariants({ variant: "ghost" }), "h-12 rounded-xl px-6")}>
                 {t("landing.downloadAndroid")}
               </Link>
+              )}
             </div>
-            <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.apkWontOpenHere")}</p>
+            {native ? null : (
+              <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.apkWontOpenHere")}</p>
+            )}
             <p className="mt-2 max-w-xl text-xs text-muted-foreground">{t("landing.offlineHint")}</p>
           </div>
           <PreviewCard />

@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { Network } from "@capacitor/network"
 import { cloudPush, cloudPull, cloudToken } from "@/lib/cloud"
+import { isNativeApp } from "@/lib/native"
 import { useAppStore } from "@/lib/store"
 
 export function CloudSync() {
@@ -27,20 +29,36 @@ export function CloudSync() {
       await cloudPush(useAppStore.getState().exportSnapshot())
     }
 
-    void hydrateFromCloud()
-
-    const unsub = useAppStore.subscribe(() => {
+    function pushLocal() {
       if (cancelled || skipPush.current || !cloudToken()) return
       window.clearTimeout(timer.current)
       timer.current = window.setTimeout(() => {
         void cloudPush(useAppStore.getState().exportSnapshot())
       }, 900)
-    })
+    }
+
+    void hydrateFromCloud()
+
+    const unsub = useAppStore.subscribe(pushLocal)
+
+    function flushAfterReconnect() {
+      if (cancelled || !cloudToken()) return
+      void cloudPush(useAppStore.getState().exportSnapshot())
+    }
+
+    window.addEventListener("online", flushAfterReconnect)
+    const networkListen = isNativeApp()
+      ? Network.addListener("networkStatusChange", (status) => {
+          if (status.connected) flushAfterReconnect()
+        })
+      : Promise.resolve({ remove: () => undefined })
 
     return () => {
       cancelled = true
       unsub()
       window.clearTimeout(timer.current)
+      window.removeEventListener("online", flushAfterReconnect)
+      void networkListen.then((handle) => handle.remove())
     }
   }, [hydrated, userId])
 

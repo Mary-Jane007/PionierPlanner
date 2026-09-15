@@ -41,6 +41,18 @@ npm run preview
 
 `preview` / `npm start` serveert de statische export (inclusief service worker) en de cloud-API (`/api/cloud`) op [http://127.0.0.1:4321](http://127.0.0.1:4321). `next start` werkt niet: de app is een static export (`output: "export"`). `next dev` start de API ernaast (via `scripts/dev.mjs`).
 
+## Android- en iOS-app
+
+De website, de Android-app en de iOS-app delen dezelfde codebase (Capacitor).
+
+- **Android APK (release):** `npm run android:apk` → `public/downloads/pioniersplanner.apk`
+- **Android AAB (Play Store):** `npm run android:aab` → `public/downloads/pioniersplanner.aab`
+- **iOS:** `npm run ios` daarna op een Mac `ios/App/App.xcworkspace` openen in Xcode (TestFlight / App Store)
+
+Installatie voor gebruikers: pagina [/download](/download). Stap-voor-stap bouwen: [MOBILE_BUILD_GUIDE.md](MOBILE_BUILD_GUIDE.md).
+
+Een website kan een APK niet stilzwijgend installeren; Android toont altijd zijn eigen bevestiging. Apple installeert geen APK; iPhone en iPad gaan via TestFlight of de App Store.
+
 ## Render
 
 De app is een statische export plus een kleine Node-API voor accounts.
@@ -49,12 +61,6 @@ De app is een statische export plus een kleine Node-API voor accounts.
 - Zet **`DATABASE_URL`** (Neon) en **`AUTH_SECRET`** in de Render-omgeving. Zonder die variabelen blijft inloggen alleen lokaal.
 
 `render.yaml` beschrijft dit.
-
-```bash
-npm run mobile:apk
-```
-
-Dat zet `public/downloads/pioniersplanner.apk` klaar. Installeer het bestand op Android en sta installatie van onbekende bronnen toe.
 
 Gebruik **Open met een lege planner** om zonder voorbeeldactiviteiten te beginnen, of maak een eigen account.
 

@@ -145,7 +145,7 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="px-6 py-6">
+      <header className="px-6 py-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <Link href="/">
           <Logo />
         </Link>

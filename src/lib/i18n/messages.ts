@@ -30,6 +30,7 @@ const messages = {
   "nav.experiences": { nl: "Ervaringen", en: "Experiences", es: "Experiencias", pap: "Experensia" },
   "nav.tips": { nl: "Tips", en: "Tips", es: "Consejos", pap: "Tip" },
   "nav.profile": { nl: "Profiel", en: "Profile", es: "Perfil", pap: "Perfil" },
+  "nav.more": { nl: "Meer", en: "More", es: "Más", pap: "Mas" },
   "nav.addActivity": { nl: "+ Activiteit", en: "+ Activity", es: "+ Actividad", pap: "+ Aktividat" },
   "landing.heroTitle": { nl: "Plan met overzicht.", en: "Plan with clarity.", es: "Planifica con claridad.", pap: "Planeá ku klaridat." },
   "landing.heroSubtitle": { nl: "Dien met vreugde.", en: "Serve with joy.", es: "Sirve con gozo.", pap: "Sirbi ku alegria." },
@@ -102,10 +103,10 @@ const messages = {
     pap: "Deskarga a fallá. Purba e ZIP o habri e página aki riba bo telefòn.",
   },
   "download.title": {
-    nl: "Installeer op Android",
-    en: "Install on Android",
-    es: "Instalar en Android",
-    pap: "Instalá riba Android",
+    nl: "Installeer de app",
+    en: "Install the app",
+    es: "Instalar la app",
+    pap: "Instalá e app",
   },
   "download.intro": {
     nl: "Een APK is geen programma voor Windows of Mac. Sla het bestand op en open het op een Android-telefoon.",
@@ -166,6 +167,42 @@ const messages = {
     en: "Open the app from your home screen. Your plan stays saved, including offline.",
     es: "Abre la app desde la pantalla de inicio. Tu plan se conserva, también sin conexión.",
     pap: "Habri e app for di bo pantaya inisial. Bo plan ta keda wardá, tambe offline.",
+  },
+  "download.iosTitle": {
+    nl: "iPhone en iPad (App Store)",
+    en: "iPhone and iPad (App Store)",
+    es: "iPhone e iPad (App Store)",
+    pap: "iPhone i iPad (App Store)",
+  },
+  "download.iosText": {
+    nl: "Apple laat geen APK toe. De iOS-app wordt geopend in Xcode en daarna naar TestFlight of de App Store gestuurd. Daarna tik je op Get, bevestig je met Face ID of je Apple ID, en de app installeert.",
+    en: "Apple does not allow an APK. The iOS app is opened in Xcode and then sent to TestFlight or the App Store. After that you tap Get, confirm with Face ID or your Apple ID, and the app installs.",
+    es: "Apple no permite un APK. La app iOS se abre en Xcode y luego se envía a TestFlight o App Store. Después pulsas Obtener, confirmas con Face ID o tu Apple ID y se instala.",
+    pap: "Apple no ta permití un APK. E app iOS ta habri den Xcode i despues manda pa TestFlight òf App Store. Despues bo ta tik Get, konfirmá ku Face ID òf Apple ID, i e app ta instala.",
+  },
+  "download.iosStep1": {
+    nl: "Op een Mac: open `ios/App/App.xcworkspace` in Xcode (zie MOBILE_BUILD_GUIDE.md).",
+    en: "On a Mac: open `ios/App/App.xcworkspace` in Xcode (see MOBILE_BUILD_GUIDE.md).",
+    es: "En un Mac: abre `ios/App/App.xcworkspace` en Xcode (consulta MOBILE_BUILD_GUIDE.md).",
+    pap: "Riba Mac: habri `ios/App/App.xcworkspace` den Xcode (mira MOBILE_BUILD_GUIDE.md).",
+  },
+  "download.iosStep2": {
+    nl: "Stel signing in met je Apple Developer-team en bundle-id `app.pioniersplanner`.",
+    en: "Set signing with your Apple Developer team and bundle id `app.pioniersplanner`.",
+    es: "Configura la firma con tu equipo de Apple Developer y el bundle id `app.pioniersplanner`.",
+    pap: "Pone signing ku bo Apple Developer team i bundle id `app.pioniersplanner`.",
+  },
+  "download.iosStep3": {
+    nl: "Archiveer en upload naar App Store Connect. Maak daarna een TestFlight- of App Store-release.",
+    en: "Archive and upload to App Store Connect. Then create a TestFlight or App Store release.",
+    es: "Archiva y sube a App Store Connect. Luego crea una versión de TestFlight o App Store.",
+    pap: "Archive i upload pa App Store Connect. Despues krea un TestFlight òf App Store release.",
+  },
+  "download.iosStep4": {
+    nl: "Gebruikers installeren via TestFlight (uitnodiging) of de App Store (Get).",
+    en: "Users install through TestFlight (invite) or the App Store (Get).",
+    es: "Los usuarios instalan por TestFlight (invitación) o App Store (Obtener).",
+    pap: "Usuarionan ta instala via TestFlight (invitashon) òf App Store (Get).",
   },
   "landing.feature.plan.title": { nl: "Slim plannen", en: "Plan smart", es: "Planifica con inteligencia", pap: "Planeá inteligentemente" },
   "landing.feature.plan.text": {
@@ -804,10 +841,10 @@ const messages = {
   "common.hours": { nl: "uur", en: "hours", es: "horas", pap: "ora" },
   "common.of": { nl: "/", en: "/", es: "/", pap: "/" },
   "pwa.offline": {
-    nl: "Je bent offline. De planner blijft lokaal werken.",
-    en: "You are offline. The planner keeps working on this device.",
-    es: "Estás sin conexión. El planificador sigue funcionando en este dispositivo.",
-    pap: "Bo ta offline. E planner ta sigui traha riba e aparato aki.",
+    nl: "Geen internetverbinding. Je kunt de planner nog steeds gebruiken. Je gegevens worden gesynchroniseerd zodra je weer online bent.",
+    en: "No internet connection. You can still use the planner. Your data will sync when you are back online.",
+    es: "Sin conexión. Aún puedes usar el planificador. Tus datos se sincronizarán cuando vuelvas a estar en línea.",
+    pap: "No tin internet. Bo por sigui uza e planner. Bo dato lo synkronisá ora bo ta online atrobe.",
   },
 } as const
 
