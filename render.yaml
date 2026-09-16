@@ -1,15 +1,15 @@
-# Render Blueprint: Pioniersplanner is a static Next.js export (`output: "export"`).
-# Do not use Render's native Next.js runtime / `next start`.
+# Render Blueprint: Node web service serves the static export plus /api/cloud.
+# Set DATABASE_URL (Neon Postgres) and AUTH_SECRET in the Render dashboard.
 services:
   - type: web
-    name: pioniersplanner
-    runtime: static
+    name: pionierplanner
+    runtime: node
     buildCommand: npm ci && npm run build
-    staticPublishPath: ./out
-    headers:
-      - path: /sw.js
-        name: Cache-Control
-        value: no-cache
-      - path: /manifest.webmanifest
-        name: Cache-Control
-        value: no-cache
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH_SECRET
+        sync: false

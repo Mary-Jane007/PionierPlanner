@@ -59,7 +59,7 @@ export function SetupPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-12">
+    <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-12 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(3rem,env(safe-area-inset-bottom))]">
       <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
         {t("auth.welcome")}
       </p>
