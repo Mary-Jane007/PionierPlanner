@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "pioniersplanner-7aea7421ed8c"
+const CACHE_NAME = "pioniersplanner-9c55f478ab3f"
 const PRECACHE_URLS = [
   "./",
   "./404.html",
@@ -8,42 +8,48 @@ const PRECACHE_URLS = [
   "./__next.__PAGE__.txt",
   "./__next._full.txt",
   "./__next._tree.txt",
-  "./_next/static/Q-vBu6CH0gERv-3PxnZ19/_buildManifest.js",
-  "./_next/static/Q-vBu6CH0gERv-3PxnZ19/_clientMiddlewareManifest.js",
-  "./_next/static/Q-vBu6CH0gERv-3PxnZ19/_ssgManifest.js",
-  "./_next/static/chunks/0bxp07tng-lny.js",
+  "./__online_check/",
+  "./__online_check/index.html",
+  "./_next/static/RFQS-58cUn8VVlM6kVdZD/_buildManifest.js",
+  "./_next/static/RFQS-58cUn8VVlM6kVdZD/_clientMiddlewareManifest.js",
+  "./_next/static/RFQS-58cUn8VVlM6kVdZD/_ssgManifest.js",
+  "./_next/static/chunks/0c9et108q5l6k.js",
   "./_next/static/chunks/0cz1d0mv5g_q7.js",
+  "./_next/static/chunks/0j6-_pg-4xcoq.js",
+  "./_next/static/chunks/0o30egin-z83q.js",
   "./_next/static/chunks/0r5njfx1xatr3.js",
-  "./_next/static/chunks/1162zsc9gygh4.js",
-  "./_next/static/chunks/13_vg3uox5zcw.js",
+  "./_next/static/chunks/13gg_sbr8aqgc.js",
   "./_next/static/chunks/17fbgx4bf_8v3.js",
+  "./_next/static/chunks/1ca8lgnqqdf7p.js",
   "./_next/static/chunks/1h2bn1myudnhx.js",
-  "./_next/static/chunks/1kftlc6rofagl.js",
   "./_next/static/chunks/1lf8-7-ptlkxh.js",
   "./_next/static/chunks/1ogw21e9nqfnm.js",
+  "./_next/static/chunks/1rb63v73_dnyg.css",
   "./_next/static/chunks/1tr-3nq73ujpw.js",
+  "./_next/static/chunks/1uyrvcqwvja3j.js",
   "./_next/static/chunks/1yphnnmzofsyc.js",
   "./_next/static/chunks/2-knrqot2y-g4.js",
+  "./_next/static/chunks/2-rhvysi12-9q.js",
   "./_next/static/chunks/2-un88rp07b1h.js",
   "./_next/static/chunks/23_qxo65n4k2-.js",
   "./_next/static/chunks/2ef54_v1p3hvv.js",
-  "./_next/static/chunks/2fnm_72fgjr-k.js",
   "./_next/static/chunks/2i51e627rllld.js",
-  "./_next/static/chunks/2nmqcyk8-i0vf.js",
+  "./_next/static/chunks/2ljqlene_khxz.js",
   "./_next/static/chunks/2pgwtqxoeh3gm.js",
   "./_next/static/chunks/2pl2ej8jcy8dy.js",
-  "./_next/static/chunks/2r1be3ffn0g6y.js",
+  "./_next/static/chunks/2upf8uel6p8ym.js",
+  "./_next/static/chunks/2wb3a-jtgf5em.js",
   "./_next/static/chunks/2wv57nn9-8b1v.js",
   "./_next/static/chunks/2xxz2vhllj9zc.js",
-  "./_next/static/chunks/3-jsk0_qfw56-.js",
-  "./_next/static/chunks/3cewkz05fgk4-.js",
-  "./_next/static/chunks/3fa33-e64ybd8.js",
+  "./_next/static/chunks/3-0mgx1py5_w-.js",
+  "./_next/static/chunks/32vs63h9i3e8s.js",
+  "./_next/static/chunks/35yp6xvplxnqj.js",
+  "./_next/static/chunks/3bn_fjw1wbuvw.js",
   "./_next/static/chunks/3fntmmi971322.js",
-  "./_next/static/chunks/3hb-52p6_dear.js",
   "./_next/static/chunks/3k8fjbgli1j57.js",
   "./_next/static/chunks/3mc6dra1m0098.js",
-  "./_next/static/chunks/3revxry2g0o3h.css",
-  "./_next/static/chunks/41rvsw-sfod04.js",
+  "./_next/static/chunks/3q3_ja8amf9vn.js",
+  "./_next/static/chunks/3quudqo879p8t.js",
   "./_next/static/chunks/turbopack-34s8rp_rj3zqt.js",
   "./_next/static/media/01e4147cff8141ee-s.p.3huc2loe0ie8a.woff2",
   "./_next/static/media/1f9e983605289f29-s.p.3aak_kra40y8r.woff2",
@@ -87,6 +93,7 @@ const PRECACHE_URLS = [
   "./globe.svg",
   "./icon.svg",
   "./icons/apple-touch-icon.png",
+  "./icons/icon-1024.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
@@ -179,10 +186,11 @@ self.addEventListener("fetch", (event) => {
 })
 
 function shouldBypass(url) {
+  if (url.pathname.includes("/api/cloud")) return true
   if (url.pathname.includes("/downloads/") && /\.(apk|zip)$/i.test(url.pathname)) return true
   if (url.pathname.includes("webpack-hmr")) return true
   if (url.pathname.includes("/_next/webpack")) return true
-  if (url.pathname.endsWith("/__online_check")) return true
+  if (url.pathname.includes("__online_check")) return true
   if (url.searchParams.has("__online_check")) return true
   return false
 }
