@@ -786,6 +786,18 @@ const messages = {
   "settings.privacy": { nl: "Privacy", en: "Privacy", es: "Privacidad", pap: "Privasidat" },
   "settings.data": { nl: "Gegevens", en: "Data", es: "Datos", pap: "Dato" },
   "settings.delete": { nl: "Account verwijderen", en: "Delete account", es: "Eliminar cuenta", pap: "Kita kuenta" },
+  "settings.deleteTitle": {
+    nl: "Account verwijderen?",
+    en: "Delete account?",
+    es: "¿Eliminar cuenta?",
+    pap: "Kita kuenta?",
+  },
+  "settings.deleteAction": {
+    nl: "Ja, verwijder mijn account",
+    en: "Yes, delete my account",
+    es: "Sí, eliminar mi cuenta",
+    pap: "Sí, kita mi kuenta",
+  },
   "settings.export": { nl: "Exporteer mijn gegevens", en: "Export my data", es: "Exportar mis datos", pap: "Eksportá mi dato" },
   "settings.import": { nl: "Backup importeren", en: "Import backup", es: "Importar copia", pap: "Importá backup" },
   "settings.importOk": {

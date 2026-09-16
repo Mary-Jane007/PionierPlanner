@@ -5,6 +5,7 @@ import { App } from "@capacitor/app"
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard"
 import { StatusBar, Style } from "@capacitor/status-bar"
 import { SplashScreen } from "@capacitor/splash-screen"
+import { flushDurableStorage } from "@/lib/durable-storage"
 import { isNativeApp } from "@/lib/native"
 
 export function NativeShell() {
@@ -60,10 +61,19 @@ export function NativeShell() {
       }
     })
 
+    const pause = App.addListener("pause", () => {
+      void flushDurableStorage()
+    })
+    const resume = App.addListener("appStateChange", ({ isActive }) => {
+      if (!isActive) void flushDurableStorage()
+    })
+
     return () => {
       cancelled = true
       void back.then((handle) => handle.remove())
       void keyboardShow.then((handle) => handle.remove())
+      void pause.then((handle) => handle.remove())
+      void resume.then((handle) => handle.remove())
     }
   }, [])
 

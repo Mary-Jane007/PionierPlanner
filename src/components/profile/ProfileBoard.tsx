@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -42,6 +43,8 @@ export function ProfileBoard() {
   const exportData = useAppStore((s) => s.exportData)
   const deleteAccountLocal = useAppStore((s) => s.deleteAccountLocal)
   const target = useCurrentTarget()
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function exportFile() {
     const blob = new Blob([exportData()], { type: "application/json" })
@@ -211,25 +214,36 @@ export function ProfileBoard() {
         <Button variant="outline" onClick={() => logout()}>
           {t("settings.logout")}
         </Button>
-        <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="destructive" />}>
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogTrigger
+            render={<Button type="button" variant="destructive" className="h-11 w-full sm:w-auto" />}
+          >
             {t("settings.delete")}
           </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-sm">
+          <AlertDialogContent className="z-[80] max-w-sm">
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("settings.delete")}</AlertDialogTitle>
+              <AlertDialogTitle>{t("settings.deleteTitle")}</AlertDialogTitle>
               <AlertDialogDescription>{t("settings.deleteConfirm")}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("activity.cancel")}</AlertDialogCancel>
+              <AlertDialogCancel disabled={deleting}>{t("activity.cancel")}</AlertDialogCancel>
               <Button
+                type="button"
                 variant="destructive"
+                disabled={deleting}
                 onClick={async () => {
-                  if (user) await deleteStoredAccount(user.id)
-                  deleteAccountLocal()
+                  if (deleting) return
+                  setDeleting(true)
+                  try {
+                    if (user) await deleteStoredAccount(user.id)
+                    deleteAccountLocal()
+                    setDeleteOpen(false)
+                  } finally {
+                    setDeleting(false)
+                  }
                 }}
               >
-                {t("settings.delete")}
+                {deleting ? t("common.loading") : t("settings.deleteAction")}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
