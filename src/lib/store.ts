@@ -32,6 +32,7 @@ export type CalendarClearScope = "month" | "planned" | "all"
 export interface AppState {
   hydrated: boolean
   user: UserProfile | null
+  lastUser: UserProfile | null
   activeProfileId: string | null
   onboarded: boolean
   pioneerType: PioneerTypeId
@@ -158,6 +159,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       hydrated: false,
       user: null,
+      lastUser: null,
       activeProfileId: null,
       onboarded: false,
       pioneerType: "regular",
@@ -242,18 +244,24 @@ export const useAppStore = create<AppState>()(
           persistSoon()
           return
         }
+        const savedUser = get().lastUser
+        const nextUser =
+          keepPlanner && options?.demo && savedUser ? savedUser : profile
         set({
-          user: profile,
-          activeProfileId: profile.id,
+          user: nextUser,
+          lastUser: nextUser,
+          activeProfileId: nextUser.id,
           onboarded: keepPlanner ? true : get().onboarded,
           timer: idleTimer,
         })
         persistSoon()
       },
       logout: () => {
+        const current = get().user
         clearCloudSession()
         set({
           user: null,
+          lastUser: current ?? get().lastUser,
           timer: idleTimer,
         })
         void flushDurableStorage()
@@ -263,7 +271,7 @@ export const useAppStore = create<AppState>()(
         const user = get().user
         if (!user) return
         const next = { ...user, ...patch }
-        set({ user: next })
+        set({ user: next, lastUser: next })
         if (patch.name !== undefined) updateStoredAccountName(user.id, next.name)
         if (patch.email !== undefined && next.email) rememberEmail(next.email)
       },
@@ -494,6 +502,7 @@ export const useAppStore = create<AppState>()(
         const customTips = Array.isArray(data.customTips) ? (data.customTips as PioneerTip[]) : []
         set({
           user,
+          lastUser: user ?? get().lastUser,
           activeProfileId: user?.id ?? null,
           onboarded:
             Boolean(data.onboarded ?? user) ||
@@ -547,6 +556,7 @@ export const useAppStore = create<AppState>()(
         if (keep && remoteHas) {
           set({
             user,
+            lastUser: user,
             activeProfileId: user.id,
             onboarded: Boolean(snapshot.onboarded ?? local.onboarded ?? user),
             pioneerType,
@@ -586,6 +596,7 @@ export const useAppStore = create<AppState>()(
         } else if (keep && !remoteHas) {
           set({
             user,
+            lastUser: user,
             activeProfileId: user.id,
             onboarded: Boolean(local.onboarded ?? user),
             timer: idleTimer,
@@ -593,6 +604,7 @@ export const useAppStore = create<AppState>()(
         } else {
           set({
             user,
+            lastUser: user,
             activeProfileId: user.id,
             onboarded: Boolean(snapshot.onboarded ?? user),
             pioneerType,
@@ -619,6 +631,7 @@ export const useAppStore = create<AppState>()(
         clearCloudSession()
         set({
           user: null,
+          lastUser: null,
           activeProfileId: null,
           onboarded: false,
           pioneerType: "regular",
@@ -641,6 +654,7 @@ export const useAppStore = create<AppState>()(
       storage: createJSONStorage(() => zustandDurableStorage),
       partialize: (state) => ({
         user: state.user,
+        lastUser: state.lastUser,
         activeProfileId: state.activeProfileId,
         onboarded: state.onboarded,
         pioneerType: state.pioneerType,
