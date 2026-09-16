@@ -24,6 +24,7 @@ import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
 import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
 import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
+import { flushDurableStorage, removeDurable, zustandDurableStorage } from "@/lib/durable-storage"
 import type { PioneerTip } from "@/lib/tips"
 
 export type CalendarClearScope = "month" | "planned" | "all"
@@ -127,8 +128,11 @@ export const useAppStore = create<AppState>()(
       customTips: [],
       setHydrated: (value) => set({ hydrated: value }),
       login: (profile, options) => {
-        if (typeof window !== "undefined" && profile.email) {
-          localStorage.setItem(LAST_EMAIL_KEY, profile.email)
+        if (profile.email) rememberEmail(profile.email)
+        const persistSoon = () => {
+          queueMicrotask(() => {
+            void flushDurableStorage()
+          })
         }
         if (options?.demo) {
           const data = createDemoData()
@@ -153,10 +157,12 @@ export const useAppStore = create<AppState>()(
     settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
             timer: idleTimer,
           })
+          persistSoon()
           return
         }
         if (options?.snapshot) {
           get().applyPlannerSnapshot(options.snapshot, profile)
+          persistSoon()
           return
         }
         if (options?.fresh) {
@@ -168,6 +174,7 @@ export const useAppStore = create<AppState>()(
             onboarded: false,
             timer: idleTimer,
           })
+          persistSoon()
           return
         }
         if (get().activeProfileId !== profile.id) {
@@ -179,12 +186,14 @@ export const useAppStore = create<AppState>()(
             onboarded: false,
             timer: idleTimer,
           })
+          persistSoon()
           return
         }
         set({
           user: profile,
           timer: idleTimer,
         })
+        persistSoon()
       },
       logout: () => {
         clearCloudSession()
@@ -192,6 +201,7 @@ export const useAppStore = create<AppState>()(
           user: null,
           timer: idleTimer,
         })
+        void flushDurableStorage()
       },
       completeOnboarding: () => set({ onboarded: true }),
       updateProfile: (patch) => {
@@ -491,9 +501,7 @@ export const useAppStore = create<AppState>()(
         if (user.email) rememberEmail(user.email)
       },
       deleteAccountLocal: () => {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem(LAST_EMAIL_KEY)
-        }
+        removeDurable(LAST_EMAIL_KEY)
         clearCloudSession()
         set({
           user: null,
@@ -516,7 +524,7 @@ export const useAppStore = create<AppState>()(
     {
       name: STORAGE_KEY,
       skipHydration: true,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => zustandDurableStorage),
       partialize: (state) => ({
         user: state.user,
         activeProfileId: state.activeProfileId,

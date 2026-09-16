@@ -1,6 +1,7 @@
 "use client"
 
-import { LAST_EMAIL_KEY } from "@/lib/constants"
+import { CLOUD_TOKEN_KEY, LAST_EMAIL_KEY } from "@/lib/constants"
+import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type {
   ActivityCategory,
   AvailabilitySlot,
@@ -15,7 +16,7 @@ import type {
 } from "@/types"
 import type { PioneerTip } from "@/lib/tips"
 
-export const CLOUD_TOKEN_KEY = "pioniersplanner-cloud-token"
+export { CLOUD_TOKEN_KEY } from "@/lib/constants"
 
 export type PlannerSnapshot = {
   version: 1
@@ -51,14 +52,12 @@ function apiBase() {
 }
 
 export function cloudToken(): string {
-  if (typeof window === "undefined") return ""
-  return localStorage.getItem(CLOUD_TOKEN_KEY) ?? ""
+  return getDurable(CLOUD_TOKEN_KEY) ?? ""
 }
 
 export function setCloudToken(token: string) {
-  if (typeof window === "undefined") return
-  if (token) localStorage.setItem(CLOUD_TOKEN_KEY, token)
-  else localStorage.removeItem(CLOUD_TOKEN_KEY)
+  if (token) setDurable(CLOUD_TOKEN_KEY, token)
+  else removeDurable(CLOUD_TOKEN_KEY)
 }
 
 export function clearCloudSession() {
@@ -120,9 +119,7 @@ export async function cloudRegister(input: {
   if ("error" in result) return result
   if (!result.profile || !result.token) return { error: "server" }
   setCloudToken(result.token)
-  if (typeof window !== "undefined") {
-    localStorage.setItem(LAST_EMAIL_KEY, result.profile.email)
-  }
+  if (result.profile.email) setDurable(LAST_EMAIL_KEY, result.profile.email)
   return result
 }
 
@@ -141,9 +138,7 @@ export async function cloudLogin(input: {
   if ("error" in result) return result
   if (!result.profile || !result.token) return { error: "server" }
   setCloudToken(result.token)
-  if (typeof window !== "undefined") {
-    localStorage.setItem(LAST_EMAIL_KEY, result.profile.email)
-  }
+  if (result.profile.email) setDurable(LAST_EMAIL_KEY, result.profile.email)
   return result
 }
 

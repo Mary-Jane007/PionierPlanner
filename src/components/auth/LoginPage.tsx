@@ -44,12 +44,11 @@ export function LoginPage() {
   const hydrated = useAppStore((s) => s.hydrated)
 
   useEffect(() => {
+    if (!hydrated) return
     const stored = rememberedEmail()
     if (!stored) return
-    // localStorage is not available during SSR.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- prefill after mount
     setEmail(stored)
-  }, [])
+  }, [hydrated])
 
   useEffect(() => {
     void cloudAvailable().then(setCloudOn)

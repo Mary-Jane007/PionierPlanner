@@ -12,6 +12,7 @@ import {
   clearCloudSession,
   type PlannerSnapshot,
 } from "@/lib/cloud"
+import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type { UserAccount, UserProfile } from "@/types"
 
 export type AuthSuccess = {
@@ -60,14 +61,14 @@ async function passwordMatches(password: string, storedHash: string): Promise<bo
 function readAccounts(): UserAccount[] {
   if (typeof window === "undefined") return []
   try {
-    return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) ?? "[]") as UserAccount[]
+    return JSON.parse(getDurable(ACCOUNTS_KEY) ?? "[]") as UserAccount[]
   } catch {
     return []
   }
 }
 
 function writeAccounts(accounts: UserAccount[]) {
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts))
+  setDurable(ACCOUNTS_KEY, JSON.stringify(accounts))
 }
 
 function toProfile(account: UserAccount): UserProfile {
@@ -375,19 +376,16 @@ export async function saveAccountCredentials(
 }
 
 export function rememberEmail(email: string) {
-  if (typeof window === "undefined") return
   const normalized = email.trim().toLowerCase()
-  if (normalized) localStorage.setItem(LAST_EMAIL_KEY, normalized)
+  if (normalized) setDurable(LAST_EMAIL_KEY, normalized)
 }
 
 export function rememberedEmail(): string {
-  if (typeof window === "undefined") return ""
-  return localStorage.getItem(LAST_EMAIL_KEY) ?? ""
+  return getDurable(LAST_EMAIL_KEY) ?? ""
 }
 
 export function forgetRememberedEmail() {
-  if (typeof window === "undefined") return
-  localStorage.removeItem(LAST_EMAIL_KEY)
+  removeDurable(LAST_EMAIL_KEY)
 }
 
 export async function deleteStoredAccount(userId: string) {
