@@ -16,6 +16,12 @@ import {
 import { useT } from "@/lib/i18n"
 import { useAppStore, type CalendarClearScope } from "@/lib/store"
 
+const SCOPE_LABEL: Record<CalendarClearScope, "calendar.clearPlanned" | "calendar.clearMonth" | "calendar.clearAll"> = {
+  planned: "calendar.clearPlanned",
+  month: "calendar.clearMonth",
+  all: "calendar.clearAll",
+}
+
 export function StartOverDialog({
   monthDate = new Date(),
   variant = "outline",
@@ -26,36 +32,62 @@ export function StartOverDialog({
   const t = useT()
   const clearCalendar = useAppStore((s) => s.clearCalendar)
   const [open, setOpen] = useState(false)
+  const [scope, setScope] = useState<CalendarClearScope | null>(null)
 
-  function clear(scope: CalendarClearScope) {
+  function resetDialog(nextOpen: boolean) {
+    setOpen(nextOpen)
+    if (!nextOpen) setScope(null)
+  }
+
+  function confirm() {
+    if (!scope) return
     clearCalendar(scope, monthDate)
     toast.success(t("calendar.cleared"))
-    setOpen(false)
+    resetDialog(false)
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant={variant} />}>
+    <AlertDialog open={open} onOpenChange={resetDialog}>
+      <AlertDialogTrigger
+        render={<Button type="button" variant={variant} className="h-11 w-full sm:w-auto" />}
+      >
         {t("calendar.startOver")}
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-sm">
+      <AlertDialogContent className="z-[80] max-w-sm">
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("calendar.startOver")}</AlertDialogTitle>
-          <AlertDialogDescription>{t("calendar.clearConfirm")}</AlertDialogDescription>
+          <AlertDialogTitle>{t("calendar.startOverTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {scope ? t("calendar.clearConfirmFinal") : t("calendar.clearConfirm")}
+          </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="grid gap-2">
-          <Button variant="outline" onClick={() => clear("planned")}>
-            {t("calendar.clearPlanned")}
-          </Button>
-          <Button variant="outline" onClick={() => clear("month")}>
-            {t("calendar.clearMonth")}
-          </Button>
-          <Button variant="destructive" onClick={() => clear("all")}>
-            {t("calendar.clearAll")}
-          </Button>
-        </div>
+        {scope ? (
+          <p className="text-sm font-medium">{t(SCOPE_LABEL[scope])}</p>
+        ) : (
+          <div className="grid gap-2">
+            <Button type="button" variant="outline" onClick={() => setScope("planned")}>
+              {t("calendar.clearPlanned")}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setScope("month")}>
+              {t("calendar.clearMonth")}
+            </Button>
+            <Button type="button" variant="destructive" onClick={() => setScope("all")}>
+              {t("calendar.clearAll")}
+            </Button>
+          </div>
+        )}
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("activity.cancel")}</AlertDialogCancel>
+          {scope ? (
+            <>
+              <Button type="button" variant="outline" onClick={() => setScope(null)}>
+                {t("setup.back")}
+              </Button>
+              <Button type="button" variant="destructive" onClick={confirm}>
+                {t("calendar.startOverAction")}
+              </Button>
+            </>
+          ) : (
+            <AlertDialogCancel>{t("activity.cancel")}</AlertDialogCancel>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
