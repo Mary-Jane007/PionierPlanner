@@ -107,6 +107,52 @@ function currentGoalPatch(
   }
 }
 
+type PlannerBits = {
+  events?: CalendarEvent[]
+  experiences?: Experience[]
+  commitments?: Commitment[]
+  history?: HistoricalMonth[]
+  customTips?: PioneerTip[]
+}
+
+export function hasSavedPlanner(state: PlannerBits) {
+  return (
+    (state.events?.length ?? 0) +
+      (state.experiences?.length ?? 0) +
+      (state.commitments?.length ?? 0) +
+      (state.history?.length ?? 0) +
+      (state.customTips?.length ?? 0) >
+    0
+  )
+}
+
+function mergeById<T extends { id: string; updatedAt?: string; createdAt?: string }>(
+  local: T[],
+  remote: T[]
+) {
+  const map = new Map<string, T>()
+  for (const item of local) map.set(item.id, item)
+  for (const item of remote) {
+    const previous = map.get(item.id)
+    if (!previous) {
+      map.set(item.id, item)
+      continue
+    }
+    const remoteStamp = item.updatedAt ?? item.createdAt ?? ""
+    const localStamp = previous.updatedAt ?? previous.createdAt ?? ""
+    if (remoteStamp > localStamp) map.set(item.id, item)
+  }
+  return [...map.values()]
+}
+
+function mergeHistory(local: HistoricalMonth[], remote: HistoricalMonth[]) {
+  const map = new Map<string, HistoricalMonth>()
+  for (const item of [...remote, ...local]) {
+    map.set(`${item.year}-${item.month}`, item)
+  }
+  return [...map.values()]
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -134,7 +180,9 @@ export const useAppStore = create<AppState>()(
             void flushDurableStorage()
           })
         }
-        if (options?.demo) {
+        const keepPlanner = hasSavedPlanner(get())
+
+        if (options?.demo && !keepPlanner) {
           const data = createDemoData()
           set({
             user: {
@@ -154,18 +202,18 @@ export const useAppStore = create<AppState>()(
             commitments: data.commitments,
             experiences: data.experiences,
             history: data.history,
-    settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
+            settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
             timer: idleTimer,
           })
           persistSoon()
           return
         }
-        if (options?.snapshot) {
+        if (options?.snapshot && !keepPlanner) {
           get().applyPlannerSnapshot(options.snapshot, profile)
           persistSoon()
           return
         }
-        if (options?.fresh) {
+        if (options?.fresh && !keepPlanner) {
           const empty = emptyUserData(profile)
           set({
             ...empty,
@@ -177,7 +225,7 @@ export const useAppStore = create<AppState>()(
           persistSoon()
           return
         }
-        if (get().activeProfileId !== profile.id) {
+        if (!keepPlanner && get().activeProfileId && get().activeProfileId !== profile.id) {
           const empty = emptyUserData(profile)
           set({
             ...empty,
@@ -186,11 +234,18 @@ export const useAppStore = create<AppState>()(
             onboarded: false,
             timer: idleTimer,
           })
+          persistSoon()
+          return
+        }
+        if (options?.snapshot && keepPlanner) {
+          get().applyPlannerSnapshot(options.snapshot, profile)
           persistSoon()
           return
         }
         set({
           user: profile,
+          activeProfileId: profile.id,
+          onboarded: keepPlanner ? true : get().onboarded,
           timer: idleTimer,
         })
         persistSoon()
@@ -432,26 +487,34 @@ export const useAppStore = create<AppState>()(
         }
         mergeStoredAccounts(incomingAccounts)
         const pioneerType = (data.pioneerType as PioneerTypeId | undefined) ?? "regular"
+        const events = Array.isArray(data.events) ? (data.events as CalendarEvent[]) : []
+        const commitments = Array.isArray(data.commitments) ? (data.commitments as Commitment[]) : []
+        const experiences = Array.isArray(data.experiences) ? (data.experiences as Experience[]) : []
+        const history = Array.isArray(data.history) ? (data.history as HistoricalMonth[]) : []
+        const customTips = Array.isArray(data.customTips) ? (data.customTips as PioneerTip[]) : []
         set({
           user,
           activeProfileId: user?.id ?? null,
-          onboarded: Boolean(data.onboarded ?? user),
+          onboarded:
+            Boolean(data.onboarded ?? user) ||
+            hasSavedPlanner({ events, commitments, experiences, history, customTips }),
           pioneerType,
           customMonthlyHours:
             typeof data.customMonthlyHours === "number" ? data.customMonthlyHours : DEFAULT_REGULAR_HOURS,
           monthlyGoals: Array.isArray(data.monthlyGoals) ? data.monthlyGoals : [],
-          events: Array.isArray(data.events) ? data.events : [],
+          events,
           availability: Array.isArray(data.availability) ? data.availability : [],
-          commitments: Array.isArray(data.commitments) ? data.commitments : [],
-          experiences: Array.isArray(data.experiences) ? data.experiences : [],
-          history: Array.isArray(data.history) ? data.history : [],
+          commitments,
+          experiences,
+          history,
           settings: { ...DEFAULT_SETTINGS, ...(data.settings as UserSettings | undefined) },
           hiddenCategories: Array.isArray(data.hiddenCategories) ? data.hiddenCategories : [],
-          customTips: Array.isArray(data.customTips) ? data.customTips : [],
+          customTips,
           timer: idleTimer,
           hydrated: true,
         })
         if (user?.email) rememberEmail(user.email)
+        void flushDurableStorage()
         return { ok: true, signedIn: Boolean(user) }
       },
       exportSnapshot: () => {
@@ -477,27 +540,78 @@ export const useAppStore = create<AppState>()(
       applyPlannerSnapshot: (snapshot, profile) => {
         const user = profile ?? (snapshot.user as UserProfile | null)
         if (!user) return
-        const pioneerType = (snapshot.pioneerType as PioneerTypeId | undefined) ?? "regular"
-        set({
-          user,
-          activeProfileId: user.id,
-          onboarded: Boolean(snapshot.onboarded ?? user),
-          pioneerType,
-          customMonthlyHours:
-            typeof snapshot.customMonthlyHours === "number"
-              ? snapshot.customMonthlyHours
-              : DEFAULT_REGULAR_HOURS,
-          monthlyGoals: Array.isArray(snapshot.monthlyGoals) ? snapshot.monthlyGoals : [],
-          events: Array.isArray(snapshot.events) ? snapshot.events : [],
-          availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
-          commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
-          experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
-          history: Array.isArray(snapshot.history) ? snapshot.history : [],
-          settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
-          hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
-          customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
-          timer: idleTimer,
-        })
+        const local = get()
+        const keep = hasSavedPlanner(local)
+        const remoteHas = hasSavedPlanner(snapshot)
+        const pioneerType = (snapshot.pioneerType as PioneerTypeId | undefined) ?? local.pioneerType ?? "regular"
+        if (keep && remoteHas) {
+          set({
+            user,
+            activeProfileId: user.id,
+            onboarded: Boolean(snapshot.onboarded ?? local.onboarded ?? user),
+            pioneerType,
+            customMonthlyHours:
+              typeof snapshot.customMonthlyHours === "number"
+                ? snapshot.customMonthlyHours
+                : local.customMonthlyHours,
+            monthlyGoals:
+              Array.isArray(snapshot.monthlyGoals) && snapshot.monthlyGoals.length > 0
+                ? snapshot.monthlyGoals
+                : local.monthlyGoals,
+            events: mergeById(local.events, Array.isArray(snapshot.events) ? snapshot.events : []),
+            availability:
+              Array.isArray(snapshot.availability) && snapshot.availability.length > 0
+                ? snapshot.availability
+                : local.availability,
+            commitments: mergeById(
+              local.commitments,
+              Array.isArray(snapshot.commitments) ? snapshot.commitments : []
+            ),
+            experiences: mergeById(
+              local.experiences,
+              Array.isArray(snapshot.experiences) ? snapshot.experiences : []
+            ),
+            history: mergeHistory(
+              local.history,
+              Array.isArray(snapshot.history) ? snapshot.history : []
+            ),
+            settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
+            hiddenCategories: local.hiddenCategories,
+            customTips: mergeById(
+              local.customTips,
+              Array.isArray(snapshot.customTips) ? snapshot.customTips : []
+            ),
+            timer: idleTimer,
+          })
+        } else if (keep && !remoteHas) {
+          set({
+            user,
+            activeProfileId: user.id,
+            onboarded: Boolean(local.onboarded ?? user),
+            timer: idleTimer,
+          })
+        } else {
+          set({
+            user,
+            activeProfileId: user.id,
+            onboarded: Boolean(snapshot.onboarded ?? user),
+            pioneerType,
+            customMonthlyHours:
+              typeof snapshot.customMonthlyHours === "number"
+                ? snapshot.customMonthlyHours
+                : DEFAULT_REGULAR_HOURS,
+            monthlyGoals: Array.isArray(snapshot.monthlyGoals) ? snapshot.monthlyGoals : [],
+            events: Array.isArray(snapshot.events) ? snapshot.events : [],
+            availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
+            commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
+            experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
+            history: Array.isArray(snapshot.history) ? snapshot.history : [],
+            settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
+            hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
+            customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
+            timer: idleTimer,
+          })
+        }
         if (user.email) rememberEmail(user.email)
       },
       deleteAccountLocal: () => {

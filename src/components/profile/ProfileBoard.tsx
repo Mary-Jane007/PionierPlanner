@@ -214,6 +214,7 @@ export function ProfileBoard() {
         <Button variant="outline" onClick={() => logout()}>
           {t("settings.logout")}
         </Button>
+        <p className="text-xs text-muted-foreground">{t("settings.logoutHint")}</p>
         <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <AlertDialogTrigger
             render={<Button type="button" variant="destructive" className="h-11 w-full sm:w-auto" />}
