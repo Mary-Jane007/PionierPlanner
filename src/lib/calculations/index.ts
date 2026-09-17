@@ -50,6 +50,47 @@ export function calculateCompletedHours(
     .reduce((sum, event) => sum + hoursFromMinutes(event.durationMinutes), 0)
 }
 
+export function historyFromEvents(events: CalendarEvent[]): HistoricalMonth[] {
+  const groups = new Map<string, CalendarEvent[]>()
+  for (const event of events) {
+    if (!isFieldService(event) || event.status !== "completed") continue
+    const year = Number(event.date.slice(0, 4))
+    const month = Number(event.date.slice(5, 7)) - 1
+    if (!Number.isFinite(year) || month < 0 || month > 11) continue
+    const key = `${year}-${month}`
+    const list = groups.get(key)
+    if (list) list.push(event)
+    else groups.set(key, [event])
+  }
+  return [...groups.entries()].map(([key, list]) => {
+    const [year, month] = key.split("-").map(Number)
+    const weekdayHours = new Array(8).fill(0)
+    let longest = 0
+    let completedHours = 0
+    for (const event of list) {
+      completedHours += hoursFromMinutes(event.durationMinutes)
+      longest = Math.max(longest, event.durationMinutes)
+      weekdayHours[isoWeekday(new Date(`${event.date}T12:00:00`))] += event.durationMinutes
+    }
+    return {
+      year,
+      month,
+      completedHours: Math.round(completedHours * 10) / 10,
+      sessions: list.length,
+      longestSessionMinutes: longest,
+      busiestWeekday: weekdayHours.indexOf(Math.max(...weekdayHours.slice(1))) || 1,
+    }
+  })
+}
+
+export function countCompletedSessions(events: CalendarEvent[], year?: number): number {
+  return events.filter((event) => {
+    if (!isFieldService(event) || event.status !== "completed") return false
+    if (year == null) return true
+    return event.date.startsWith(`${year}-`)
+  }).length
+}
+
 export function calculatePlannedHours(
   events: CalendarEvent[],
   year: number,
@@ -335,28 +376,16 @@ export function hoursByCategory(
 
 export function yearOverview(
   events: CalendarEvent[],
-  history: HistoricalMonth[],
-  year: number,
-  currentMonth: number,
-  currentCompleted: number
+  year: number
 ): { month: number; hours: number }[] {
-  return Array.from({ length: 12 }, (_, month) => {
-    if (month === currentMonth) {
-      return { month, hours: Math.round(currentCompleted * 10) / 10 }
-    }
-    const historical = history.find(
-      (item) => item.year === year && item.month === month
-    )
-    if (historical) return { month, hours: historical.completedHours }
-    if (month > currentMonth) return { month, hours: 0 }
-    const fromEvents = calculateCompletedHours(events, year, month)
-    return { month, hours: fromEvents }
-  })
+  return Array.from({ length: 12 }, (_, month) => ({
+    month,
+    hours: Math.round(calculateCompletedHours(events, year, month) * 10) / 10,
+  }))
 }
 
 export function personalInsights(
   events: CalendarEvent[],
-  history: HistoricalMonth[],
   now: Date
 ): {
   longestSessionMinutes: number
@@ -364,6 +393,7 @@ export function personalInsights(
   busiestWeekday: number | null
   averageSessionMinutes: number
 } {
+  const year = now.getFullYear()
   const service = events.filter(
     (event) => isFieldService(event) && event.status === "completed"
   )
@@ -371,36 +401,28 @@ export function personalInsights(
     (max, event) => Math.max(max, event.durationMinutes),
     0
   )
-  const longestHistory = history.reduce(
-    (max, item) => Math.max(max, item.longestSessionMinutes),
-    0
-  )
   const weekdayHours = new Array(8).fill(0)
+  const monthHours = new Array(12).fill(0)
   for (const event of service) {
+    const eventYear = Number(event.date.slice(0, 4))
+    const eventMonth = Number(event.date.slice(5, 7)) - 1
     weekdayHours[isoWeekday(new Date(`${event.date}T12:00:00`))] +=
       event.durationMinutes
+    if (eventYear === year && eventMonth >= 0 && eventMonth < 12) {
+      monthHours[eventMonth] += hoursFromMinutes(event.durationMinutes)
+    }
   }
   const busiestWeekday =
     weekdayHours.indexOf(Math.max(...weekdayHours.slice(1))) || null
-  const busiestHistorical = [...history].sort(
-    (a, b) => b.completedHours - a.completedHours
-  )[0]
-  const currentMonthHours = calculateCompletedHours(
-    events,
-    now.getFullYear(),
-    now.getMonth()
-  )
-  const busiestMonth =
-    busiestHistorical && busiestHistorical.completedHours > currentMonthHours
-      ? busiestHistorical.month
-      : now.getMonth()
+  const busiestMonthHours = Math.max(...monthHours)
+  const busiestMonth = busiestMonthHours > 0 ? monthHours.indexOf(busiestMonthHours) : null
   const totalMinutes = service.reduce(
     (sum, event) => sum + event.durationMinutes,
     0
   )
   return {
-    longestSessionMinutes: Math.max(longestEvent, longestHistory),
-    busiestMonth: service.length || history.length ? busiestMonth : null,
+    longestSessionMinutes: longestEvent,
+    busiestMonth,
     busiestWeekday: service.length ? busiestWeekday : null,
     averageSessionMinutes: service.length
       ? Math.round(totalMinutes / service.length)

@@ -715,6 +715,12 @@ const messages = {
     es: "Esto es progreso personal, no una clasificación.",
     pap: "Esaki ta progreso personal, no un ranking.",
   },
+  "stats.fromActivities": {
+    nl: "Deze cijfers komen uit je huidige activiteiten. Bij een nieuw account beginnen ze leeg en groeien ze mee als je uren invoert.",
+    en: "These figures come from your current activities. On a new account they start empty and grow as you log hours.",
+    es: "Estas cifras salen de tus actividades actuales. En una cuenta nueva empiezan vacías y crecen al registrar horas.",
+    pap: "E sifranan aki ta bini for di bo aktividatnan aktual. Riba un kuenta nobo nan ta kuminsá bashí i ta krese ora bo yena ora.",
+  },
   "exp.title": { nl: "Ervaringen", en: "Experiences", es: "Experiencias", pap: "Experensia" },
   "exp.subtitle": { nl: "Bewaar mooie momenten uit je bediening.", en: "Keep beautiful moments from your ministry.", es: "Guarda momentos hermosos de tu ministerio.", pap: "Warda momentonan bunita di bo ministerio." },
   "exp.new": { nl: "+ Nieuwe ervaring", en: "+ New experience", es: "+ Nueva experiencia", pap: "+ Experensia nobo" },

@@ -123,7 +123,9 @@ function ActivityForm({
   const [serviceType, setServiceType] = useState<FieldServiceType>(source?.serviceType ?? "house_to_house")
   const [location, setLocation] = useState(source?.location ?? "")
   const [notes, setNotes] = useState(source?.notes ?? "")
-  const [status, setStatus] = useState<ActivityStatus>(source?.status ?? "planned")
+  const [status, setStatus] = useState<ActivityStatus>(
+    source?.status ?? (initialDate <= isoDate(new Date()) ? "completed" : "planned")
+  )
   const [repeat, setRepeat] = useState<RepeatPattern>("none")
   const [repeatUntil, setRepeatUntil] = useState(isoDate(endOfMonth(parseDate(initialDate))))
 
@@ -255,6 +257,9 @@ function ActivityForm({
                   const nextDate = event.target.value
                   if (!isValidIsoDate(nextDate)) return
                   setDate(nextDate)
+                  if (!editingId) {
+                    setStatus(nextDate <= isoDate(new Date()) ? "completed" : "planned")
+                  }
                   if (repeatUntil < nextDate) {
                     setRepeatUntil(
                       isoDate(endOfMonth(parseDate(nextDate)))
