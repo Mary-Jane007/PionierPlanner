@@ -12,6 +12,7 @@ import {
 } from "recharts"
 import { ProgressRing } from "@/components/progress/ProgressRing"
 import {
+  countCompletedSessions,
   hoursByCategory,
   hoursByWeek,
   personalInsights,
@@ -28,23 +29,15 @@ export function StatsBoard() {
   const t = useT()
   const lang = useLang()
   const events = useAppStore((s) => s.events)
-  const history = useAppStore((s) => s.history)
   const snapshot = useMonthSnapshot()
   const now = new Date()
   const weekData = hoursByWeek(events, now.getFullYear(), now.getMonth())
-  const yearData = yearOverview(
-    events,
-    history,
-    now.getFullYear(),
-    now.getMonth(),
-    snapshot.completed
-  )
+  const yearData = yearOverview(events, now.getFullYear())
   const types = hoursByCategory(events, now.getFullYear(), now.getMonth())
-  const insights = personalInsights(events, history, now)
+  const insights = personalInsights(events, now)
   const yearTotal = yearData.reduce((sum, item) => sum + item.hours, 0)
   const monthsTracked = yearData.filter((item) => item.hours > 0).length
-  const sessionsTotal =
-    history.reduce((sum, item) => sum + item.sessions, 0) + snapshot.sessionsCompleted
+  const sessionsTotal = countCompletedSessions(events, now.getFullYear())
 
   const monthLabels = yearData.map((item) => ({
     ...item,
@@ -111,7 +104,8 @@ export function StatsBoard() {
           <Stat tone="planned" label={t("stats.monthsTracked")} value={String(monthsTracked)} />
           <Stat tone="left" label={t("stats.sessions")} value={String(sessionsTotal)} />
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">{t("stats.personal")}</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t("stats.fromActivities")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("stats.personal")}</p>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">

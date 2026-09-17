@@ -19,7 +19,7 @@ import type {
   UserSettings,
 } from "@/types"
 import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } from "@/lib/constants"
-import { detectScheduleConflict } from "@/lib/calculations"
+import { detectScheduleConflict, historyFromEvents } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
 import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
@@ -108,6 +108,10 @@ function currentGoalPatch(
   }
 }
 
+function eventsWithHistory(events: CalendarEvent[]) {
+  return { events, history: historyFromEvents(events) }
+}
+
 type PlannerBits = {
   events?: CalendarEvent[]
   experiences?: Experience[]
@@ -142,14 +146,6 @@ function mergeById<T extends { id: string; updatedAt?: string; createdAt?: strin
     const remoteStamp = item.updatedAt ?? item.createdAt ?? ""
     const localStamp = previous.updatedAt ?? previous.createdAt ?? ""
     if (remoteStamp > localStamp) map.set(item.id, item)
-  }
-  return [...map.values()]
-}
-
-function mergeHistory(local: HistoricalMonth[], remote: HistoricalMonth[]) {
-  const map = new Map<string, HistoricalMonth>()
-  for (const item of [...remote, ...local]) {
-    map.set(`${item.year}-${item.month}`, item)
   }
   return [...map.values()]
 }
@@ -203,7 +199,7 @@ export const useAppStore = create<AppState>()(
             availability: data.availability,
             commitments: data.commitments,
             experiences: data.experiences,
-            history: data.history,
+            history: historyFromEvents(data.events),
             settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
             timer: idleTimer,
           })
@@ -253,6 +249,7 @@ export const useAppStore = create<AppState>()(
           activeProfileId: nextUser.id,
           onboarded: keepPlanner ? true : get().onboarded,
           timer: idleTimer,
+          history: historyFromEvents(get().events),
         })
         persistSoon()
       },
@@ -297,15 +294,15 @@ export const useAppStore = create<AppState>()(
       upsertEvent: (event) => {
         const events = get().events
         const index = events.findIndex((item) => item.id === event.id)
-        if (index === -1) set({ events: [...events, event] })
+        if (index === -1) set(eventsWithHistory([...events, event]))
         else {
           const next = [...events]
           next[index] = event
-          set({ events: next })
+          set(eventsWithHistory(next))
         }
       },
       deleteEvent: (id) =>
-        set({ events: get().events.filter((item) => item.id !== id) }),
+        set(eventsWithHistory(get().events.filter((item) => item.id !== id))),
       moveEvent: (id, date, startTime, endTime) => {
         const events = get().events.map((item) => {
           if (item.id !== id) return item
@@ -320,16 +317,18 @@ export const useAppStore = create<AppState>()(
             updatedAt: new Date().toISOString(),
           }
         })
-        set({ events })
+        set(eventsWithHistory(events))
       },
       setEventStatus: (id, status) =>
-        set({
-          events: get().events.map((item) =>
-            item.id === id
-              ? { ...item, status, updatedAt: new Date().toISOString() }
-              : item
-          ),
-        }),
+        set(
+          eventsWithHistory(
+            get().events.map((item) =>
+              item.id === id
+                ? { ...item, status, updatedAt: new Date().toISOString() }
+                : item
+            )
+          )
+        ),
       upsertExperience: (experience) => {
         const experiences = get().experiences
         const index = experiences.findIndex((item) => item.id === experience.id)
@@ -436,24 +435,26 @@ export const useAppStore = create<AppState>()(
           }
           extra.push(candidate)
         }
-        if (extra.length) set({ events: [...current, ...extra] })
+        if (extra.length) set(eventsWithHistory([...current, ...extra]))
         return { added: extra.length, skipped }
       },
       clearCalendar: (scope, monthDate = new Date()) => {
         if (scope === "all") {
-          set({ events: [] })
+          set(eventsWithHistory([]))
           return
         }
         const year = monthDate.getFullYear()
         const month = monthDate.getMonth()
         const prefix = `${year}-${String(month + 1).padStart(2, "0")}`
-        set({
-          events: get().events.filter((event) => {
-            if (!event.date.startsWith(prefix)) return true
-            if (scope === "month") return false
-            return event.status === "completed"
-          }),
-        })
+        set(
+          eventsWithHistory(
+            get().events.filter((event) => {
+              if (!event.date.startsWith(prefix)) return true
+              if (scope === "month") return false
+              return event.status === "completed"
+            })
+          )
+        )
       },
       exportData: () => {
         const state = get()
@@ -511,11 +512,10 @@ export const useAppStore = create<AppState>()(
           customMonthlyHours:
             typeof data.customMonthlyHours === "number" ? data.customMonthlyHours : DEFAULT_REGULAR_HOURS,
           monthlyGoals: Array.isArray(data.monthlyGoals) ? data.monthlyGoals : [],
-          events,
+          ...eventsWithHistory(events),
           availability: Array.isArray(data.availability) ? data.availability : [],
           commitments,
           experiences,
-          history,
           settings: { ...DEFAULT_SETTINGS, ...(data.settings as UserSettings | undefined) },
           hiddenCategories: Array.isArray(data.hiddenCategories) ? data.hiddenCategories : [],
           customTips,
@@ -554,6 +554,7 @@ export const useAppStore = create<AppState>()(
         const remoteHas = hasSavedPlanner(snapshot)
         const pioneerType = (snapshot.pioneerType as PioneerTypeId | undefined) ?? local.pioneerType ?? "regular"
         if (keep && remoteHas) {
+          const events = mergeById(local.events, Array.isArray(snapshot.events) ? snapshot.events : [])
           set({
             user,
             lastUser: user,
@@ -568,7 +569,7 @@ export const useAppStore = create<AppState>()(
               Array.isArray(snapshot.monthlyGoals) && snapshot.monthlyGoals.length > 0
                 ? snapshot.monthlyGoals
                 : local.monthlyGoals,
-            events: mergeById(local.events, Array.isArray(snapshot.events) ? snapshot.events : []),
+            ...eventsWithHistory(events),
             availability:
               Array.isArray(snapshot.availability) && snapshot.availability.length > 0
                 ? snapshot.availability
@@ -580,10 +581,6 @@ export const useAppStore = create<AppState>()(
             experiences: mergeById(
               local.experiences,
               Array.isArray(snapshot.experiences) ? snapshot.experiences : []
-            ),
-            history: mergeHistory(
-              local.history,
-              Array.isArray(snapshot.history) ? snapshot.history : []
             ),
             settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: local.hiddenCategories,
@@ -600,8 +597,10 @@ export const useAppStore = create<AppState>()(
             activeProfileId: user.id,
             onboarded: Boolean(local.onboarded ?? user),
             timer: idleTimer,
+            history: historyFromEvents(local.events),
           })
         } else {
+          const events = Array.isArray(snapshot.events) ? snapshot.events : []
           set({
             user,
             lastUser: user,
@@ -613,11 +612,10 @@ export const useAppStore = create<AppState>()(
                 ? snapshot.customMonthlyHours
                 : DEFAULT_REGULAR_HOURS,
             monthlyGoals: Array.isArray(snapshot.monthlyGoals) ? snapshot.monthlyGoals : [],
-            events: Array.isArray(snapshot.events) ? snapshot.events : [],
+            ...eventsWithHistory(events),
             availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
             commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
             experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
-            history: Array.isArray(snapshot.history) ? snapshot.history : [],
             settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
             customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
@@ -671,10 +669,12 @@ export const useAppStore = create<AppState>()(
       }),
       merge: (persisted, current) => {
         const stored = (persisted ?? {}) as Partial<AppState>
-        if (current.user && !stored.user) {
-          return current
+        const merged =
+          current.user && !stored.user ? current : { ...current, ...stored }
+        return {
+          ...merged,
+          history: historyFromEvents(merged.events ?? []),
         }
-        return { ...current, ...stored }
       },
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true)
