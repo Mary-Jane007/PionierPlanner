@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "pioniersplanner-ac76eaba3fa5"
+const CACHE_NAME = "pioniersplanner-a7120ec6c79b"
 const PRECACHE_URLS = [
   "./",
   "./404.html",
@@ -13,7 +13,7 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/0al6-79eoycb3.js",
   "./_next/static/chunks/0cz1d0mv5g_q7.js",
   "./_next/static/chunks/0r5njfx1xatr3.js",
-  "./_next/static/chunks/0vfyf5ke-hq74.js",
+  "./_next/static/chunks/0xq4z1kwqndmv.js",
   "./_next/static/chunks/13gg_sbr8aqgc.js",
   "./_next/static/chunks/17fbgx4bf_8v3.js",
   "./_next/static/chunks/1ca8lgnqqdf7p.js",
@@ -23,6 +23,7 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/1r62ma5wep0na.js",
   "./_next/static/chunks/1rb63v73_dnyg.css",
   "./_next/static/chunks/1uyrvcqwvja3j.js",
+  "./_next/static/chunks/1ybk-_w_lr96c.js",
   "./_next/static/chunks/1yphnnmzofsyc.js",
   "./_next/static/chunks/2-rhvysi12-9q.js",
   "./_next/static/chunks/2-un88rp07b1h.js",
@@ -30,7 +31,6 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/2ef54_v1p3hvv.js",
   "./_next/static/chunks/2i0_izef0jepq.js",
   "./_next/static/chunks/2i51e627rllld.js",
-  "./_next/static/chunks/2ljqlene_khxz.js",
   "./_next/static/chunks/2pgwtqxoeh3gm.js",
   "./_next/static/chunks/2pl2ej8jcy8dy.js",
   "./_next/static/chunks/2upf8uel6p8ym.js",
@@ -61,9 +61,9 @@ const PRECACHE_URLS = [
   "./_next/static/media/d3fe2f289711ac3f-s.1l2zhvq5eocqf.woff2",
   "./_next/static/media/favicon.2vob68tjqpejf.ico",
   "./_next/static/media/icon.12tltj8k60c69.svg",
-  "./_next/static/wSAB4gap5elu8RD-Uexba/_buildManifest.js",
-  "./_next/static/wSAB4gap5elu8RD-Uexba/_clientMiddlewareManifest.js",
-  "./_next/static/wSAB4gap5elu8RD-Uexba/_ssgManifest.js",
+  "./_next/static/p851aKRMH5SDZhv6WIC65/_buildManifest.js",
+  "./_next/static/p851aKRMH5SDZhv6WIC65/_clientMiddlewareManifest.js",
+  "./_next/static/p851aKRMH5SDZhv6WIC65/_ssgManifest.js",
   "./_not-found/",
   "./_not-found/__next._full.txt",
   "./_not-found/__next._not-found.__PAGE__.txt",
