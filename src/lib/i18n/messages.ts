@@ -472,6 +472,18 @@ const messages = {
   "calendar.drag": { nl: "Verslepen", en: "Drag", es: "Arrastrar", pap: "Drecha" },
   "calendar.todayMark": { nl: "Vandaag", en: "Today", es: "Hoy", pap: "Awe" },
   "calendar.startOver": { nl: "Opnieuw beginnen", en: "Start over", es: "Empezar de nuevo", pap: "Kuminsá di nobo" },
+  "calendar.startOverTitle": {
+    nl: "Opnieuw beginnen?",
+    en: "Start over?",
+    es: "¿Empezar de nuevo?",
+    pap: "Kuminsá di nobo?",
+  },
+  "calendar.startOverAction": {
+    nl: "Ja, opnieuw beginnen",
+    en: "Yes, start over",
+    es: "Sí, empezar de nuevo",
+    pap: "Sí, kuminsá di nobo",
+  },
   "calendar.clearPlanned": {
     nl: "Alleen geplande activiteiten deze maand wissen",
     en: "Clear planned activities this month",
@@ -495,6 +507,12 @@ const messages = {
     en: "Choose what to clear. You can keep completed hours. This cannot be undone.",
     es: "Elige qué borrar. Puedes conservar las horas completadas. Esto no se puede deshacer.",
     pap: "Skoge kiko bo ke kita. Bo por tene oranan kompletá. Esaki no por wòrdu deshasí.",
+  },
+  "calendar.clearConfirmFinal": {
+    nl: "Dit wist de gekozen activiteiten. Dit kan niet ongedaan worden gemaakt.",
+    en: "This clears the selected activities. This cannot be undone.",
+    es: "Esto borra las actividades elegidas. No se puede deshacer.",
+    pap: "Esaki ta kita e aktividatnan skohe. Esaki no por wòrdu deshasí.",
   },
   "calendar.cleared": {
     nl: "Je planning is leeggemaakt.",
