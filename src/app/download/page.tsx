@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { DownloadApkButton, DownloadZipLink } from "@/components/landing/DownloadApkButton"
+import { DownloadZipLink, InstallAppButtons } from "@/components/landing/InstallAppButtons"
 import { Logo } from "@/components/brand/Logo"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
@@ -28,13 +28,13 @@ export default function DownloadPage() {
         <p className="text-xs tracking-[0.2em] text-accent uppercase">{t("app.name")}</p>
         <h1 className="font-heading mt-4 text-4xl">{t("download.title")}</h1>
         <p className="mt-4 text-lg text-muted-foreground">{t("download.intro")}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "h-12 rounded-xl px-6")}>
+        <div className="mt-8 space-y-3">
+          <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "inline-flex h-12 rounded-xl px-6")}>
             {t("landing.openApp")}
           </Link>
           {native ? null : (
             <>
-              <DownloadApkButton />
+              <InstallAppButtons />
               <DownloadZipLink />
             </>
           )}
