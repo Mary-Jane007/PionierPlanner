@@ -26,12 +26,13 @@ import { CATEGORY_ORDER } from "@/lib/constants"
 import {
   addDays,
   endOfMonth,
+  endTimeFromDuration,
   isoDate,
   isValidIsoDate,
   minutesBetween,
   parseDate,
 } from "@/lib/dates"
-import { formatHoursShort } from "@/lib/format"
+import { formatHoursField, parseHoursInput } from "@/lib/format"
 import { detectScheduleConflict } from "@/lib/calculations"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -119,6 +120,17 @@ function ActivityForm({
   const [date, setDate] = useState(initialDate)
   const [startTime, setStartTime] = useState(source?.startTime ?? "09:00")
   const [endTime, setEndTime] = useState(source?.endTime ?? "11:00")
+  const [hoursText, setHoursText] = useState(() => {
+    try {
+      return formatHoursField(
+        minutesBetween(source?.startTime ?? "09:00", source?.endTime ?? "11:00") / 60,
+        lang
+      )
+    } catch {
+      return formatHoursField(2, lang)
+    }
+  })
+  const [hoursFocused, setHoursFocused] = useState(false)
   const [companion, setCompanion] = useState(source?.companion ?? "")
   const [serviceType, setServiceType] = useState<FieldServiceType>(source?.serviceType ?? "house_to_house")
   const [location, setLocation] = useState(source?.location ?? "")
@@ -134,6 +146,30 @@ function ActivityForm({
       return 0
     }
   }, [startTime, endTime])
+
+  const displayedHours = hoursFocused ? hoursText : formatHoursField(duration / 60, lang) || hoursText
+
+  function applyHours(raw: string) {
+    setHoursText(raw)
+    const hours = parseHoursInput(raw)
+    if (hours == null) return
+    setEndTime(endTimeFromDuration(startTime, hours))
+  }
+
+  function applyStartTime(next: string) {
+    const hours = parseHoursInput(hoursText) ?? (duration > 0 ? duration / 60 : 2)
+    setStartTime(next)
+    setEndTime(endTimeFromDuration(next, hours))
+  }
+
+  function applyEndTime(next: string) {
+    setEndTime(next)
+    try {
+      setHoursText(formatHoursField(minutesBetween(startTime, next) / 60, lang))
+    } catch {
+      setHoursText("")
+    }
+  }
 
   function buildEvent(id: string): CalendarEvent | null {
     const parsed = activitySchema.safeParse({
@@ -246,7 +282,7 @@ function ActivityForm({
           <Field label={t("activity.title")}>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label={t("activity.date")}>
               <Input
                 type="date"
@@ -263,16 +299,47 @@ function ActivityForm({
                 }}
               />
             </Field>
-            <Field label={t("activity.start")}>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            </Field>
-            <Field label={t("activity.end")}>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            <Field label={t("activity.hoursWorked")}>
+              <Input
+                type="text"
+                inputMode="decimal"
+                enterKeyHint="done"
+                autoComplete="off"
+                className="h-11 tabular-nums"
+                placeholder={t("activity.hoursWorkedPlaceholder")}
+                value={displayedHours}
+                onFocus={() => {
+                  setHoursFocused(true)
+                  setHoursText(formatHoursField(duration / 60, lang) || hoursText)
+                }}
+                onBlur={() => {
+                  setHoursFocused(false)
+                  const hours = parseHoursInput(hoursText)
+                  if (hours == null) {
+                    setHoursText(formatHoursField(duration / 60, lang))
+                    return
+                  }
+                  const nextEnd = endTimeFromDuration(startTime, hours)
+                  setEndTime(nextEnd)
+                  try {
+                    setHoursText(formatHoursField(minutesBetween(startTime, nextEnd) / 60, lang))
+                  } catch {
+                    setHoursText(formatHoursField(hours, lang))
+                  }
+                }}
+                onChange={(e) => applyHours(e.target.value)}
+              />
             </Field>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {t("activity.duration")}: {formatHoursShort(duration / 60, lang)}
-          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label={t("activity.start")}>
+              <Input type="time" value={startTime} onChange={(e) => applyStartTime(e.target.value)} />
+            </Field>
+            <Field label={t("activity.end")}>
+              <Input type="time" value={endTime} onChange={(e) => applyEndTime(e.target.value)} />
+            </Field>
+          </div>
+          <p className="text-sm text-muted-foreground">{t("activity.hoursWorkedHint")}</p>
           {!editingId ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label={t("activity.repeat")}>
