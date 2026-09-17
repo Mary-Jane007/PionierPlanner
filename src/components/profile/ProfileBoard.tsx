@@ -1,7 +1,7 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -12,6 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { ANNUAL_REFERENCE_HOURS, DEFAULT_AUXILIARY_HOURS, DEFAULT_REGULAR_HOURS, JW_ORG_PIONEERS } from "@/lib/constants"
 import { useT } from "@/lib/i18n"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
@@ -19,6 +29,7 @@ import { deleteStoredAccount } from "@/lib/auth"
 import type { LocaleCode, ThemeMode } from "@/types"
 import { StartOverDialog } from "@/components/calendar/StartOverDialog"
 import { AccountSettings } from "@/components/profile/AccountSettings"
+import { ImportBackupButton } from "@/components/profile/ImportBackupButton"
 
 export function ProfileBoard() {
   const t = useT()
@@ -32,6 +43,8 @@ export function ProfileBoard() {
   const exportData = useAppStore((s) => s.exportData)
   const deleteAccountLocal = useAppStore((s) => s.deleteAccountLocal)
   const target = useCurrentTarget()
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function exportFile() {
     const blob = new Blob([exportData()], { type: "application/json" })
@@ -185,7 +198,7 @@ export function ProfileBoard() {
       <section className="card-quiet space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.privacy")}</h2>
         <p className="text-sm text-muted-foreground">{t("exp.visibilityHint")}</p>
-        <p className="text-sm text-muted-foreground">{t("auth.localNote")}</p>
+        <p className="text-sm text-muted-foreground">{t("auth.cloudNote")}</p>
         <p className="text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
       </section>
 
@@ -196,22 +209,46 @@ export function ProfileBoard() {
         <Button variant="outline" onClick={exportFile}>
           {t("settings.export")}
         </Button>
+        <ImportBackupButton className="h-8" />
+        <p className="text-xs text-muted-foreground">{t("settings.exportHint")}</p>
         <Button variant="outline" onClick={() => logout()}>
           {t("settings.logout")}
         </Button>
-        <ConfirmDeleteButton
-          variant="destructive"
-          size="default"
-          title={t("settings.deleteTitle")}
-          description={t("settings.deleteConfirm")}
-          confirmLabel={t("settings.delete")}
-          onConfirm={() => {
-            if (user) deleteStoredAccount(user.id)
-            deleteAccountLocal()
-          }}
-        >
-          {t("settings.delete")}
-        </ConfirmDeleteButton>
+        <p className="text-xs text-muted-foreground">{t("settings.logoutHint")}</p>
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogTrigger
+            render={<Button type="button" variant="destructive" className="h-11 w-full sm:w-auto" />}
+          >
+            {t("settings.delete")}
+          </AlertDialogTrigger>
+          <AlertDialogContent className="z-[80] max-w-sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("settings.deleteTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("settings.deleteConfirm")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>{t("activity.cancel")}</AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={deleting}
+                onClick={async () => {
+                  if (deleting) return
+                  setDeleting(true)
+                  try {
+                    if (user) await deleteStoredAccount(user.id)
+                    deleteAccountLocal()
+                    setDeleteOpen(false)
+                  } finally {
+                    setDeleting(false)
+                  }
+                }}
+              >
+                {deleting ? t("common.loading") : t("settings.deleteAction")}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <p className="text-xs text-muted-foreground">{t("settings.deleteConfirm")}</p>
       </section>
     </div>

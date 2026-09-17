@@ -53,7 +53,7 @@ export function AccountSettings() {
         )
         return
       }
-      updateProfile({ email: result.email })
+      updateProfile({ email: result.profile.email })
       toast.success(t("settings.emailSaved"))
     } finally {
       setPendingEmail(false)
@@ -81,7 +81,7 @@ export function AccountSettings() {
           )
           return
         }
-        updateProfile({ email: result.email })
+        updateProfile(result.profile)
         setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")

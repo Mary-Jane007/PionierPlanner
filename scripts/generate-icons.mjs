@@ -30,6 +30,25 @@ function maskableSvg(size) {
 
 writeFileSync(join(outDir, "icon-192.png"), pngFromSvg(svg, 192))
 writeFileSync(join(outDir, "icon-512.png"), pngFromSvg(svg, 512))
+writeFileSync(join(outDir, "icon-1024.png"), pngFromSvg(svg, 1024))
 writeFileSync(join(outDir, "icon-maskable-512.png"), pngFromSvg(maskableSvg(512), 512))
 writeFileSync(join(outDir, "apple-touch-icon.png"), pngFromSvg(svg, 180))
-console.log("Wrote PWA icons to public/icons")
+
+const resourcesDir = join(root, "resources")
+mkdirSync(resourcesDir, { recursive: true })
+writeFileSync(join(resourcesDir, "icon.png"), pngFromSvg(svg, 1024))
+writeFileSync(join(resourcesDir, "icon-only.png"), pngFromSvg(svg, 1024))
+writeFileSync(
+  join(resourcesDir, "splash.png"),
+  pngFromSvg(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <rect width="2732" height="2732" fill="#29483F"/>
+  <g transform="translate(966 966) scale(20)">
+    <path d="M13 28V12h8.2a5.6 5.6 0 0 1 0 11.2H13" fill="none" stroke="#F7F5EF" stroke-width="2.3" stroke-linecap="round"/>
+    <circle cx="28.2" cy="13.4" r="2.15" fill="#C68F68"/>
+  </g>
+</svg>`,
+    2732
+  )
+)
+console.log("Wrote PWA icons to public/icons and native assets to resources/")

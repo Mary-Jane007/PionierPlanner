@@ -14,10 +14,13 @@ import {
   registerAccount,
   resetAccountPassword,
   signInAccount,
+  storedAccountCount,
 } from "@/lib/auth"
+import { cloudAvailable } from "@/lib/cloud"
 import { useT } from "@/lib/i18n"
-import { useAppStore } from "@/lib/store"
+import { hasSavedPlanner, useAppStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
+import { ImportBackupButton } from "@/components/profile/ImportBackupButton"
 
 type AuthMode = "signin" | "signup" | "reset"
 
@@ -34,17 +37,22 @@ export function LoginPage() {
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
+  const [cloudOn, setCloudOn] = useState(true)
   const login = useAppStore((s) => s.login)
   const user = useAppStore((s) => s.user)
   const onboarded = useAppStore((s) => s.onboarded)
   const hydrated = useAppStore((s) => s.hydrated)
+  const savedPlanner = useAppStore((s) => hasSavedPlanner(s))
 
   useEffect(() => {
+    if (!hydrated) return
     const stored = rememberedEmail()
     if (!stored) return
-    // localStorage is not available during SSR.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- prefill after mount
     setEmail(stored)
+  }, [hydrated])
+
+  useEffect(() => {
+    void cloudAvailable().then(setCloudOn)
   }, [])
 
   useEffect(() => {
@@ -77,7 +85,13 @@ export function LoginPage() {
         }
         const result = await resetAccountPassword(email, password)
         if ("error" in result) {
-          setError(result.error === "weak" ? t("auth.passwordWeak") : t("auth.resetMissing"))
+          setError(
+            result.error === "weak"
+              ? t("auth.passwordWeak")
+              : result.error === "cloud"
+                ? t("auth.resetCloud")
+                : t("auth.resetMissing")
+          )
           return
         }
         setPassword("")
@@ -91,14 +105,23 @@ export function LoginPage() {
           ? await registerAccount(name, email, password)
           : await signInAccount(email, password)
       if ("error" in result) {
+        if (result.error === "offline") {
+          setError(t("auth.offline"))
+          return
+        }
+        if (mode !== "signup" && result.error === "missing") {
+          setError(cloudOn ? t("auth.unknownEmail") : t("auth.notOnThisDevice"))
+          return
+        }
         setError(result.error === "exists" ? t("auth.exists") : t("auth.error"))
         return
       }
-      rememberEmail(result.email)
-      login(result, { fresh: mode === "signup" })
+      const profile = result.profile
+      rememberEmail(profile.email)
+      login(profile, { fresh: mode === "signup", snapshot: result.snapshot ?? null })
       goToApp(useAppStore.getState().onboarded)
     } catch {
-      setError(t("activity.error"))
+      setError(t("auth.offline"))
     } finally {
       setPending(false)
     }
@@ -122,7 +145,7 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="px-6 py-6">
+      <header className="px-6 py-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <Link href="/">
           <Logo />
         </Link>
@@ -130,10 +153,26 @@ export function LoginPage() {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 pb-16">
         <h1 className="font-heading text-4xl">{heading}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {mode === "reset" ? t("auth.resetHint") : t("auth.localNote")}
+          {mode === "reset"
+            ? cloudOn
+              ? t("auth.resetCloud")
+              : t("auth.resetHint")
+            : cloudOn
+              ? t("auth.cloudNote")
+              : t("auth.localNote")}
         </p>
         {mode !== "reset" ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
+        ) : null}
+        {mode !== "reset" && savedPlanner ? (
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.savedPlannerHint")}</p>
+        ) : null}
+        {mode === "signin" && cloudOn === false ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {storedAccountCount() === 0
+              ? t("auth.noLocalAccounts")
+              : t("auth.localAccounts", { n: storedAccountCount() })}
+          </p>
         ) : null}
 
         {mode !== "reset" ? (
@@ -143,7 +182,7 @@ export function LoginPage() {
             disabled={pending}
             type="button"
           >
-            {t("auth.demo")}
+            {t(savedPlanner ? "auth.demoContinue" : "auth.demo")}
           </button>
         ) : null}
 
@@ -154,6 +193,11 @@ export function LoginPage() {
           <span className="absolute inset-x-0 top-1/2 -z-10 h-px bg-border" />
         </div>
 
+        {mode === "reset" && cloudOn ? (
+          <p className="mt-8 rounded-xl bg-primary/10 px-3 py-2 text-sm" role="status">
+            {t("auth.resetCloud")}
+          </p>
+        ) : (
         <form className="grid gap-4" onSubmit={submit}>
           {mode === "signup" ? (
             <label className="grid gap-1.5">
@@ -219,10 +263,14 @@ export function LoginPage() {
           ) : (
             <p className="text-xs text-muted-foreground">
               {mode === "signin"
-                ? t("auth.signinHint")
+                ? cloudOn
+                  ? t("auth.signinHintCloud")
+                  : t("auth.signinHint")
                 : mode === "reset"
                   ? t("auth.passwordHint")
-                  : t("auth.localNote")}
+                  : cloudOn
+                    ? t("auth.cloudNote")
+                    : t("auth.localNote")}
             </p>
           )}
           <button
@@ -239,6 +287,7 @@ export function LoginPage() {
                   : t("auth.signin")}
           </button>
         </form>
+        )}
 
         {mode === "signin" ? (
           <button
@@ -248,6 +297,16 @@ export function LoginPage() {
           >
             {t("auth.forgot")}
           </button>
+        ) : null}
+
+        {mode !== "reset" ? (
+          <ImportBackupButton
+            variant="outline"
+            className="mt-3 h-11 w-full rounded-xl"
+            onImported={(signedIn) => {
+              if (signedIn) goToApp(useAppStore.getState().onboarded)
+            }}
+          />
         ) : null}
 
         {mode !== "reset" ? (

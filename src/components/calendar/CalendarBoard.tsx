@@ -175,7 +175,7 @@ function MonthGrid({
         {labels.map((day) => (
           <div
             key={day.toISOString()}
-            className="px-2 py-3 text-center text-[11px] tracking-[0.14em] text-muted-foreground uppercase"
+            className="truncate px-0.5 py-2 text-center text-[10px] tracking-wide text-muted-foreground uppercase sm:px-2 sm:py-3 sm:text-[11px] sm:tracking-[0.14em]"
           >
             {formatWeekdayShort(day, lang)}
           </div>
@@ -194,7 +194,7 @@ function MonthGrid({
               date={date}
               onClick={() => onAdd(date)}
               className={cn(
-                "min-h-[108px] cursor-pointer border-r border-b border-border p-2 sm:min-h-[128px]",
+                "min-h-[4.5rem] cursor-pointer border-r border-b border-border p-1 sm:min-h-[108px] sm:p-2 lg:min-h-[128px]",
                 outside && "bg-muted/30 text-muted-foreground",
                 !outside && weekend && "cal-weekend",
                 isToday(day) && "cal-today"

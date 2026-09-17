@@ -14,14 +14,17 @@ import type {
   PlanningStyle,
   SessionPreference,
   TimerState,
+  UserAccount,
   UserProfile,
   UserSettings,
 } from "@/types"
 import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } from "@/lib/constants"
-import { detectScheduleConflict } from "@/lib/calculations"
+import { detectScheduleConflict, historyFromEvents } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
-import { rememberEmail, updateStoredAccountName } from "@/lib/auth"
+import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
+import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
+import { flushDurableStorage, removeDurable, zustandDurableStorage } from "@/lib/durable-storage"
 import type { PioneerTip } from "@/lib/tips"
 
 export type CalendarClearScope = "month" | "planned" | "all"
@@ -29,6 +32,7 @@ export type CalendarClearScope = "month" | "planned" | "all"
 export interface AppState {
   hydrated: boolean
   user: UserProfile | null
+  lastUser: UserProfile | null
   activeProfileId: string | null
   onboarded: boolean
   pioneerType: PioneerTypeId
@@ -44,7 +48,12 @@ export interface AppState {
   hiddenCategories: ActivityCategory[]
   customTips: PioneerTip[]
   setHydrated: (value: boolean) => void
-  login: (profile: UserProfile, options?: { demo?: boolean; fresh?: boolean }) => void
+  login: (
+    profile: UserProfile,
+    options?: { demo?: boolean; fresh?: boolean; snapshot?: PlannerSnapshot | null }
+  ) => void
+  applyPlannerSnapshot: (snapshot: PlannerSnapshot, profile?: UserProfile) => void
+  exportSnapshot: () => PlannerSnapshot
   logout: () => void
   completeOnboarding: () => void
   updateProfile: (patch: Partial<UserProfile>) => void
@@ -74,6 +83,7 @@ export interface AppState {
   ) => { added: number; skipped: number }
   clearCalendar: (scope: CalendarClearScope, monthDate?: Date) => void
   exportData: () => string
+  importBackup: (json: string) => { ok: true; signedIn: boolean } | { error: "invalid" }
   deleteAccountLocal: () => void
 }
 
@@ -98,11 +108,54 @@ function currentGoalPatch(
   }
 }
 
+function eventsWithHistory(events: CalendarEvent[]) {
+  return { events, history: historyFromEvents(events) }
+}
+
+type PlannerBits = {
+  events?: CalendarEvent[]
+  experiences?: Experience[]
+  commitments?: Commitment[]
+  history?: HistoricalMonth[]
+  customTips?: PioneerTip[]
+}
+
+export function hasSavedPlanner(state: PlannerBits) {
+  return (
+    (state.events?.length ?? 0) +
+      (state.experiences?.length ?? 0) +
+      (state.commitments?.length ?? 0) +
+      (state.history?.length ?? 0) +
+      (state.customTips?.length ?? 0) >
+    0
+  )
+}
+
+function mergeById<T extends { id: string; updatedAt?: string; createdAt?: string }>(
+  local: T[],
+  remote: T[]
+) {
+  const map = new Map<string, T>()
+  for (const item of local) map.set(item.id, item)
+  for (const item of remote) {
+    const previous = map.get(item.id)
+    if (!previous) {
+      map.set(item.id, item)
+      continue
+    }
+    const remoteStamp = item.updatedAt ?? item.createdAt ?? ""
+    const localStamp = previous.updatedAt ?? previous.createdAt ?? ""
+    if (remoteStamp > localStamp) map.set(item.id, item)
+  }
+  return [...map.values()]
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       hydrated: false,
       user: null,
+      lastUser: null,
       activeProfileId: null,
       onboarded: false,
       pioneerType: "regular",
@@ -119,10 +172,15 @@ export const useAppStore = create<AppState>()(
       customTips: [],
       setHydrated: (value) => set({ hydrated: value }),
       login: (profile, options) => {
-        if (typeof window !== "undefined" && profile.email) {
-          localStorage.setItem(LAST_EMAIL_KEY, profile.email)
+        if (profile.email) rememberEmail(profile.email)
+        const persistSoon = () => {
+          queueMicrotask(() => {
+            void flushDurableStorage()
+          })
         }
-        if (options?.demo) {
+        const keepPlanner = hasSavedPlanner(get())
+
+        if (options?.demo && !keepPlanner) {
           const data = createDemoData()
           set({
             user: {
@@ -141,13 +199,19 @@ export const useAppStore = create<AppState>()(
             availability: data.availability,
             commitments: data.commitments,
             experiences: data.experiences,
-            history: data.history,
-    settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
+            history: historyFromEvents(data.events),
+            settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
             timer: idleTimer,
           })
+          persistSoon()
           return
         }
-        if (options?.fresh) {
+        if (options?.snapshot && !keepPlanner) {
+          get().applyPlannerSnapshot(options.snapshot, profile)
+          persistSoon()
+          return
+        }
+        if (options?.fresh && !keepPlanner) {
           const empty = emptyUserData(profile)
           set({
             ...empty,
@@ -156,9 +220,10 @@ export const useAppStore = create<AppState>()(
             onboarded: false,
             timer: idleTimer,
           })
+          persistSoon()
           return
         }
-        if (get().activeProfileId !== profile.id) {
+        if (!keepPlanner && get().activeProfileId && get().activeProfileId !== profile.id) {
           const empty = emptyUserData(profile)
           set({
             ...empty,
@@ -167,24 +232,43 @@ export const useAppStore = create<AppState>()(
             onboarded: false,
             timer: idleTimer,
           })
+          persistSoon()
           return
         }
+        if (options?.snapshot && keepPlanner) {
+          get().applyPlannerSnapshot(options.snapshot, profile)
+          persistSoon()
+          return
+        }
+        const savedUser = get().lastUser
+        const nextUser =
+          keepPlanner && options?.demo && savedUser ? savedUser : profile
         set({
-          user: profile,
+          user: nextUser,
+          lastUser: nextUser,
+          activeProfileId: nextUser.id,
+          onboarded: keepPlanner ? true : get().onboarded,
           timer: idleTimer,
+          history: historyFromEvents(get().events),
         })
+        persistSoon()
       },
-      logout: () =>
+      logout: () => {
+        const current = get().user
+        clearCloudSession()
         set({
           user: null,
+          lastUser: current ?? get().lastUser,
           timer: idleTimer,
-        }),
+        })
+        void flushDurableStorage()
+      },
       completeOnboarding: () => set({ onboarded: true }),
       updateProfile: (patch) => {
         const user = get().user
         if (!user) return
         const next = { ...user, ...patch }
-        set({ user: next })
+        set({ user: next, lastUser: next })
         if (patch.name !== undefined) updateStoredAccountName(user.id, next.name)
         if (patch.email !== undefined && next.email) rememberEmail(next.email)
       },
@@ -210,15 +294,15 @@ export const useAppStore = create<AppState>()(
       upsertEvent: (event) => {
         const events = get().events
         const index = events.findIndex((item) => item.id === event.id)
-        if (index === -1) set({ events: [...events, event] })
+        if (index === -1) set(eventsWithHistory([...events, event]))
         else {
           const next = [...events]
           next[index] = event
-          set({ events: next })
+          set(eventsWithHistory(next))
         }
       },
       deleteEvent: (id) =>
-        set({ events: get().events.filter((item) => item.id !== id) }),
+        set(eventsWithHistory(get().events.filter((item) => item.id !== id))),
       moveEvent: (id, date, startTime, endTime) => {
         const events = get().events.map((item) => {
           if (item.id !== id) return item
@@ -233,16 +317,18 @@ export const useAppStore = create<AppState>()(
             updatedAt: new Date().toISOString(),
           }
         })
-        set({ events })
+        set(eventsWithHistory(events))
       },
       setEventStatus: (id, status) =>
-        set({
-          events: get().events.map((item) =>
-            item.id === id
-              ? { ...item, status, updatedAt: new Date().toISOString() }
-              : item
-          ),
-        }),
+        set(
+          eventsWithHistory(
+            get().events.map((item) =>
+              item.id === id
+                ? { ...item, status, updatedAt: new Date().toISOString() }
+                : item
+            )
+          )
+        ),
       upsertExperience: (experience) => {
         const experiences = get().experiences
         const index = experiences.findIndex((item) => item.id === experience.id)
@@ -349,30 +435,36 @@ export const useAppStore = create<AppState>()(
           }
           extra.push(candidate)
         }
-        if (extra.length) set({ events: [...current, ...extra] })
+        if (extra.length) set(eventsWithHistory([...current, ...extra]))
         return { added: extra.length, skipped }
       },
       clearCalendar: (scope, monthDate = new Date()) => {
         if (scope === "all") {
-          set({ events: [] })
+          set(eventsWithHistory([]))
           return
         }
         const year = monthDate.getFullYear()
         const month = monthDate.getMonth()
         const prefix = `${year}-${String(month + 1).padStart(2, "0")}`
-        set({
-          events: get().events.filter((event) => {
-            if (!event.date.startsWith(prefix)) return true
-            if (scope === "month") return false
-            return event.status === "completed"
-          }),
-        })
+        set(
+          eventsWithHistory(
+            get().events.filter((event) => {
+              if (!event.date.startsWith(prefix)) return true
+              if (scope === "month") return false
+              return event.status === "completed"
+            })
+          )
+        )
       },
       exportData: () => {
         const state = get()
         return JSON.stringify(
           {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            accounts: readStoredAccounts(),
             user: state.user,
+            onboarded: state.onboarded,
             pioneerType: state.pioneerType,
             customMonthlyHours: state.customMonthlyHours,
             monthlyGoals: state.monthlyGoals,
@@ -382,18 +474,162 @@ export const useAppStore = create<AppState>()(
             experiences: state.experiences,
             history: state.history,
             settings: state.settings,
+            hiddenCategories: state.hiddenCategories,
             customTips: state.customTips,
           },
           null,
           2
         )
       },
-      deleteAccountLocal: () => {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem(LAST_EMAIL_KEY)
+      importBackup: (json) => {
+        let parsed: Record<string, unknown>
+        try {
+          parsed = JSON.parse(json) as Record<string, unknown>
+        } catch {
+          return { error: "invalid" }
         }
+        const data = parsed
+        const incomingAccounts = Array.isArray(data.accounts) ? (data.accounts as UserAccount[]) : []
+        const user = (data.user ?? null) as UserProfile | null
+        if (!user && incomingAccounts.length === 0 && !Array.isArray(data.events)) {
+          return { error: "invalid" }
+        }
+        mergeStoredAccounts(incomingAccounts)
+        const pioneerType = (data.pioneerType as PioneerTypeId | undefined) ?? "regular"
+        const events = Array.isArray(data.events) ? (data.events as CalendarEvent[]) : []
+        const commitments = Array.isArray(data.commitments) ? (data.commitments as Commitment[]) : []
+        const experiences = Array.isArray(data.experiences) ? (data.experiences as Experience[]) : []
+        const history = Array.isArray(data.history) ? (data.history as HistoricalMonth[]) : []
+        const customTips = Array.isArray(data.customTips) ? (data.customTips as PioneerTip[]) : []
+        set({
+          user,
+          lastUser: user ?? get().lastUser,
+          activeProfileId: user?.id ?? null,
+          onboarded:
+            Boolean(data.onboarded ?? user) ||
+            hasSavedPlanner({ events, commitments, experiences, history, customTips }),
+          pioneerType,
+          customMonthlyHours:
+            typeof data.customMonthlyHours === "number" ? data.customMonthlyHours : DEFAULT_REGULAR_HOURS,
+          monthlyGoals: Array.isArray(data.monthlyGoals) ? data.monthlyGoals : [],
+          ...eventsWithHistory(events),
+          availability: Array.isArray(data.availability) ? data.availability : [],
+          commitments,
+          experiences,
+          settings: { ...DEFAULT_SETTINGS, ...(data.settings as UserSettings | undefined) },
+          hiddenCategories: Array.isArray(data.hiddenCategories) ? data.hiddenCategories : [],
+          customTips,
+          timer: idleTimer,
+          hydrated: true,
+        })
+        if (user?.email) rememberEmail(user.email)
+        void flushDurableStorage()
+        return { ok: true, signedIn: Boolean(user) }
+      },
+      exportSnapshot: () => {
+        const state = get()
+        return {
+          version: 1 as const,
+          updatedAt: new Date().toISOString(),
+          user: state.user,
+          onboarded: state.onboarded,
+          pioneerType: state.pioneerType,
+          customMonthlyHours: state.customMonthlyHours,
+          monthlyGoals: state.monthlyGoals,
+          events: state.events,
+          availability: state.availability,
+          commitments: state.commitments,
+          experiences: state.experiences,
+          history: state.history,
+          settings: state.settings,
+          hiddenCategories: state.hiddenCategories,
+          customTips: state.customTips,
+        }
+      },
+      applyPlannerSnapshot: (snapshot, profile) => {
+        const user = profile ?? (snapshot.user as UserProfile | null)
+        if (!user) return
+        const local = get()
+        const keep = hasSavedPlanner(local)
+        const remoteHas = hasSavedPlanner(snapshot)
+        const pioneerType = (snapshot.pioneerType as PioneerTypeId | undefined) ?? local.pioneerType ?? "regular"
+        if (keep && remoteHas) {
+          const events = mergeById(local.events, Array.isArray(snapshot.events) ? snapshot.events : [])
+          set({
+            user,
+            lastUser: user,
+            activeProfileId: user.id,
+            onboarded: Boolean(snapshot.onboarded ?? local.onboarded ?? user),
+            pioneerType,
+            customMonthlyHours:
+              typeof snapshot.customMonthlyHours === "number"
+                ? snapshot.customMonthlyHours
+                : local.customMonthlyHours,
+            monthlyGoals:
+              Array.isArray(snapshot.monthlyGoals) && snapshot.monthlyGoals.length > 0
+                ? snapshot.monthlyGoals
+                : local.monthlyGoals,
+            ...eventsWithHistory(events),
+            availability:
+              Array.isArray(snapshot.availability) && snapshot.availability.length > 0
+                ? snapshot.availability
+                : local.availability,
+            commitments: mergeById(
+              local.commitments,
+              Array.isArray(snapshot.commitments) ? snapshot.commitments : []
+            ),
+            experiences: mergeById(
+              local.experiences,
+              Array.isArray(snapshot.experiences) ? snapshot.experiences : []
+            ),
+            settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
+            hiddenCategories: local.hiddenCategories,
+            customTips: mergeById(
+              local.customTips,
+              Array.isArray(snapshot.customTips) ? snapshot.customTips : []
+            ),
+            timer: idleTimer,
+          })
+        } else if (keep && !remoteHas) {
+          set({
+            user,
+            lastUser: user,
+            activeProfileId: user.id,
+            onboarded: Boolean(local.onboarded ?? user),
+            timer: idleTimer,
+            history: historyFromEvents(local.events),
+          })
+        } else {
+          const events = Array.isArray(snapshot.events) ? snapshot.events : []
+          set({
+            user,
+            lastUser: user,
+            activeProfileId: user.id,
+            onboarded: Boolean(snapshot.onboarded ?? user),
+            pioneerType,
+            customMonthlyHours:
+              typeof snapshot.customMonthlyHours === "number"
+                ? snapshot.customMonthlyHours
+                : DEFAULT_REGULAR_HOURS,
+            monthlyGoals: Array.isArray(snapshot.monthlyGoals) ? snapshot.monthlyGoals : [],
+            ...eventsWithHistory(events),
+            availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
+            commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
+            experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
+            settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
+            hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
+            customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
+            timer: idleTimer,
+          })
+        }
+        if (user.email) rememberEmail(user.email)
+      },
+      deleteAccountLocal: () => {
+        removeDurable(LAST_EMAIL_KEY)
+        clearCloudSession()
         set({
           user: null,
+          lastUser: null,
           activeProfileId: null,
           onboarded: false,
           pioneerType: "regular",
@@ -413,9 +649,10 @@ export const useAppStore = create<AppState>()(
     {
       name: STORAGE_KEY,
       skipHydration: true,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => zustandDurableStorage),
       partialize: (state) => ({
         user: state.user,
+        lastUser: state.lastUser,
         activeProfileId: state.activeProfileId,
         onboarded: state.onboarded,
         pioneerType: state.pioneerType,
@@ -432,10 +669,12 @@ export const useAppStore = create<AppState>()(
       }),
       merge: (persisted, current) => {
         const stored = (persisted ?? {}) as Partial<AppState>
-        if (current.user && !stored.user) {
-          return current
+        const merged =
+          current.user && !stored.user ? current : { ...current, ...stored }
+        return {
+          ...merged,
+          history: historyFromEvents(merged.events ?? []),
         }
-        return { ...current, ...stored }
       },
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true)

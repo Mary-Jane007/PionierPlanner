@@ -55,6 +55,17 @@ export function addHoursToTime(time: string, hours: number): string {
   return format(addMinutes(base, Math.round(hours * 60)), "HH:mm")
 }
 
+export function endTimeFromDuration(startTime: string, hours: number): string {
+  const [startHour, startMinute] = startTime.split(":").map(Number)
+  if (!Number.isFinite(startHour) || !Number.isFinite(startMinute)) return startTime
+  const startMinutes = startHour * 60 + startMinute
+  const added = Math.max(1, Math.round(hours * 60))
+  const endMinutes = Math.min(23 * 60 + 59, startMinutes + added)
+  const endHour = Math.floor(endMinutes / 60)
+  const endMinute = endMinutes % 60
+  return `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`
+}
+
 export function monthDays(year: number, month: number): Date[] {
   const start = new Date(year, month, 1)
   return eachDayOfInterval({ start, end: endOfMonth(start) })
