@@ -4,6 +4,30 @@ export function hoursFromMinutes(minutes: number): number {
   return Math.round((minutes / 60) * 100) / 100
 }
 
+export function formatHoursField(hours: number, lang: LocaleCode = "nl"): string {
+  const rounded = Math.round(hours * 100) / 100
+  if (!Number.isFinite(rounded) || rounded <= 0) return ""
+  const text = Number.isInteger(rounded) ? String(rounded) : String(rounded)
+  return lang === "en" ? text : text.replace(".", ",")
+}
+
+export function parseHoursInput(value: string): number | null {
+  const trimmed = value.trim()
+  if (!trimmed || /[.,]$/.test(trimmed)) return null
+  const clock = trimmed.match(/^(\d{1,2}):(\d{1,2})$/)
+  if (clock) {
+    const hours = Number(clock[1])
+    const minutes = Number(clock[2])
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes) || minutes >= 60) return null
+    const total = hours + minutes / 60
+    if (total <= 0 || total > 16) return null
+    return total
+  }
+  const numeric = Number(trimmed.replace(",", ".").replace(/[^\d.-]/g, ""))
+  if (!Number.isFinite(numeric) || numeric <= 0 || numeric > 16) return null
+  return numeric
+}
+
 export function formatHoursShort(hours: number, lang: LocaleCode = "nl"): string {
   const rounded = Math.round(hours * 100) / 100
   if (Number.isInteger(rounded)) return `${rounded}u`
