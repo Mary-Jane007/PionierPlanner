@@ -554,6 +554,12 @@ const messages = {
   "activity.save": { nl: "Opslaan", en: "Save", es: "Guardar", pap: "Warda" },
   "activity.cancel": { nl: "Annuleren", en: "Cancel", es: "Cancelar", pap: "Kanselá" },
   "activity.delete": { nl: "Verwijderen", en: "Delete", es: "Eliminar", pap: "Kita" },
+  "activity.deleteConfirm": {
+    nl: "Deze activiteit wordt uit je planning gehaald. Dit kan niet ongedaan worden gemaakt.",
+    en: "This activity will be removed from your schedule. This cannot be undone.",
+    es: "Esta actividad se quitará de tu planificación. Esto no se puede deshacer.",
+    pap: "E aktividat aki lo wòrdu kitá for di bo planning. Esaki no por wòrdu deshasí.",
+  },
   "activity.complete": { nl: "Markeer als voltooid", en: "Mark completed", es: "Marcar como completada", pap: "Marká komo kompletá" },
   "activity.error": {
     nl: "Deze activiteit kon niet worden opgeslagen. Controleer de gegevens en probeer het opnieuw.",
@@ -699,6 +705,12 @@ const messages = {
   "planner.step.goal": { nl: "Kies je doel", en: "Choose your goal", es: "Elige tu objetivo", pap: "Skoge bo meta" },
   "planner.step.availability": { nl: "Wanneer ben je beschikbaar?", en: "When are you available?", es: "¿Cuándo estás disponible?", pap: "Ki ora bo ta disponibel?" },
   "planner.step.commitments": { nl: "Vaste verplichtingen", en: "Regular commitments", es: "Compromisos fijos", pap: "Kompromisnan fihá" },
+  "planner.commitmentDelete": {
+    nl: "Deze vaste afspraak wordt verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    en: "This regular commitment will be deleted. This cannot be undone.",
+    es: "Este compromiso fijo se eliminará. Esto no se puede deshacer.",
+    pap: "E kompromiso fihá aki lo wòrdu kitá. Esaki no por wòrdu deshasí.",
+  },
   "planner.step.preference": { nl: "Mijn voorkeur", en: "My preference", es: "Mi preferencia", pap: "Mi preferensia" },
   "planner.step.style": { nl: "Hoe wil je plannen?", en: "How would you like to plan?", es: "¿Cómo te gustaría planificar?", pap: "Kon bo ke planeá?" },
   "planner.step.suggest": { nl: "Voorgestelde planning", en: "Suggested schedule", es: "Planificación sugerida", pap: "Planning sugerí" },
@@ -774,6 +786,12 @@ const messages = {
   "exp.new": { nl: "+ Nieuwe ervaring", en: "+ New experience", es: "+ Nueva experiencia", pap: "+ Experensia nobo" },
   "exp.search": { nl: "Zoeken", en: "Search", es: "Buscar", pap: "Buska" },
   "exp.empty": { nl: "Je eerste ervaring wacht nog om geschreven te worden.", en: "Your first experience is waiting to be written.", es: "Tu primera experiencia espera ser escrita.", pap: "Bo prome experensia ta warda ainda pa wòrdu skirbí." },
+  "exp.deleteConfirm": {
+    nl: "Deze ervaring wordt verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    en: "This experience will be deleted. This cannot be undone.",
+    es: "Esta experiencia se eliminará. Esto no se puede deshacer.",
+    pap: "E experensia aki lo wòrdu kitá. Esaki no por wòrdu deshasí.",
+  },
   "exp.learned": { nl: "Wat heb ik geleerd?", en: "What did I learn?", es: "¿Qué aprendí?", pap: "Kiko mi a siña?" },
   "exp.followUp": { nl: "Herinnering voor nabezoek (optioneel)", en: "Follow-up reminder (optional)", es: "Recordatorio de revisita (opcional)", pap: "Recordatorio di revisita (opsional)" },
   "exp.favorite": { nl: "Favoriet", en: "Favorite", es: "Favorito", pap: "Favorito" },
@@ -811,6 +829,12 @@ const messages = {
     en: "No tips in this category.",
     es: "No hay consejos en esta categoría.",
     pap: "No tin tip den e kategoria aki.",
+  },
+  "tips.deleteConfirm": {
+    nl: "Deze tip wordt verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    en: "This tip will be deleted. This cannot be undone.",
+    es: "Este consejo se eliminará. Esto no se puede deshacer.",
+    pap: "E tip aki lo wòrdu kitá. Esaki no por wòrdu deshasí.",
   },
   "tips.formHint": {
     nl: "Schrijf een tip die écht helpt in de dienst, met een Schriftplaats die daarbij past.",
