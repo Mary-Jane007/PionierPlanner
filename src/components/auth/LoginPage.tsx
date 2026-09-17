@@ -18,7 +18,7 @@ import {
 } from "@/lib/auth"
 import { cloudAvailable } from "@/lib/cloud"
 import { useT } from "@/lib/i18n"
-import { useAppStore } from "@/lib/store"
+import { hasSavedPlanner, useAppStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { ImportBackupButton } from "@/components/profile/ImportBackupButton"
 
@@ -42,6 +42,7 @@ export function LoginPage() {
   const user = useAppStore((s) => s.user)
   const onboarded = useAppStore((s) => s.onboarded)
   const hydrated = useAppStore((s) => s.hydrated)
+  const savedPlanner = useAppStore((s) => hasSavedPlanner(s))
 
   useEffect(() => {
     if (!hydrated) return
@@ -163,6 +164,9 @@ export function LoginPage() {
         {mode !== "reset" ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
         ) : null}
+        {mode !== "reset" && savedPlanner ? (
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.savedPlannerHint")}</p>
+        ) : null}
         {mode === "signin" && cloudOn === false ? (
           <p className="mt-2 text-sm text-muted-foreground">
             {storedAccountCount() === 0
@@ -178,7 +182,7 @@ export function LoginPage() {
             disabled={pending}
             type="button"
           >
-            {t("auth.demo")}
+            {t(savedPlanner ? "auth.demoContinue" : "auth.demo")}
           </button>
         ) : null}
 

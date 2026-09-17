@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { Network } from "@capacitor/network"
 import { cloudPush, cloudPull, cloudToken } from "@/lib/cloud"
 import { isNativeApp } from "@/lib/native"
-import { useAppStore } from "@/lib/store"
+import { hasSavedPlanner, useAppStore } from "@/lib/store"
 
 export function CloudSync() {
   const hydrated = useAppStore((state) => state.hydrated)
@@ -20,10 +20,18 @@ export function CloudSync() {
     async function hydrateFromCloud() {
       const pulled = await cloudPull()
       if (cancelled || "error" in pulled) return
+      const local = useAppStore.getState()
+      if (hasSavedPlanner(local) && (!pulled.snapshot || !hasSavedPlanner(pulled.snapshot))) {
+        await cloudPush(local.exportSnapshot())
+        return
+      }
       if (pulled.snapshot) {
         skipPush.current = true
         useAppStore.getState().applyPlannerSnapshot(pulled.snapshot)
         skipPush.current = false
+        if (hasSavedPlanner(local)) {
+          await cloudPush(useAppStore.getState().exportSnapshot())
+        }
         return
       }
       await cloudPush(useAppStore.getState().exportSnapshot())
