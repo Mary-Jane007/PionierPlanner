@@ -79,6 +79,14 @@ createServer(async (req, res) => {
   if (base === "sw.js" || base === "manifest.webmanifest") {
     headers["Cache-Control"] = "no-cache"
   }
+  if (extname(file).toLowerCase() === ".apk") {
+    headers["Content-Type"] = "application/vnd.android.package-archive"
+    headers["Content-Disposition"] = 'attachment; filename="pioniersplanner.apk"'
+    headers["Content-Length"] = String(statSync(file).size)
+  }
+  if (extname(file).toLowerCase() === ".zip") {
+    headers["Content-Disposition"] = 'attachment; filename="pioniersplanner-android.zip"'
+  }
 
   res.writeHead(200, headers)
   createReadStream(file).pipe(res)

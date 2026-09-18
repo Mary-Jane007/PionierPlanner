@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
+import { InstallAppButtons } from "@/components/landing/InstallAppButtons"
 import { PageLoader } from "@/components/layout/PageLoader"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/lib/i18n"
@@ -73,14 +74,17 @@ export function LandingPage() {
               <Link href="/inloggen" className={cn(buttonVariants({ variant: "outline" }), "h-12 rounded-xl px-6")}>
                 {t("landing.login")}
               </Link>
-              {native ? null : (
-              <Link href="/download" className={cn(buttonVariants({ variant: "ghost" }), "h-12 rounded-xl px-6")}>
-                {t("landing.downloadAndroid")}
-              </Link>
-              )}
             </div>
             {native ? null : (
-              <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.apkWontOpenHere")}</p>
+              <>
+                <InstallAppButtons className="mt-3" />
+                <p className="mt-3 max-w-xl text-xs text-muted-foreground">{t("landing.installHint")}</p>
+                <p className="mt-2">
+                  <Link href="/download" className="text-xs text-muted-foreground underline">
+                    {t("landing.installHelp")}
+                  </Link>
+                </p>
+              </>
             )}
             <p className="mt-2 max-w-xl text-xs text-muted-foreground">{t("landing.offlineHint")}</p>
           </div>
