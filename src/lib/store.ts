@@ -131,6 +131,24 @@ export function hasSavedPlanner(state: PlannerBits) {
   )
 }
 
+export function plannerBelongsToUser(
+  state: {
+    user?: UserProfile | null
+    lastUser?: UserProfile | null
+    activeProfileId?: string | null
+  },
+  profile: UserProfile
+) {
+  if (state.activeProfileId === profile.id) return true
+  if (state.user?.id === profile.id || state.lastUser?.id === profile.id) return true
+  const email = profile.email.trim().toLowerCase()
+  if (!email) return false
+  return (
+    state.user?.email?.toLowerCase() === email ||
+    state.lastUser?.email?.toLowerCase() === email
+  )
+}
+
 function mergeById<T extends { id: string; updatedAt?: string; createdAt?: string }>(
   local: T[],
   remote: T[]
@@ -178,7 +196,8 @@ export const useAppStore = create<AppState>()(
             void flushDurableStorage()
           })
         }
-        const keepPlanner = hasSavedPlanner(get())
+        const keepPlanner =
+          hasSavedPlanner(get()) && (Boolean(options?.demo) || plannerBelongsToUser(get(), profile))
 
         if (options?.demo && !keepPlanner) {
           const data = createDemoData()

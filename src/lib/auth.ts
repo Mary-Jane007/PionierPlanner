@@ -4,6 +4,7 @@ import { ACCOUNTS_KEY, LAST_EMAIL_KEY } from "@/lib/constants"
 import {
   cloudAvailable,
   cloudDeleteAccount,
+  cloudGoogleLogin,
   cloudLogin,
   cloudRegister,
   cloudToken,
@@ -12,6 +13,7 @@ import {
   clearCloudSession,
   type PlannerSnapshot,
 } from "@/lib/cloud"
+import { fetchGoogleIdentity, requestGoogleAccessToken, type GoogleIdentity } from "@/lib/google-auth"
 import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type { UserAccount, UserProfile } from "@/types"
 
@@ -21,7 +23,7 @@ export type AuthSuccess = {
 }
 
 export type AuthFailure = {
-  error: "invalid" | "missing" | "exists" | "weak" | "offline" | "cloud" | "server"
+  error: "invalid" | "missing" | "exists" | "weak" | "offline" | "cloud" | "server" | "cancelled" | "google"
 }
 
 async function sha256Hash(password: string): Promise<string | null> {
@@ -167,6 +169,7 @@ export function mergeStoredAccounts(incoming: UserAccount[]) {
       email: account.email.trim().toLowerCase(),
       name: account.name || account.email,
       passwordHash: account.passwordHash,
+      googleSub: account.googleSub,
       createdAt: account.createdAt || new Date().toISOString(),
     })
   }
@@ -174,6 +177,95 @@ export function mergeStoredAccounts(incoming: UserAccount[]) {
   const byEmail = new Map<string, UserAccount>()
   for (const account of merged) byEmail.set(account.email, account)
   writeAccounts([...byEmail.values()])
+}
+
+function cacheGoogleLocal(profile: UserProfile, googleSub: string) {
+  const current = readAccounts()
+  const at = current.findIndex(
+    (account) =>
+      account.id === profile.id ||
+      account.email === profile.email ||
+      account.googleSub === googleSub
+  )
+  const previous = at === -1 ? null : current[at]
+  const stored: UserAccount = {
+    id: profile.id,
+    email: profile.email,
+    name: profile.name,
+    passwordHash:
+      previous && !previous.passwordHash.startsWith("google:")
+        ? previous.passwordHash
+        : `google:${googleSub}`,
+    googleSub,
+    createdAt: profile.createdAt,
+  }
+  if (at === -1) writeAccounts([...current, stored])
+  else {
+    const copy = [...current]
+    copy[at] = stored
+    writeAccounts(copy)
+  }
+}
+
+export function upsertLocalGoogleAccount(identity: GoogleIdentity): {
+  profile: UserProfile
+  created: boolean
+} {
+  const email = identity.email.trim().toLowerCase()
+  const accounts = readAccounts()
+  const existing =
+    accounts.find((account) => account.googleSub === identity.sub) ||
+    accounts.find((account) => account.email === email)
+  if (existing) {
+    const updated: UserAccount = {
+      ...existing,
+      email,
+      name: identity.name.trim() || existing.name,
+      googleSub: identity.sub,
+    }
+    writeAccounts(accounts.map((account) => (account.id === existing.id ? updated : account)))
+    return { profile: toProfile(updated), created: false }
+  }
+  const account: UserAccount = {
+    id: crypto.randomUUID(),
+    email,
+    name: identity.name.trim() || email.split("@")[0],
+    passwordHash: `google:${identity.sub}`,
+    googleSub: identity.sub,
+    createdAt: new Date().toISOString(),
+  }
+  writeAccounts([...accounts, account])
+  return { profile: toProfile(account), created: true }
+}
+
+export async function signInWithGoogle(): Promise<
+  (AuthSuccess & { created: boolean }) | AuthFailure
+> {
+  const token = await requestGoogleAccessToken()
+  if ("error" in token) return token
+
+  const online = await cloudAvailable()
+  if (online) {
+    const result = await cloudGoogleLogin(token.accessToken)
+    if (!("error" in result)) {
+      cacheGoogleLocal(result.profile, result.googleSub)
+      rememberEmail(result.profile.email)
+      return {
+        profile: result.profile,
+        snapshot: result.snapshot,
+        created: result.created,
+      }
+    }
+    if (result.error !== "offline") {
+      return { error: result.error === "invalid" ? "invalid" : "server" }
+    }
+  }
+
+  const identity = await fetchGoogleIdentity(token.accessToken)
+  if (!identity) return { error: "invalid" }
+  const local = upsertLocalGoogleAccount(identity)
+  rememberEmail(local.profile.email)
+  return { profile: local.profile, snapshot: null, created: local.created }
 }
 
 export async function signInAccount(

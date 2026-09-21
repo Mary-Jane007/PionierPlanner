@@ -123,6 +123,43 @@ export async function cloudRegister(input: {
   return result
 }
 
+export async function cloudGoogleLogin(accessToken: string): Promise<
+  | {
+      profile: UserProfile
+      token: string
+      snapshot: PlannerSnapshot | null
+      created: boolean
+      googleSub: string
+    }
+  | CloudFail
+> {
+  const result = await request<{
+    profile: UserProfile
+    token: string
+    snapshot: PlannerSnapshot | null
+    created?: boolean
+    googleSub?: string
+  }>(
+    "/google",
+    {
+      method: "POST",
+      body: JSON.stringify({ accessToken }),
+    },
+    ""
+  )
+  if ("error" in result) return result
+  if (!result.profile || !result.token || !result.googleSub) return { error: "server" }
+  setCloudToken(result.token)
+  if (result.profile.email) setDurable(LAST_EMAIL_KEY, result.profile.email)
+  return {
+    profile: result.profile,
+    token: result.token,
+    snapshot: result.snapshot ?? null,
+    created: Boolean(result.created),
+    googleSub: result.googleSub,
+  }
+}
+
 export async function cloudLogin(input: {
   email: string
   password: string

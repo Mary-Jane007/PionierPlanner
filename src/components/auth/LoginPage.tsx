@@ -14,6 +14,7 @@ import {
   registerAccount,
   resetAccountPassword,
   signInAccount,
+  signInWithGoogle,
   storedAccountCount,
 } from "@/lib/auth"
 import { cloudAvailable } from "@/lib/cloud"
@@ -134,6 +135,36 @@ export function LoginPage() {
     rememberEmail(profile.email)
     login(profile, { demo: true })
     goToApp(true)
+  }
+
+  async function continueWithGoogle() {
+    if (pending) return
+    setError("")
+    setNotice("")
+    setPending(true)
+    try {
+      const result = await signInWithGoogle()
+      if ("error" in result) {
+        setError(
+          result.error === "cancelled"
+            ? t("auth.googleCancelled")
+            : result.error === "google"
+              ? t("auth.googleMissing")
+              : t("auth.googleFailed")
+        )
+        return
+      }
+      rememberEmail(result.profile.email)
+      login(result.profile, {
+        fresh: result.created,
+        snapshot: result.snapshot ?? null,
+      })
+      goToApp(useAppStore.getState().onboarded)
+    } catch {
+      setError(t("auth.googleFailed"))
+    } finally {
+      setPending(false)
+    }
   }
 
   if (!hydrated || (user && onboarded)) {
@@ -314,10 +345,10 @@ export function LoginPage() {
             <button
               className={cn(buttonVariants({ variant: "outline" }), "mt-3 h-11 rounded-xl")}
               type="button"
-              onClick={openDemo}
+              onClick={() => void continueWithGoogle()}
               disabled={pending}
             >
-              {t("auth.google")}
+              {pending ? t("common.loading") : t("auth.google")}
             </button>
             <p className="mt-2 text-xs text-muted-foreground">{t("auth.googleHint")}</p>
           </>
