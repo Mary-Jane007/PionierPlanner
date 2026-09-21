@@ -3,4 +3,4 @@
 :HL["/PionierPlanner/_next/static/media/1f9e983605289f29-s.p.3aak_kra40y8r.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/PionierPlanner/_next/static/media/6ab0db14f70d8ed6-s.p.13hnt-xgp82zk.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/PionierPlanner/_next/static/media/a343f882a40d2cc9-s.p.1sj6eobyi31rd.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"setup","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"k1vdUizDK0XCedSLDFw4x"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"setup","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"5Du0UHDfYUeNe4oxiVivz"}
