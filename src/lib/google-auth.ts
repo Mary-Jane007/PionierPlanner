@@ -39,12 +39,15 @@ declare global {
           }) => void
           prompt: (listener?: (notification: PromptMoment) => void) => void
           cancel: () => void
+          disableAutoSelect: () => void
         }
         oauth2: {
           initTokenClient: (config: {
             client_id: string
             scope: string
+            prompt?: string
             callback: (response: TokenResponse) => void
+            error_callback?: (error: { type?: string }) => void
           }) => TokenClient
         }
       }
@@ -54,6 +57,14 @@ declare global {
 
 export function googleClientId() {
   return (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "").trim()
+}
+
+export function disableGoogleAutoSelect() {
+  try {
+    window.google?.accounts?.id?.disableAutoSelect()
+  } catch {
+    // FedCM / older GIS builds may not expose this.
+  }
 }
 
 function loadGoogleIdentity(): Promise<void> {
@@ -131,10 +142,11 @@ function requestCurrentGoogleSession(clientId: string): Promise<GoogleAuthOk | n
       }
       resolve(value)
     }
-    const timer = window.setTimeout(() => finish(null), 3500)
+    const timer = window.setTimeout(() => finish(null), 2000)
+    disableGoogleAutoSelect()
     idApi.initialize({
       client_id: clientId,
-      auto_select: true,
+      auto_select: false,
       cancel_on_tap_outside: true,
       use_fedcm_for_prompt: true,
       callback: (response) => {
@@ -143,12 +155,18 @@ function requestCurrentGoogleSession(clientId: string): Promise<GoogleAuthOk | n
       },
     })
     idApi.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) finish(null)
+      if (
+        notification.isNotDisplayed() ||
+        notification.isSkippedMoment() ||
+        notification.isDismissedMoment()
+      ) {
+        finish(null)
+      }
     })
   })
 }
 
-function requestOAuthToken(clientId: string, prompt: "" | "select_account"): Promise<GoogleAuthOk | { error: "cancelled" }> {
+function requestOAuthToken(clientId: string): Promise<GoogleAuthOk | { error: "cancelled" }> {
   return new Promise((resolve) => {
     const api = window.google?.accounts?.oauth2
     if (!api) {
@@ -158,6 +176,7 @@ function requestOAuthToken(clientId: string, prompt: "" | "select_account"): Pro
     const client = api.initTokenClient({
       client_id: clientId,
       scope: "openid email profile",
+      prompt: "select_account",
       callback: (response) => {
         if (!response.access_token || response.error) {
           resolve({ error: "cancelled" })
@@ -165,8 +184,9 @@ function requestOAuthToken(clientId: string, prompt: "" | "select_account"): Pro
         }
         resolve({ accessToken: response.access_token })
       },
+      error_callback: () => resolve({ error: "cancelled" }),
     })
-    client.requestAccessToken({ prompt })
+    client.requestAccessToken({ prompt: "select_account" })
   })
 }
 
@@ -180,13 +200,12 @@ export async function requestGoogleAuth(): Promise<GoogleAuthOk | { error: "canc
   }
   if (!window.google?.accounts) return { error: "google" }
 
+  disableGoogleAutoSelect()
+
   const current = await requestCurrentGoogleSession(clientId)
   if (current) return current
 
-  const silent = await requestOAuthToken(clientId, "")
-  if (!("error" in silent)) return silent
-
-  return requestOAuthToken(clientId, "select_account")
+  return requestOAuthToken(clientId)
 }
 
 export function identityFromCredential(credential: string): GoogleIdentity | null {

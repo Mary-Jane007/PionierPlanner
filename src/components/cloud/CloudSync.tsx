@@ -25,9 +25,9 @@ export function CloudSync() {
         await cloudPush(local.exportSnapshot())
         return
       }
-      if (pulled.snapshot) {
+      if (pulled.snapshot && local.user) {
         skipPush.current = true
-        useAppStore.getState().applyPlannerSnapshot(pulled.snapshot)
+        useAppStore.getState().applyPlannerSnapshot(pulled.snapshot, local.user)
         skipPush.current = false
         if (hasSavedPlanner(local)) {
           await cloudPush(useAppStore.getState().exportSnapshot())

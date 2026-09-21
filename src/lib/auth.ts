@@ -13,7 +13,13 @@ import {
   clearCloudSession,
   type PlannerSnapshot,
 } from "@/lib/cloud"
-import { fetchGoogleIdentity, identityFromCredential, requestGoogleAuth, type GoogleIdentity } from "@/lib/google-auth"
+import {
+  disableGoogleAutoSelect,
+  fetchGoogleIdentity,
+  identityFromCredential,
+  requestGoogleAuth,
+  type GoogleIdentity,
+} from "@/lib/google-auth"
 import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type { UserAccount, UserProfile } from "@/types"
 
@@ -179,17 +185,45 @@ export function mergeStoredAccounts(incoming: UserAccount[]) {
   writeAccounts([...byEmail.values()])
 }
 
-function cacheGoogleLocal(profile: UserProfile, googleSub: string) {
-  const current = readAccounts()
-  const at = current.findIndex(
-    (account) =>
-      account.id === profile.id ||
-      account.email === profile.email ||
-      account.googleSub === googleSub
+const DEMO_EMAIL = "demo@pioniersplanner.app"
+const DEMO_USER_ID = "demo-user"
+
+function isDemoAccount(account: { id?: string; email?: string } | null | undefined) {
+  if (!account) return false
+  return account.id === DEMO_USER_ID || account.email?.trim().toLowerCase() === DEMO_EMAIL
+}
+
+function findLocalGoogleAccount(
+  accounts: UserAccount[],
+  identity: { id?: string; email: string; googleSub: string }
+): UserAccount | undefined {
+  const email = identity.email.trim().toLowerCase()
+  const bySub = accounts.find(
+    (account) => account.googleSub === identity.googleSub && !isDemoAccount(account)
   )
-  const previous = at === -1 ? null : current[at]
-  const stored: UserAccount = {
+  if (bySub) return bySub
+  if (identity.id && identity.id !== DEMO_USER_ID) {
+    const byId = accounts.find((account) => account.id === identity.id && !isDemoAccount(account))
+    if (byId && (!byId.googleSub || byId.googleSub === identity.googleSub)) return byId
+  }
+  return accounts.find(
+    (account) =>
+      account.email === email &&
+      !isDemoAccount(account) &&
+      (!account.googleSub || account.googleSub === identity.googleSub)
+  )
+}
+
+function cacheGoogleLocal(profile: UserProfile, googleSub: string) {
+  if (isDemoAccount(profile) || !googleSub) return
+  const current = readAccounts()
+  const previous = findLocalGoogleAccount(current, {
     id: profile.id,
+    email: profile.email,
+    googleSub,
+  })
+  const stored: UserAccount = {
+    id: previous?.id && previous.id !== DEMO_USER_ID ? previous.id : profile.id,
     email: profile.email,
     name: profile.name,
     passwordHash:
@@ -197,13 +231,11 @@ function cacheGoogleLocal(profile: UserProfile, googleSub: string) {
         ? previous.passwordHash
         : `google:${googleSub}`,
     googleSub,
-    createdAt: profile.createdAt,
+    createdAt: previous?.createdAt || profile.createdAt,
   }
-  if (at === -1) writeAccounts([...current, stored])
+  if (!previous) writeAccounts([...current, stored])
   else {
-    const copy = [...current]
-    copy[at] = stored
-    writeAccounts(copy)
+    writeAccounts(current.map((account) => (account.id === previous.id ? stored : account)))
   }
 }
 
@@ -213,11 +245,10 @@ export function upsertLocalGoogleAccount(identity: GoogleIdentity): {
 } {
   const email = identity.email.trim().toLowerCase()
   const accounts = readAccounts()
-  const existing =
-    accounts.find((account) => account.googleSub === identity.sub) ||
-    accounts.find(
-      (account) => account.email === email && account.id !== "demo-user"
-    )
+  const existing = findLocalGoogleAccount(accounts, {
+    email,
+    googleSub: identity.sub,
+  })
   if (existing) {
     const updated: UserAccount = {
       ...existing,
@@ -240,9 +271,15 @@ export function upsertLocalGoogleAccount(identity: GoogleIdentity): {
   return { profile: toProfile(account), created: true }
 }
 
+function isBlockedGoogleProfile(identity: { id?: string; email?: string } | null) {
+  if (!identity) return true
+  return isDemoAccount(identity)
+}
+
 export async function signInWithGoogle(): Promise<
   (AuthSuccess & { created: boolean }) | AuthFailure
 > {
+  disableGoogleAutoSelect()
   const auth = await requestGoogleAuth()
   if ("error" in auth) return auth
 
@@ -252,6 +289,7 @@ export async function signInWithGoogle(): Promise<
       "credential" in auth ? { credential: auth.credential } : { accessToken: auth.accessToken }
     )
     if (!("error" in result)) {
+      if (isBlockedGoogleProfile(result.profile) || !result.googleSub) return { error: "invalid" }
       cacheGoogleLocal(result.profile, result.googleSub)
       rememberEmail(result.profile.email)
       return {
@@ -269,8 +307,9 @@ export async function signInWithGoogle(): Promise<
     "credential" in auth
       ? identityFromCredential(auth.credential)
       : await fetchGoogleIdentity(auth.accessToken)
-  if (!identity) return { error: "invalid" }
+  if (!identity || isBlockedGoogleProfile(identity)) return { error: "invalid" }
   const local = upsertLocalGoogleAccount(identity)
+  if (isBlockedGoogleProfile(local.profile)) return { error: "invalid" }
   rememberEmail(local.profile.email)
   return { profile: local.profile, snapshot: null, created: local.created }
 }
@@ -494,6 +533,7 @@ export async function deleteStoredAccount(userId: string) {
   const remaining = readAccounts().filter((account) => account.id !== userId)
   writeAccounts(remaining)
   clearCloudSession()
+  disableGoogleAutoSelect()
   const last = rememberedEmail()
   if (last && !remaining.some((account) => account.email === last)) {
     forgetRememberedEmail()
@@ -502,8 +542,8 @@ export async function deleteStoredAccount(userId: string) {
 
 export function demoProfile(): UserProfile {
   return {
-    id: "demo-user",
-    email: "demo@pioniersplanner.app",
+    id: DEMO_USER_ID,
+    email: DEMO_EMAIL,
     name: "Marisol",
     createdAt: "2026-01-12T09:00:00.000Z",
   }

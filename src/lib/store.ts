@@ -24,6 +24,7 @@ import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
 import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
 import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
+import { disableGoogleAutoSelect } from "@/lib/google-auth"
 import { flushDurableStorage, removeDurable, zustandDurableStorage } from "@/lib/durable-storage"
 import type { PioneerTip } from "@/lib/tips"
 
@@ -139,10 +140,24 @@ export function plannerBelongsToUser(
   },
   profile: UserProfile
 ) {
+  if (profile.id === "demo-user") {
+    return (
+      state.activeProfileId === "demo-user" ||
+      state.user?.id === "demo-user" ||
+      state.lastUser?.id === "demo-user"
+    )
+  }
+  if (
+    state.activeProfileId === "demo-user" ||
+    state.user?.id === "demo-user" ||
+    state.lastUser?.id === "demo-user"
+  ) {
+    return false
+  }
   if (state.activeProfileId === profile.id) return true
   if (state.user?.id === profile.id || state.lastUser?.id === profile.id) return true
   const email = profile.email.trim().toLowerCase()
-  if (!email) return false
+  if (!email || email === "demo@pioniersplanner.app") return false
   return (
     state.user?.email?.toLowerCase() === email ||
     state.lastUser?.email?.toLowerCase() === email
@@ -275,6 +290,7 @@ export const useAppStore = create<AppState>()(
       logout: () => {
         const current = get().user
         clearCloudSession()
+        disableGoogleAutoSelect()
         set({
           user: null,
           lastUser: current ?? get().lastUser,
@@ -481,7 +497,9 @@ export const useAppStore = create<AppState>()(
           {
             version: 1,
             exportedAt: new Date().toISOString(),
-            accounts: readStoredAccounts(),
+            accounts: state.user
+              ? readStoredAccounts().filter((account) => account.id === state.user?.id)
+              : [],
             user: state.user,
             onboarded: state.onboarded,
             pioneerType: state.pioneerType,
@@ -646,6 +664,7 @@ export const useAppStore = create<AppState>()(
       deleteAccountLocal: () => {
         removeDurable(LAST_EMAIL_KEY)
         clearCloudSession()
+        disableGoogleAutoSelect()
         set({
           user: null,
           lastUser: null,

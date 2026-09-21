@@ -330,23 +330,32 @@ export async function handleCloudRequest(req, res) {
       const name = String(me?.name || me?.given_name || "")
         .trim()
         .slice(0, 80)
-      if (!googleSub || !validEmail(email) || email === "demo@pioniersplanner.app") {
+      if (
+        !googleSub ||
+        !validEmail(email) ||
+        email === "demo@pioniersplanner.app" ||
+        googleSub === "demo-user"
+      ) {
         send(res, 401, { error: "invalid" })
         return true
       }
 
       let found = await getPool().query(
-        "SELECT id, email, name, password_hash, created_at, google_sub FROM pp_accounts WHERE google_sub = $1",
+        "SELECT id, email, name, password_hash, created_at, google_sub FROM pp_accounts WHERE google_sub = $1 AND id <> 'demo-user'",
         [googleSub]
       )
       let created = false
       if (!found.rowCount) {
         found = await getPool().query(
-          "SELECT id, email, name, password_hash, created_at, google_sub FROM pp_accounts WHERE email = $1",
+          "SELECT id, email, name, password_hash, created_at, google_sub FROM pp_accounts WHERE email = $1 AND id <> 'demo-user'",
           [email]
         )
       }
       let row = found.rows[0]
+      if (row?.id === "demo-user" || row?.email === "demo@pioniersplanner.app") {
+        send(res, 401, { error: "invalid" })
+        return true
+      }
       if (row?.google_sub && row.google_sub !== googleSub) {
         send(res, 401, { error: "invalid" })
         return true
