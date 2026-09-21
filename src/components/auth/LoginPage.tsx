@@ -14,6 +14,7 @@ import {
   registerAccount,
   resetAccountPassword,
   signInAccount,
+  signInWithGoogle,
   storedAccountCount,
 } from "@/lib/auth"
 import { cloudAvailable } from "@/lib/cloud"
@@ -35,6 +36,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
+  const [googleError, setGoogleError] = useState("")
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
   const [cloudOn, setCloudOn] = useState(true)
@@ -66,6 +68,7 @@ export function LoginPage() {
   function switchMode(next: AuthMode) {
     setMode(next)
     setError("")
+    setGoogleError("")
     setNotice("")
     setPassword("")
     setConfirmPassword("")
@@ -75,6 +78,7 @@ export function LoginPage() {
     event.preventDefault()
     if (pending) return
     setError("")
+    setGoogleError("")
     setNotice("")
     setPending(true)
     try {
@@ -129,11 +133,43 @@ export function LoginPage() {
 
   function openDemo() {
     setError("")
+    setGoogleError("")
     setNotice("")
     const profile = demoProfile()
     rememberEmail(profile.email)
     login(profile, { demo: true })
     goToApp(true)
+  }
+
+  async function continueWithGoogle() {
+    if (pending) return
+    setError("")
+    setGoogleError("")
+    setNotice("")
+    setPending(true)
+    try {
+      const result = await signInWithGoogle()
+      if ("error" in result) {
+        setGoogleError(
+          result.error === "cancelled"
+            ? t("auth.googleCancelled")
+            : result.error === "google"
+              ? t("auth.googleMissing")
+              : t("auth.googleFailed")
+        )
+        return
+      }
+      rememberEmail(result.profile.email)
+      login(result.profile, {
+        fresh: result.created,
+        snapshot: result.snapshot ?? null,
+      })
+      goToApp(useAppStore.getState().onboarded)
+    } catch {
+      setGoogleError(t("auth.googleFailed"))
+    } finally {
+      setPending(false)
+    }
   }
 
   if (!hydrated || (user && onboarded)) {
@@ -314,12 +350,17 @@ export function LoginPage() {
             <button
               className={cn(buttonVariants({ variant: "outline" }), "mt-3 h-11 rounded-xl")}
               type="button"
-              onClick={openDemo}
+              onClick={() => void continueWithGoogle()}
               disabled={pending}
             >
-              {t("auth.google")}
+              {pending ? t("common.loading") : t("auth.google")}
             </button>
             <p className="mt-2 text-xs text-muted-foreground">{t("auth.googleHint")}</p>
+            {googleError ? (
+              <p className="mt-2 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+                {googleError}
+              </p>
+            ) : null}
           </>
         ) : null}
 

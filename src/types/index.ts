@@ -56,6 +56,7 @@ export interface UserAccount {
   email: string
   name: string
   passwordHash: string
+  googleSub?: string
   createdAt: string
 }
 

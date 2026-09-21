@@ -60,6 +60,10 @@ export async function ensureSchema() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `)
+  await db.query(`ALTER TABLE pp_accounts ADD COLUMN IF NOT EXISTS google_sub TEXT`)
+  await db.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS pp_accounts_google_sub_idx ON pp_accounts (google_sub) WHERE google_sub IS NOT NULL`
+  )
   ready = true
 }
 
@@ -155,6 +159,45 @@ function normalizeEmail(email) {
 
 function validEmail(email) {
   return email.includes("@") && email.includes(".") && email.length <= 254
+}
+
+async function googleFromCredential(credential) {
+  const response = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+  )
+  if (!response.ok) return null
+  let me
+  try {
+    me = await response.json()
+  } catch {
+    return null
+  }
+  const expectedAud = String(process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "").trim()
+  if (expectedAud && String(me.aud || "") !== expectedAud) return null
+  const iss = String(me.iss || "")
+  if (iss !== "https://accounts.google.com" && iss !== "accounts.google.com") return null
+  if (me.email_verified === false || me.email_verified === "false") return null
+  return me
+}
+
+async function googleUserinfo(accessToken) {
+  const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!response.ok) return null
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+async function snapshotFor(userId) {
+  const snapshot = await getPool().query(
+    "SELECT payload, updated_at FROM pp_planner_state WHERE user_id = $1",
+    [userId]
+  )
+  return snapshot.rowCount ? snapshot.rows[0].payload : null
 }
 
 function profileRow(row) {
@@ -269,6 +312,81 @@ export async function handleCloudRequest(req, res) {
         profile: profileRow(row),
         token: signToken(row.id),
         snapshot: snapshot.rowCount ? snapshot.rows[0].payload : null,
+      })
+      return true
+    }
+
+    if (route === "/api/cloud/google" && req.method === "POST") {
+      const body = await readBody(req)
+      const accessToken = String(body.accessToken || body.access_token || "").trim()
+      const credential = String(body.credential || body.id_token || "").trim()
+      const me = credential
+        ? await googleFromCredential(credential)
+        : accessToken
+          ? await googleUserinfo(accessToken)
+          : null
+      const email = normalizeEmail(me?.email)
+      const googleSub = String(me?.sub || "").trim()
+      const name = String(me?.name || me?.given_name || "")
+        .trim()
+        .slice(0, 80)
+      if (
+        !googleSub ||
+        !validEmail(email) ||
+        email === "demo@pioniersplanner.app" ||
+        googleSub === "demo-user"
+      ) {
+        send(res, 401, { error: "invalid" })
+        return true
+      }
+
+      let found = await getPool().query(
+        "SELECT id, email, name, password_hash, created_at, google_sub FROM pp_accounts WHERE google_sub = $1 AND id <> 'demo-user'",
+        [googleSub]
+      )
+      let created = false
+      if (!found.rowCount) {
+        found = await getPool().query(
+          "SELECT id, email, name, password_hash, created_at, google_sub FROM pp_accounts WHERE email = $1 AND id <> 'demo-user'",
+          [email]
+        )
+      }
+      let row = found.rows[0]
+      if (row?.id === "demo-user" || row?.email === "demo@pioniersplanner.app") {
+        send(res, 401, { error: "invalid" })
+        return true
+      }
+      if (row?.google_sub && row.google_sub !== googleSub) {
+        send(res, 401, { error: "invalid" })
+        return true
+      }
+      if (!row) {
+        const id = crypto.randomUUID()
+        const inserted = await getPool().query(
+          `INSERT INTO pp_accounts (id, email, name, password_hash, google_sub)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id, email, name, created_at, google_sub`,
+          [id, email, name || email.split("@")[0], `google:${googleSub}`, googleSub]
+        )
+        row = inserted.rows[0]
+        created = true
+      } else if (!row.google_sub || (name && row.name !== name)) {
+        const updated = await getPool().query(
+          `UPDATE pp_accounts
+           SET google_sub = $1, name = COALESCE(NULLIF($2, ''), name)
+           WHERE id = $3
+           RETURNING id, email, name, created_at, google_sub`,
+          [googleSub, name, row.id]
+        )
+        row = updated.rows[0]
+      }
+
+      send(res, 200, {
+        profile: profileRow(row),
+        token: signToken(row.id),
+        snapshot: await snapshotFor(row.id),
+        created,
+        googleSub,
       })
       return true
     }

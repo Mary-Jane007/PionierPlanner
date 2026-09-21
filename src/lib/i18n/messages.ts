@@ -325,10 +325,28 @@ const messages = {
   "auth.signup": { nl: "Account maken", en: "Create account", es: "Crear cuenta", pap: "Krea kuenta" },
   "auth.google": { nl: "Doorgaan met Google", en: "Continue with Google", es: "Continuar con Google", pap: "Sigui ku Google" },
   "auth.googleHint": {
-    nl: "Google-aanmelding werkt lokaal totdat je een accountprovider koppelt. We openen een demo-profiel.",
-    en: "Google sign-in works locally until you connect an account provider. We’ll open a demo profile.",
-    es: "El acceso con Google funciona en local hasta que conectes un proveedor. Abriremos un perfil de demostración.",
-    pap: "Login ku Google ta traha lokal te ora bo konektá un proveedor. Nos lo habri un perfil di demo.",
+    nl: "Google gebruikt alleen het Google-account dat op deze laptop is ingelogd, niet het account van iemand anders. Jouw planner blijft privé.",
+    en: "Google uses the Google account signed in on this laptop, not somebody else’s account. Your planner stays private.",
+    es: "Google usa la cuenta de Google iniciada en este portátil, no la de otra persona. Tu planificador es privado.",
+    pap: "Google ta uza e Google-kuenta ku ta login riba e laptop aki, no e kuenta di un otronan. Bo planner ta privá.",
+  },
+  "auth.googleMissing": {
+    nl: "Google-aanmelding is op deze site nog niet klaar. Kies je eigen e-mail en wachtwoord, of probeer het later opnieuw.",
+    en: "Google sign-in is not ready on this site yet. Use your own email and password, or try again later.",
+    es: "El acceso con Google aún no está listo en este sitio. Usa tu correo y contraseña, o inténtalo más tarde.",
+    pap: "Login ku Google no ta kla ainda riba e sitio aki. Usa bo mes e-mail i kontraseña, òf purba despues.",
+  },
+  "auth.googleCancelled": {
+    nl: "Google-aanmelding is geannuleerd. Kies je eigen account om verder te gaan.",
+    en: "Google sign-in was cancelled. Choose your own account to continue.",
+    es: "El acceso con Google se canceló. Elige tu propia cuenta para continuar.",
+    pap: "Login ku Google a wòrdu kanselá. Skoge bo mes kuenta pa sigui.",
+  },
+  "auth.googleFailed": {
+    nl: "Google-aanmelding is mislukt. Probeer het opnieuw en kies jouw Google-account.",
+    en: "Google sign-in failed. Try again and choose your Google account.",
+    es: "El acceso con Google falló. Inténtalo de nuevo y elige tu cuenta de Google.",
+    pap: "Login ku Google a fallá. Purba atrobe i skoge bo Google-kuenta.",
   },
   "auth.demo": { nl: "Open met een lege planner", en: "Open with a blank planner", es: "Abrir con un planificador vacío", pap: "Habré ku un planner bashí" },
   "auth.demoContinue": {
