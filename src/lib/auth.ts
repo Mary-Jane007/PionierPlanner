@@ -13,7 +13,7 @@ import {
   clearCloudSession,
   type PlannerSnapshot,
 } from "@/lib/cloud"
-import { fetchGoogleIdentity, requestGoogleAccessToken, type GoogleIdentity } from "@/lib/google-auth"
+import { fetchGoogleIdentity, identityFromCredential, requestGoogleAuth, type GoogleIdentity } from "@/lib/google-auth"
 import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type { UserAccount, UserProfile } from "@/types"
 
@@ -215,7 +215,9 @@ export function upsertLocalGoogleAccount(identity: GoogleIdentity): {
   const accounts = readAccounts()
   const existing =
     accounts.find((account) => account.googleSub === identity.sub) ||
-    accounts.find((account) => account.email === email)
+    accounts.find(
+      (account) => account.email === email && account.id !== "demo-user"
+    )
   if (existing) {
     const updated: UserAccount = {
       ...existing,
@@ -241,12 +243,14 @@ export function upsertLocalGoogleAccount(identity: GoogleIdentity): {
 export async function signInWithGoogle(): Promise<
   (AuthSuccess & { created: boolean }) | AuthFailure
 > {
-  const token = await requestGoogleAccessToken()
-  if ("error" in token) return token
+  const auth = await requestGoogleAuth()
+  if ("error" in auth) return auth
 
   const online = await cloudAvailable()
   if (online) {
-    const result = await cloudGoogleLogin(token.accessToken)
+    const result = await cloudGoogleLogin(
+      "credential" in auth ? { credential: auth.credential } : { accessToken: auth.accessToken }
+    )
     if (!("error" in result)) {
       cacheGoogleLocal(result.profile, result.googleSub)
       rememberEmail(result.profile.email)
@@ -261,7 +265,10 @@ export async function signInWithGoogle(): Promise<
     }
   }
 
-  const identity = await fetchGoogleIdentity(token.accessToken)
+  const identity =
+    "credential" in auth
+      ? identityFromCredential(auth.credential)
+      : await fetchGoogleIdentity(auth.accessToken)
   if (!identity) return { error: "invalid" }
   const local = upsertLocalGoogleAccount(identity)
   rememberEmail(local.profile.email)

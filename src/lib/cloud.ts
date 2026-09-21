@@ -123,7 +123,10 @@ export async function cloudRegister(input: {
   return result
 }
 
-export async function cloudGoogleLogin(accessToken: string): Promise<
+export async function cloudGoogleLogin(input: {
+  accessToken?: string
+  credential?: string
+}): Promise<
   | {
       profile: UserProfile
       token: string
@@ -143,7 +146,7 @@ export async function cloudGoogleLogin(accessToken: string): Promise<
     "/google",
     {
       method: "POST",
-      body: JSON.stringify({ accessToken }),
+      body: JSON.stringify(input),
     },
     ""
   )

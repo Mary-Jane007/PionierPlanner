@@ -161,6 +161,25 @@ function validEmail(email) {
   return email.includes("@") && email.includes(".") && email.length <= 254
 }
 
+async function googleFromCredential(credential) {
+  const response = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+  )
+  if (!response.ok) return null
+  let me
+  try {
+    me = await response.json()
+  } catch {
+    return null
+  }
+  const expectedAud = String(process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "").trim()
+  if (expectedAud && String(me.aud || "") !== expectedAud) return null
+  const iss = String(me.iss || "")
+  if (iss !== "https://accounts.google.com" && iss !== "accounts.google.com") return null
+  if (me.email_verified === false || me.email_verified === "false") return null
+  return me
+}
+
 async function googleUserinfo(accessToken) {
   const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -300,17 +319,18 @@ export async function handleCloudRequest(req, res) {
     if (route === "/api/cloud/google" && req.method === "POST") {
       const body = await readBody(req)
       const accessToken = String(body.accessToken || body.access_token || "").trim()
-      if (!accessToken) {
-        send(res, 400, { error: "invalid" })
-        return true
-      }
-      const me = await googleUserinfo(accessToken)
+      const credential = String(body.credential || body.id_token || "").trim()
+      const me = credential
+        ? await googleFromCredential(credential)
+        : accessToken
+          ? await googleUserinfo(accessToken)
+          : null
       const email = normalizeEmail(me?.email)
       const googleSub = String(me?.sub || "").trim()
       const name = String(me?.name || me?.given_name || "")
         .trim()
         .slice(0, 80)
-      if (!googleSub || !validEmail(email)) {
+      if (!googleSub || !validEmail(email) || email === "demo@pioniersplanner.app") {
         send(res, 401, { error: "invalid" })
         return true
       }
@@ -327,6 +347,10 @@ export async function handleCloudRequest(req, res) {
         )
       }
       let row = found.rows[0]
+      if (row?.google_sub && row.google_sub !== googleSub) {
+        send(res, 401, { error: "invalid" })
+        return true
+      }
       if (!row) {
         const id = crypto.randomUUID()
         const inserted = await getPool().query(

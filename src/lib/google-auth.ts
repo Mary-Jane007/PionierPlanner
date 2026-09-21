@@ -8,6 +8,8 @@ export type GoogleIdentity = {
   name: string
 }
 
+export type GoogleAuthOk = { credential: string } | { accessToken: string }
+
 type TokenResponse = {
   access_token?: string
   error?: string
@@ -17,10 +19,27 @@ type TokenClient = {
   requestAccessToken: (opts?: { prompt?: string }) => void
 }
 
+type PromptMoment = {
+  isNotDisplayed: () => boolean
+  isSkippedMoment: () => boolean
+  isDismissedMoment: () => boolean
+}
+
 declare global {
   interface Window {
     google?: {
       accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string
+            callback: (response: { credential?: string }) => void
+            auto_select?: boolean
+            cancel_on_tap_outside?: boolean
+            use_fedcm_for_prompt?: boolean
+          }) => void
+          prompt: (listener?: (notification: PromptMoment) => void) => void
+          cancel: () => void
+        }
         oauth2: {
           initTokenClient: (config: {
             client_id: string
@@ -61,20 +80,81 @@ function loadGoogleIdentity(): Promise<void> {
   })
 }
 
-export async function requestGoogleAccessToken(): Promise<
-  { accessToken: string } | { error: "cancelled" | "google" }
-> {
-  const clientId = googleClientId()
-  if (!clientId) return { error: "google" }
+function identityFromJwt(credential: string): GoogleIdentity | null {
   try {
-    await loadGoogleIdentity()
+    const payload = credential.split(".")[1]
+    if (!payload) return null
+    const json = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+    ) as {
+      sub?: string
+      email?: string
+      name?: string
+      given_name?: string
+      email_verified?: boolean | string
+      aud?: string
+    }
+    if (json.email_verified === false || json.email_verified === "false") return null
+    const expectedAud = googleClientId()
+    if (expectedAud && json.aud && json.aud !== expectedAud) return null
+    const email = String(json.email || "")
+      .trim()
+      .toLowerCase()
+    const sub = String(json.sub || "").trim()
+    if (!sub || !email.includes("@")) return null
+    return {
+      sub,
+      email,
+      name: String(json.name || json.given_name || "").trim() || email.split("@")[0],
+    }
   } catch {
-    return { error: "google" }
+    return null
   }
-  const api = window.google?.accounts?.oauth2
-  if (!api) return { error: "google" }
+}
 
+function requestCurrentGoogleSession(clientId: string): Promise<GoogleAuthOk | null> {
   return new Promise((resolve) => {
+    const idApi = window.google?.accounts?.id
+    if (!idApi) {
+      resolve(null)
+      return
+    }
+    let settled = false
+    const finish = (value: GoogleAuthOk | null) => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timer)
+      try {
+        idApi.cancel()
+      } catch {
+        // FedCM cancel is best-effort.
+      }
+      resolve(value)
+    }
+    const timer = window.setTimeout(() => finish(null), 3500)
+    idApi.initialize({
+      client_id: clientId,
+      auto_select: true,
+      cancel_on_tap_outside: true,
+      use_fedcm_for_prompt: true,
+      callback: (response) => {
+        if (response.credential) finish({ credential: response.credential })
+        else finish(null)
+      },
+    })
+    idApi.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) finish(null)
+    })
+  })
+}
+
+function requestOAuthToken(clientId: string, prompt: "" | "select_account"): Promise<GoogleAuthOk | { error: "cancelled" }> {
+  return new Promise((resolve) => {
+    const api = window.google?.accounts?.oauth2
+    if (!api) {
+      resolve({ error: "cancelled" })
+      return
+    }
     const client = api.initTokenClient({
       client_id: clientId,
       scope: "openid email profile",
@@ -86,8 +166,31 @@ export async function requestGoogleAccessToken(): Promise<
         resolve({ accessToken: response.access_token })
       },
     })
-    client.requestAccessToken({ prompt: "select_account" })
+    client.requestAccessToken({ prompt })
   })
+}
+
+export async function requestGoogleAuth(): Promise<GoogleAuthOk | { error: "cancelled" | "google" }> {
+  const clientId = googleClientId()
+  if (!clientId) return { error: "google" }
+  try {
+    await loadGoogleIdentity()
+  } catch {
+    return { error: "google" }
+  }
+  if (!window.google?.accounts) return { error: "google" }
+
+  const current = await requestCurrentGoogleSession(clientId)
+  if (current) return current
+
+  const silent = await requestOAuthToken(clientId, "")
+  if (!("error" in silent)) return silent
+
+  return requestOAuthToken(clientId, "select_account")
+}
+
+export function identityFromCredential(credential: string): GoogleIdentity | null {
+  return identityFromJwt(credential)
 }
 
 export async function fetchGoogleIdentity(accessToken: string): Promise<GoogleIdentity | null> {

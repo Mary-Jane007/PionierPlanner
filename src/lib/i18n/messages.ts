@@ -325,10 +325,10 @@ const messages = {
   "auth.signup": { nl: "Account maken", en: "Create account", es: "Crear cuenta", pap: "Krea kuenta" },
   "auth.google": { nl: "Doorgaan met Google", en: "Continue with Google", es: "Continuar con Google", pap: "Sigui ku Google" },
   "auth.googleHint": {
-    nl: "Kies je eigen Google-account. Je krijgt je eigen planner, niet die van iemand anders.",
-    en: "Choose your own Google account. You get your own planner, not someone else’s.",
-    es: "Elige tu propia cuenta de Google. Recibes tu planificador, no el de otra persona.",
-    pap: "Skoge bo mes Google-kuenta. Bo ta haña bo mes planner, no esun di un otronan.",
+    nl: "Google gebruikt het account dat op deze laptop is ingelogd. Jouw planner blijft privé; niemand anders komt in jouw account.",
+    en: "Google uses the account signed in on this laptop. Your planner stays private; nobody else gets into your account.",
+    es: "Google usa la cuenta iniciada en este portátil. Tu planificador es privado; nadie más entra en tu cuenta.",
+    pap: "Google ta uza e kuenta ku ta login riba e laptop aki. Bo planner ta privá; ningun otronan ta drenta bo kuenta.",
   },
   "auth.googleMissing": {
     nl: "Google-aanmelding is op deze site nog niet klaar. Kies je eigen e-mail en wachtwoord, of probeer het later opnieuw.",
