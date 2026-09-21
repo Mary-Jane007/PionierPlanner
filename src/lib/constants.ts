@@ -59,4 +59,5 @@ export const DEFAULT_SETTINGS: UserSettings = {
 export const STORAGE_KEY = "pioniersplanner-v1"
 export const ACCOUNTS_KEY = "pioniersplanner-accounts"
 export const LAST_EMAIL_KEY = "pioniersplanner-last-email"
+export const SAVE_LOGIN_KEY = "pioniersplanner-save-login"
 export const CLOUD_TOKEN_KEY = "pioniersplanner-cloud-token"
