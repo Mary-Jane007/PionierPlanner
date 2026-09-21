@@ -331,10 +331,10 @@ const messages = {
     pap: "Skoge bo mes Google-kuenta. Bo ta haña bo mes planner, no esun di un otronan.",
   },
   "auth.googleMissing": {
-    nl: "Google-aanmelding is nog niet ingesteld op deze site. Gebruik e-mail en wachtwoord, of vraag de beheerder om NEXT_PUBLIC_GOOGLE_CLIENT_ID.",
-    en: "Google sign-in is not set up on this site yet. Use email and password, or ask the owner to set NEXT_PUBLIC_GOOGLE_CLIENT_ID.",
-    es: "El acceso con Google aún no está configurado. Usa correo y contraseña, o pide que se configure NEXT_PUBLIC_GOOGLE_CLIENT_ID.",
-    pap: "Login ku Google no ta konfigurá ainda. Usa e-mail i kontraseña, òf pidi pa NEXT_PUBLIC_GOOGLE_CLIENT_ID.",
+    nl: "Google-aanmelding is op deze site nog niet klaar. Kies je eigen e-mail en wachtwoord, of probeer het later opnieuw.",
+    en: "Google sign-in is not ready on this site yet. Use your own email and password, or try again later.",
+    es: "El acceso con Google aún no está listo en este sitio. Usa tu correo y contraseña, o inténtalo más tarde.",
+    pap: "Login ku Google no ta kla ainda riba e sitio aki. Usa bo mes e-mail i kontraseña, òf purba despues.",
   },
   "auth.googleCancelled": {
     nl: "Google-aanmelding is geannuleerd. Kies je eigen account om verder te gaan.",
