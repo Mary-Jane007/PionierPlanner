@@ -155,7 +155,7 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
           <Field label={t("follow.status")}>
             <Select value={current.status} onValueChange={(value) => patch({ status: value as FollowUpStatus })}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>{t(`follow.status.${current.status}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {FOLLOW_STATUSES.map((status) => (
@@ -179,7 +179,7 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>{t(`follow.contact.${current.contactType}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="first_conversation">{t("follow.contact.first_conversation")}</SelectItem>
@@ -559,9 +559,9 @@ function Field({
   children: ReactNode
 }) {
   return (
-    <label className={cn("grid gap-1.5", className)}>
+    <div className={cn("grid gap-1.5", className)}>
       <Label>{label}</Label>
       {children}
-    </label>
+    </div>
   )
 }
