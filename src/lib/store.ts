@@ -621,7 +621,7 @@ export const useAppStore = create<AppState>()(
               local.experiences,
               Array.isArray(snapshot.experiences) ? snapshot.experiences : []
             ),
-            settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined), ...local.settings },
+            settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: local.hiddenCategories,
             customTips: mergeById(
               local.customTips,

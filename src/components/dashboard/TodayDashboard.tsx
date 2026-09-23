@@ -7,9 +7,8 @@ import { StartTimerButton } from "@/components/activities/ServiceTimer"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
-import { formatHumanDate, formatMonthTitle, greetingKey } from "@/lib/dates"
-import { isoDateInZone, resolveTimeZone, zonedDateParts, formatTimeInZone, netherlandsDelta, timezoneOffsetLabel } from "@/lib/timezones"
-import { useMonthSnapshot, useNow } from "@/lib/hooks"
+import { formatHumanDate, formatMonthTitle, greetingKey, isoDate } from "@/lib/dates"
+import { useMonthSnapshot } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
@@ -23,26 +22,22 @@ export function TodayDashboard() {
   const pioneerType = useAppStore((s) => s.pioneerType)
   const events = useAppStore((s) => s.events)
   const customTips = useAppStore((s) => s.customTips)
-  const timezone = resolveTimeZone(useAppStore((s) => s.settings.timezone))
   const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
-  const now = useNow()
-  const parts = zonedDateParts(now, timezone)
-  const zonedNow = new Date(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second)
-  const today = isoDateInZone(now, timezone)
-  const greeting = greetingKey(now, timezone)
-  const daily = getDailyContent(lang, zonedNow, customTips)
-  const tip = getDailyTip(lang, zonedNow, customTips)
+  const now = new Date()
+  const today = isoDate(now)
+  const greeting = greetingKey(now)
+  const daily = getDailyContent(lang, now, customTips)
+  const tip = getDailyTip(lang, now, customTips)
   const todayEvents = events
     .filter((event) => event.date === today && event.status !== "cancelled")
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
   const recommendedWeek = formatDecimal(snapshot.requiredWeekly, lang)
   const nextLabel = snapshot.next
-    ? `${snapshot.next.date === isoDateInZone(new Date(now.getTime() + 86400000), timezone) ? (lang === "en" ? "Tomorrow" : "Morgen") : formatHumanDate(new Date(`${snapshot.next.date}T12:00:00`), lang)} — ${snapshot.next.startTime}`
+    ? `${snapshot.next.date === isoDate(new Date(now.getTime() + 86400000)) ? (lang === "en" ? "Tomorrow" : "Morgen") : formatHumanDate(new Date(`${snapshot.next.date}T12:00:00`), lang)} — ${snapshot.next.startTime}`
     : t("home.noneNext")
 
   const bestStep = getBestStep(t, snapshot, lang)
-  const nl = netherlandsDelta(timezone, now)
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -51,17 +46,8 @@ export function TodayDashboard() {
           <h1 className="font-heading text-4xl sm:text-5xl">
             {t(`home.greeting.${greeting}`, { name: user?.name ?? "" })}
           </h1>
-          <p className="font-heading mt-2 text-3xl tabular-nums tracking-tight">
-            {formatTimeInZone(timezone, lang, now)}
-          </p>
-          <p className="mt-1 text-muted-foreground">
-            {timezoneOffsetLabel(timezone, now)}
-            {nl.hoursAhead !== 0
-              ? t("settings.timezoneNlDelta", { n: nl.hoursAhead, time: nl.nlTime })
-              : null}
-          </p>
           <p className="mt-1 capitalize text-muted-foreground">
-            {formatMonthTitle(zonedNow, lang)}
+            {formatMonthTitle(now, lang)}
           </p>
         </header>
 

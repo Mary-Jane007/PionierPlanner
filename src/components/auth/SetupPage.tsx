@@ -18,7 +18,6 @@ import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import type { LocaleCode, PioneerTypeId } from "@/types"
 import { Checkbox } from "@/components/ui/checkbox"
-import { TimezoneCountrySelect } from "@/components/settings/TimezoneCountrySelect"
 import { cn } from "@/lib/utils"
 
 export function SetupPage() {
@@ -139,17 +138,7 @@ export function SetupPage() {
             <Label>{t("settings.language")}</Label>
             <Select
               value={settings.language}
-              onValueChange={(value) => {
-                const language = value as LocaleCode
-                setSettings(
-                  language === "pap" &&
-                    (settings.timezone === "Europe/Amsterdam" ||
-                      settings.timezone === "America/Panama" ||
-                      settings.timezone === "America/Bogota")
-                    ? { language, timezone: "America/Curacao" }
-                    : { language }
-                )
-              }}
+              onValueChange={(value) => setSettings({ language: value as LocaleCode })}
             >
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -162,13 +151,6 @@ export function SetupPage() {
               </SelectContent>
             </Select>
           </label>
-          <div className="grid gap-1.5">
-            <Label htmlFor="timezone-country">{t("settings.timezone")}</Label>
-            <TimezoneCountrySelect
-              value={settings.timezone}
-              onChange={(timezone) => setSettings({ timezone })}
-            />
-          </div>
         </div>
       ) : null}
 

@@ -990,25 +990,6 @@ const messages = {
   "settings.theme.dark": { nl: "Donker", en: "Dark", es: "Oscuro", pap: "Skip" },
   "settings.theme.system": { nl: "Systeem", en: "System", es: "Sistema", pap: "Sistema" },
   "settings.created": { nl: "Account sinds", en: "Account created", es: "Cuenta creada", pap: "Kuenta kreá" },
-  "settings.timezone": { nl: "Land / tijdzone", en: "Country / timezone", es: "País / zona horaria", pap: "Pais / zona di tempu" },
-  "settings.timezoneSearch": {
-    nl: "Zoek een land…",
-    en: "Search a country…",
-    es: "Busca un país…",
-    pap: "Buska un pais…",
-  },
-  "settings.timezoneHint": {
-    nl: "{n} landen. Nu {time} ({offset}) in {country}.{nlNote}",
-    en: "{n} countries. Now {time} ({offset}) in {country}.{nlNote}",
-    es: "{n} países. Ahora {time} ({offset}) en {country}.{nlNote}",
-    pap: "{n} pais. Awor {time} ({offset}) na {country}.{nlNote}",
-  },
-  "settings.timezoneNlDelta": {
-    nl: " Nederland is {n} uur vooruit ({time}).",
-    en: " The Netherlands is {n} hours ahead ({time}).",
-    es: " Países Bajos va {n} horas adelante ({time}).",
-    pap: " Hulanda ta {n} ora dilanti ({time}).",
-  },
   "settings.highContrast": { nl: "Hoog contrast", en: "High contrast", es: "Alto contraste", pap: "Kontraste haltu" },
   "settings.deleteConfirm": {
     nl: "Dit verwijdert je account en planning in de cloud én op dit apparaat. Dit kan niet ongedaan worden gemaakt.",

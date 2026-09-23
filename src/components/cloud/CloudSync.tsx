@@ -18,15 +18,9 @@ export function CloudSync() {
     let cancelled = false
 
     async function hydrateFromCloud() {
-      const before = useAppStore.getState()
       const pulled = await cloudPull()
       if (cancelled || "error" in pulled) return
       const local = useAppStore.getState()
-      const editedDuringPull = local.settings !== before.settings || local.events !== before.events
-      if (editedDuringPull) {
-        await cloudPush(local.exportSnapshot())
-        return
-      }
       if (hasSavedPlanner(local) && (!pulled.snapshot || !hasSavedPlanner(pulled.snapshot))) {
         await cloudPush(local.exportSnapshot())
         return

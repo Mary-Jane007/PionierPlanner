@@ -30,7 +30,6 @@ import type { LocaleCode, ThemeMode } from "@/types"
 import { StartOverDialog } from "@/components/calendar/StartOverDialog"
 import { AccountSettings } from "@/components/profile/AccountSettings"
 import { ImportBackupButton } from "@/components/profile/ImportBackupButton"
-import { TimezoneCountrySelect } from "@/components/settings/TimezoneCountrySelect"
 
 export function ProfileBoard() {
   const t = useT()
@@ -121,13 +120,6 @@ export function ProfileBoard() {
             </SelectContent>
           </Select>
         </label>
-        <div className="grid gap-1.5">
-          <Label htmlFor="timezone-country">{t("settings.timezone")}</Label>
-          <TimezoneCountrySelect
-            value={settings.timezone}
-            onChange={(timezone) => setSettings({ timezone })}
-          />
-        </div>
       </section>
 
       <section className="card-quiet space-y-4 rounded-3xl p-6">
@@ -158,17 +150,7 @@ export function ProfileBoard() {
         <h2 className="font-heading text-2xl">{t("settings.language")}</h2>
         <Select
           value={settings.language}
-          onValueChange={(value) => {
-            const language = value as LocaleCode
-            setSettings(
-              language === "pap" &&
-                (settings.timezone === "Europe/Amsterdam" ||
-                  settings.timezone === "America/Panama" ||
-                  settings.timezone === "America/Bogota")
-                ? { language, timezone: "America/Curacao" }
-                : { language }
-            )
-          }}
+          onValueChange={(value) => setSettings({ language: value as LocaleCode })}
         >
           <SelectTrigger className="w-full">
             <SelectValue />

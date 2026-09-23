@@ -281,7 +281,6 @@ export function calculateMonthSnapshot(input: {
   month: number
   target: number
   now: Date
-  today?: string
 }): MonthSnapshot {
   const { events, year, month, target, now } = input
   const completed = calculateCompletedHours(events, year, month)
@@ -289,7 +288,7 @@ export function calculateMonthSnapshot(input: {
   const cancelled = calculateCancelledHours(events, year, month)
   const remaining = calculateRemainingHours(target, completed)
   const daysRemaining = daysLeftCount(now)
-  const today = input.today ?? isoDate(now)
+  const today = isoDate(now)
   const monthEvents = eventsInMonth(events, year, month).filter(
     (event) => isFieldService(event) && event.status === "completed"
   )

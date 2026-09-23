@@ -17,7 +17,6 @@ import {
   startOfDay,
 } from "date-fns"
 import { enUS, es, nl, type Locale } from "date-fns/locale"
-import { DEFAULT_TIMEZONE, resolveTimeZone, zonedDateParts } from "@/lib/timezones"
 import type { LocaleCode } from "@/types"
 
 export function dateLocale(lang: LocaleCode): Locale {
@@ -129,8 +128,8 @@ export function formatTimeRange(start: string, end: string): string {
   return `${start}–${end}`
 }
 
-export function greetingKey(date = new Date(), timeZone = DEFAULT_TIMEZONE): "morning" | "afternoon" | "evening" {
-  const hour = zonedDateParts(date, resolveTimeZone(timeZone)).hour
+export function greetingKey(date = new Date()): "morning" | "afternoon" | "evening" {
+  const hour = date.getHours()
   if (hour < 12) return "morning"
   if (hour < 18) return "afternoon"
   return "evening"
