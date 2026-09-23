@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
 import { formatHumanDate, formatMonthTitle, greetingKey } from "@/lib/dates"
-import { isoDateInZone, resolveTimeZone, zonedDateParts } from "@/lib/timezones"
+import { isoDateInZone, resolveTimeZone, zonedDateParts, formatTimeInZone } from "@/lib/timezones"
 import { useMonthSnapshot, useNow } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -50,8 +50,12 @@ export function TodayDashboard() {
           <h1 className="font-heading text-4xl sm:text-5xl">
             {t(`home.greeting.${greeting}`, { name: user?.name ?? "" })}
           </h1>
-          <p className="mt-1 capitalize text-muted-foreground">
-            {formatMonthTitle(zonedNow, lang)}
+          <p className="mt-1 text-muted-foreground">
+            <span className="capitalize">{formatMonthTitle(zonedNow, lang)}</span>
+            <span className="tabular-nums">
+              {" · "}
+              {formatTimeInZone(timezone, lang, now)}
+            </span>
           </p>
         </header>
 

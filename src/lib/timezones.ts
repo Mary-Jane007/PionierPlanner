@@ -285,6 +285,32 @@ const SEARCH_ALIASES: Record<string, string[]> = {
 
 export const DEFAULT_TIMEZONE = "Europe/Amsterdam"
 
+/** Minutes from UTC. Curaçao/Aruba/Bonaire stay on Atlantic time (UTC−4), no DST. */
+const FIXED_OFFSET_MINUTES: Record<string, number> = {
+  "America/Curacao": -4 * 60,
+  "America/Aruba": -4 * 60,
+  "America/Kralendijk": -4 * 60,
+  "America/Lower_Princes": -4 * 60,
+  "America/Puerto_Rico": -4 * 60,
+  "America/Port_of_Spain": -4 * 60,
+  "America/Barbados": -4 * 60,
+  "America/Santo_Domingo": -4 * 60,
+  "America/St_Thomas": -4 * 60,
+  "America/Tortola": -4 * 60,
+  "America/Antigua": -4 * 60,
+  "America/Anguilla": -4 * 60,
+  "America/Dominica": -4 * 60,
+  "America/Grenada": -4 * 60,
+  "America/Guadeloupe": -4 * 60,
+  "America/Martinique": -4 * 60,
+  "America/Montserrat": -4 * 60,
+  "America/St_Kitts": -4 * 60,
+  "America/St_Lucia": -4 * 60,
+  "America/St_Vincent": -4 * 60,
+  "America/St_Barthelemy": -4 * 60,
+  "America/Marigot": -4 * 60,
+}
+
 export type CountryTimezone = {
   code: string
   timezone: string
@@ -328,21 +354,72 @@ export function countryName(code: string, lang: LocaleCode): string {
   return code
 }
 
-export function timezoneOffsetLabel(timeZone: string, date = new Date()): string {
+function parseGmtOffsetMinutes(label: string): number | null {
+  const normalized = label.replace(/[−–]/g, "-")
+  const match = normalized.match(/([+-])(\d{1,2})(?::(\d{2}))?/)
+  if (!match) return null
+  const sign = match[1] === "-" ? -1 : 1
+  return sign * (Number(match[2]) * 60 + Number(match[3] || 0))
+}
+
+function intlOffsetMinutes(date: Date, timeZone: string): number | null {
   try {
     const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: resolveTimeZone(timeZone),
-      timeZoneName: "shortOffset",
+      timeZone,
+      timeZoneName: "longOffset",
       hour: "numeric",
       hour12: false,
     }).formatToParts(date)
-    return parts.find((part) => part.type === "timeZoneName")?.value || ""
+    const label = parts.find((part) => part.type === "timeZoneName")?.value || ""
+    return parseGmtOffsetMinutes(label)
   } catch {
-    return ""
+    return null
   }
 }
 
+export function zoneOffsetMinutes(date: Date, timeZone: string): number | null {
+  const tz = resolveTimeZone(timeZone)
+  if (Object.prototype.hasOwnProperty.call(FIXED_OFFSET_MINUTES, tz)) {
+    return FIXED_OFFSET_MINUTES[tz]
+  }
+  if (Object.prototype.hasOwnProperty.call(FIXED_OFFSET_MINUTES, timeZone)) {
+    return FIXED_OFFSET_MINUTES[timeZone]
+  }
+  return intlOffsetMinutes(date, tz)
+}
+
+function partsFromUtcOffset(date: Date, offsetMinutes: number) {
+  const shifted = new Date(date.getTime() + offsetMinutes * 60_000)
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+    hour: shifted.getUTCHours(),
+    minute: shifted.getUTCMinutes(),
+    second: shifted.getUTCSeconds(),
+  }
+}
+
+export function timezoneOffsetLabel(timeZone: string, date = new Date()): string {
+  const minutes = zoneOffsetMinutes(date, timeZone)
+  if (minutes == null) return ""
+  if (minutes === 0) return "GMT"
+  const sign = minutes < 0 ? "-" : "+"
+  const abs = Math.abs(minutes)
+  const hours = Math.floor(abs / 60)
+  const rest = abs % 60
+  if (rest === 0) return `GMT${sign}${hours}`
+  return `GMT${sign}${hours}:${String(rest).padStart(2, "0")}`
+}
+
 export function zonedDateParts(date: Date, timeZone: string) {
+  const requested = String(timeZone || "").trim()
+  const offset =
+    FIXED_OFFSET_MINUTES[requested] ??
+    zoneOffsetMinutes(date, requested) ??
+    zoneOffsetMinutes(date, resolveTimeZone(requested))
+  if (offset != null) return partsFromUtcOffset(date, offset)
+
   const tz = resolveTimeZone(timeZone)
   const formatted = new Intl.DateTimeFormat("sv-SE", {
     timeZone: tz,

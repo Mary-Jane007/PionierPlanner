@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { formatHoursLong } from "@/lib/format"
-import { isoDate, addHoursToTime } from "@/lib/dates"
-import { minutesBetween } from "@/lib/dates"
+import { isoDateInZone, formatTimeInZone } from "@/lib/timezones"
+import { addHoursToTime, minutesBetween } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
@@ -35,6 +35,7 @@ export function ServiceTimer() {
   const pauseTimer = useAppStore((s) => s.pauseTimer)
   const stopTimer = useAppStore((s) => s.stopTimer)
   const upsertEvent = useAppStore((s) => s.upsertEvent)
+  const timezone = useAppStore((s) => s.settings.timezone)
   const promptMs = useUiStore((s) => s.timerPromptMs)
   const setTimerPrompt = useUiStore((s) => s.setTimerPrompt)
   const [now, setNow] = useState(0)
@@ -99,10 +100,10 @@ export function ServiceTimer() {
                 }
                 const hours = promptMs / 3_600_000
                 const start = new Date()
-                start.setMinutes(start.getMinutes() - Math.round(hours * 60), 0, 0)
-                const startTime = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`
+                start.setTime(start.getTime() - Math.round(hours * 60) * 60_000)
+                const startTime = formatTimeInZone(timezone, lang, start)
                 const endTime = addHoursToTime(startTime, hours)
-                const date = isoDate(new Date())
+                const date = isoDateInZone(new Date(), timezone)
                 upsertEvent({
                   id: crypto.randomUUID(),
                   title: t("category.field_service"),

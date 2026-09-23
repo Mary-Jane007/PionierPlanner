@@ -10,7 +10,7 @@ export function useNow() {
   useEffect(() => {
     const tick = () => setNow(new Date())
     tick()
-    const timer = window.setInterval(tick, 10_000)
+    const timer = window.setInterval(tick, 1000)
     return () => window.clearInterval(timer)
   }, [])
   return now
