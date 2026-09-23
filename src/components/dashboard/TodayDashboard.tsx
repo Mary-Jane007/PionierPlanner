@@ -7,7 +7,8 @@ import { StartTimerButton } from "@/components/activities/ServiceTimer"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
-import { formatHumanDate, formatMonthTitle, greetingKey, isoDate } from "@/lib/dates"
+import { formatHumanDate, formatMonthTitle, greetingKey } from "@/lib/dates"
+import { isoDateInZone } from "@/lib/timezones"
 import { useMonthSnapshot } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -22,11 +23,12 @@ export function TodayDashboard() {
   const pioneerType = useAppStore((s) => s.pioneerType)
   const events = useAppStore((s) => s.events)
   const customTips = useAppStore((s) => s.customTips)
+  const timezone = useAppStore((s) => s.settings.timezone)
   const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
   const now = new Date()
-  const today = isoDate(now)
-  const greeting = greetingKey(now)
+  const today = isoDateInZone(now, timezone)
+  const greeting = greetingKey(now, timezone)
   const daily = getDailyContent(lang, now, customTips)
   const tip = getDailyTip(lang, now, customTips)
   const todayEvents = events
@@ -34,7 +36,7 @@ export function TodayDashboard() {
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
   const recommendedWeek = formatDecimal(snapshot.requiredWeekly, lang)
   const nextLabel = snapshot.next
-    ? `${snapshot.next.date === isoDate(new Date(now.getTime() + 86400000)) ? (lang === "en" ? "Tomorrow" : "Morgen") : formatHumanDate(new Date(`${snapshot.next.date}T12:00:00`), lang)} — ${snapshot.next.startTime}`
+    ? `${snapshot.next.date === isoDateInZone(new Date(now.getTime() + 86400000), timezone) ? (lang === "en" ? "Tomorrow" : "Morgen") : formatHumanDate(new Date(`${snapshot.next.date}T12:00:00`), lang)} — ${snapshot.next.startTime}`
     : t("home.noneNext")
 
   const bestStep = getBestStep(t, snapshot, lang)

@@ -990,7 +990,19 @@ const messages = {
   "settings.theme.dark": { nl: "Donker", en: "Dark", es: "Oscuro", pap: "Skip" },
   "settings.theme.system": { nl: "Systeem", en: "System", es: "Sistema", pap: "Sistema" },
   "settings.created": { nl: "Account sinds", en: "Account created", es: "Cuenta creada", pap: "Kuenta kreá" },
-  "settings.timezone": { nl: "Tijdzone", en: "Timezone", es: "Zona horaria", pap: "Zona di tempu" },
+  "settings.timezone": { nl: "Land / tijdzone", en: "Country / timezone", es: "País / zona horaria", pap: "Pais / zona di tempu" },
+  "settings.timezoneSearch": {
+    nl: "Zoek een land…",
+    en: "Search a country…",
+    es: "Busca un país…",
+    pap: "Buska un pais…",
+  },
+  "settings.timezoneHint": {
+    nl: "{n} landen. Nu {time} ({offset}) in de gekozen zone.",
+    en: "{n} countries. Now {time} ({offset}) in the selected zone.",
+    es: "{n} países. Ahora {time} ({offset}) en la zona elegida.",
+    pap: "{n} pais. Awor {time} ({offset}) den e zona skogé.",
+  },
   "settings.highContrast": { nl: "Hoog contrast", en: "High contrast", es: "Alto contraste", pap: "Kontraste haltu" },
   "settings.deleteConfirm": {
     nl: "Dit verwijdert je account en planning in de cloud én op dit apparaat. Dit kan niet ongedaan worden gemaakt.",

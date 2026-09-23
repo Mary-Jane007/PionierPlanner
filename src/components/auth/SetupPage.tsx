@@ -18,6 +18,7 @@ import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import type { LocaleCode, PioneerTypeId } from "@/types"
 import { Checkbox } from "@/components/ui/checkbox"
+import { TimezoneCountrySelect } from "@/components/settings/TimezoneCountrySelect"
 import { cn } from "@/lib/utils"
 
 export function SetupPage() {
@@ -151,13 +152,13 @@ export function SetupPage() {
               </SelectContent>
             </Select>
           </label>
-          <label className="grid gap-1.5">
-            <Label>{t("settings.timezone")}</Label>
-            <Input
+          <div className="grid gap-1.5">
+            <Label htmlFor="timezone-country">{t("settings.timezone")}</Label>
+            <TimezoneCountrySelect
               value={settings.timezone}
-              onChange={(e) => setSettings({ timezone: e.target.value })}
+              onChange={(timezone) => setSettings({ timezone })}
             />
-          </label>
+          </div>
         </div>
       ) : null}
 
