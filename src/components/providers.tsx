@@ -9,6 +9,36 @@ import { OfflineBanner } from "@/components/pwa/OfflineBanner"
 import { CloudSync } from "@/components/cloud/CloudSync"
 import { NativeShell } from "@/components/native/NativeShell"
 import { useAppStore } from "@/lib/store"
+import { DEFAULT_TIMEZONE } from "@/lib/timezones"
+
+function TimezoneSync() {
+  const hydrated = useAppStore((state) => state.hydrated)
+  const language = useAppStore((state) => state.settings.language)
+  const timezone = useAppStore((state) => state.settings.timezone)
+  const setSettings = useAppStore((state) => state.setSettings)
+
+  useEffect(() => {
+    if (!hydrated || language !== "pap") return
+    const keep =
+      timezone === "America/Curacao" ||
+      timezone === "America/Aruba" ||
+      timezone === "America/Kralendijk" ||
+      timezone === "America/Lower_Princes" ||
+      timezone === "America/Paramaribo"
+    if (keep) return
+    if (
+      timezone === DEFAULT_TIMEZONE ||
+      timezone === "America/Panama" ||
+      timezone === "America/Bogota" ||
+      timezone === "America/Lima" ||
+      timezone === "America/Jamaica"
+    ) {
+      setSettings({ timezone: "America/Curacao" })
+    }
+  }, [hydrated, language, timezone, setSettings])
+
+  return null
+}
 
 function ThemeSync() {
   const { setTheme } = useTheme()
@@ -45,6 +75,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <ThemeSync />
+        <TimezoneSync />
         <RegisterSW />
         <NativeShell />
         <OfflineBanner />

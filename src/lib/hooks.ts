@@ -11,7 +11,16 @@ export function useNow() {
     const tick = () => setNow(new Date())
     tick()
     const timer = window.setInterval(tick, 1000)
-    return () => window.clearInterval(timer)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    window.addEventListener("focus", tick)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener("visibilitychange", onVisible)
+      window.removeEventListener("focus", tick)
+    }
   }, [])
   return now
 }

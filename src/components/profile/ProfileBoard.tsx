@@ -158,7 +158,17 @@ export function ProfileBoard() {
         <h2 className="font-heading text-2xl">{t("settings.language")}</h2>
         <Select
           value={settings.language}
-          onValueChange={(value) => setSettings({ language: value as LocaleCode })}
+          onValueChange={(value) => {
+            const language = value as LocaleCode
+            setSettings(
+              language === "pap" &&
+                (settings.timezone === "Europe/Amsterdam" ||
+                  settings.timezone === "America/Panama" ||
+                  settings.timezone === "America/Bogota")
+                ? { language, timezone: "America/Curacao" }
+                : { language }
+            )
+          }}
         >
           <SelectTrigger className="w-full">
             <SelectValue />

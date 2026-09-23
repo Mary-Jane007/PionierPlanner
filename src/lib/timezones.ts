@@ -378,12 +378,15 @@ function intlOffsetMinutes(date: Date, timeZone: string): number | null {
 }
 
 export function zoneOffsetMinutes(date: Date, timeZone: string): number | null {
-  const tz = resolveTimeZone(timeZone)
+  const requested = String(timeZone || "").trim()
+  if (isAtlanticIslandZone(requested)) return -4 * 60
+  const tz = resolveTimeZone(requested)
+  if (isAtlanticIslandZone(tz)) return -4 * 60
   if (Object.prototype.hasOwnProperty.call(FIXED_OFFSET_MINUTES, tz)) {
     return FIXED_OFFSET_MINUTES[tz]
   }
-  if (Object.prototype.hasOwnProperty.call(FIXED_OFFSET_MINUTES, timeZone)) {
-    return FIXED_OFFSET_MINUTES[timeZone]
+  if (Object.prototype.hasOwnProperty.call(FIXED_OFFSET_MINUTES, requested)) {
+    return FIXED_OFFSET_MINUTES[requested]
   }
   return intlOffsetMinutes(date, tz)
 }
@@ -412,8 +415,21 @@ export function timezoneOffsetLabel(timeZone: string, date = new Date()): string
   return `GMT${sign}${hours}:${String(rest).padStart(2, "0")}`
 }
 
+function isAtlanticIslandZone(timeZone: string): boolean {
+  const key = timeZone.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  return (
+    key.includes("curacao") ||
+    key.includes("aruba") ||
+    key.includes("kralendijk") ||
+    key.includes("lower_princes") ||
+    key.includes("puerto_rico") ||
+    key.includes("port_of_spain")
+  )
+}
+
 export function zonedDateParts(date: Date, timeZone: string) {
   const requested = String(timeZone || "").trim()
+  if (isAtlanticIslandZone(requested)) return partsFromUtcOffset(date, -4 * 60)
   const offset =
     FIXED_OFFSET_MINUTES[requested] ??
     zoneOffsetMinutes(date, requested) ??
@@ -473,6 +489,17 @@ export function formatTimeInZone(timeZone: string, _lang: LocaleCode, date = new
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
 }
 
+export function formatClockInZone(timeZone: string, lang: LocaleCode, date = new Date()): string {
+  const { hour, minute } = zonedDateParts(date, timeZone)
+  const hour12 = ((hour + 11) % 12) + 1
+  const mm = String(minute).padStart(2, "0")
+  const pm = hour >= 12
+  if (lang === "en") return `${hour12}:${mm} ${pm ? "PM" : "AM"}`
+  if (lang === "es") return `${hour12}:${mm} ${pm ? "p. m." : "a. m."}`
+  if (lang === "pap") return `${hour12}:${mm} ${pm ? "pm" : "am"}`
+  return `${hour12}:${mm} ${pm ? "p.m." : "a.m."}`
+}
+
 export function isoDateInZone(date: Date, timeZone: string): string {
   const { year, month, day } = zonedDateParts(date, timeZone)
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
@@ -500,7 +527,14 @@ export function filterCountries(query: string, lang: LocaleCode): CountryTimezon
   const sorted = [...COUNTRY_TIMEZONES].sort((a, b) =>
     collator.compare(countryName(a.code, lang), countryName(b.code, lang))
   )
-  if (!needle) return sorted
+  if (!needle) {
+    const pinned = ["CW", "AW", "BQ", "SX", "SR", "NL"]
+    const head = pinned
+      .map((code) => sorted.find((country) => country.code === code))
+      .filter((country): country is CountryTimezone => Boolean(country))
+    const rest = sorted.filter((country) => !pinned.includes(country.code))
+    return [...head, ...rest]
+  }
   return sorted.filter((country) => {
     const name = countryName(country.code, lang).toLowerCase()
     const english = countryName(country.code, "en").toLowerCase()

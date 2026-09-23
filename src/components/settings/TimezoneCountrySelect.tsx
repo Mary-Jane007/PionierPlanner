@@ -9,7 +9,7 @@ import {
   countryOptionLabel,
   filterCountries,
   findCountryByTimezone,
-  formatTimeInZone,
+  formatClockInZone,
   timezoneOffsetLabel,
 } from "@/lib/timezones"
 import { cn } from "@/lib/utils"
@@ -44,7 +44,16 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
     const tick = () => setNow(new Date())
     tick()
     const timer = window.setInterval(tick, 1000)
-    return () => window.clearInterval(timer)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    window.addEventListener("focus", tick)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener("visibilitychange", onVisible)
+      window.removeEventListener("focus", tick)
+    }
   }, [])
 
   useEffect(() => {
@@ -65,7 +74,7 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
   }
 
   const clock = now ?? new Date()
-  const timeLabel = now ? formatTimeInZone(timezone, lang, clock) : "--:--"
+  const timeLabel = now ? formatClockInZone(timezone, lang, clock) : "--:--"
   const offsetLabel = now ? timezoneOffsetLabel(timezone, clock) : ""
   const countryLabel = selected ? countryName(selected.code, lang) : timezone
 
