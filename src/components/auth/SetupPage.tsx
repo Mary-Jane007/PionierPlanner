@@ -151,6 +151,13 @@ export function SetupPage() {
               </SelectContent>
             </Select>
           </label>
+          <label className="grid gap-1.5">
+            <Label>{t("settings.timezone")}</Label>
+            <Input
+              value={settings.timezone}
+              onChange={(e) => setSettings({ timezone: e.target.value })}
+            />
+          </label>
         </div>
       ) : null}
 

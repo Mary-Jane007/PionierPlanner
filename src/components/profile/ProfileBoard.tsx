@@ -120,6 +120,13 @@ export function ProfileBoard() {
             </SelectContent>
           </Select>
         </label>
+        <label className="grid gap-1.5">
+          <Label>{t("settings.timezone")}</Label>
+          <Input
+            value={settings.timezone}
+            onChange={(e) => setSettings({ timezone: e.target.value })}
+          />
+        </label>
       </section>
 
       <section className="card-quiet space-y-4 rounded-3xl p-6">
