@@ -36,6 +36,18 @@ export const activitySchema = z
     path: ["endTime"],
   })
 
+export const followUpSchema = z.object({
+  name: z.string().min(1).max(80),
+  kind: z.enum(["return_visit", "bible_study"]),
+  address: z.string().max(160).optional(),
+  phone: z.string().max(40).optional(),
+  language: z.string().max(40).optional(),
+  publication: z.string().max(160).optional(),
+  nextDate: z.string().optional(),
+  notes: z.string().max(20000).optional(),
+  status: z.enum(["active", "paused", "done"]),
+})
+
 export const experienceSchema = z.object({
   title: z.string().min(1).max(120),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

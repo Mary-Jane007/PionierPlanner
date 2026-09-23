@@ -45,6 +45,37 @@ export type CommitmentType =
   | "appointment"
   | "other"
 export type ExperienceVisibility = "private" | "share_ready"
+export type FollowUpKind = "return_visit" | "bible_study"
+export type FollowUpStatus = "active" | "paused" | "done"
+
+export interface FollowUpQuestion {
+  id: string
+  question: string
+  answer: string
+}
+
+export interface FollowUpVisit {
+  id: string
+  date: string
+  notes: string
+}
+
+export interface FollowUp {
+  id: string
+  kind: FollowUpKind
+  name: string
+  address?: string
+  phone?: string
+  language?: string
+  publication?: string
+  nextDate?: string
+  notes: string
+  questions: FollowUpQuestion[]
+  visits: FollowUpVisit[]
+  status: FollowUpStatus
+  createdAt: string
+  updatedAt: string
+}
 
 export interface PioneerProfileConfig {
   id: PioneerTypeId
