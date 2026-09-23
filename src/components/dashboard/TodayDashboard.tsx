@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
 import { formatHumanDate, formatMonthTitle, greetingKey } from "@/lib/dates"
-import { isoDateInZone } from "@/lib/timezones"
+import { isoDateInZone, resolveTimeZone, zonedDateParts } from "@/lib/timezones"
 import { useMonthSnapshot, useNow } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -23,14 +23,16 @@ export function TodayDashboard() {
   const pioneerType = useAppStore((s) => s.pioneerType)
   const events = useAppStore((s) => s.events)
   const customTips = useAppStore((s) => s.customTips)
-  const timezone = useAppStore((s) => s.settings.timezone)
+  const timezone = resolveTimeZone(useAppStore((s) => s.settings.timezone))
   const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
   const now = useNow()
+  const parts = zonedDateParts(now, timezone)
+  const zonedNow = new Date(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second)
   const today = isoDateInZone(now, timezone)
   const greeting = greetingKey(now, timezone)
-  const daily = getDailyContent(lang, now, customTips)
-  const tip = getDailyTip(lang, now, customTips)
+  const daily = getDailyContent(lang, zonedNow, customTips)
+  const tip = getDailyTip(lang, zonedNow, customTips)
   const todayEvents = events
     .filter((event) => event.date === today && event.status !== "cancelled")
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -49,7 +51,7 @@ export function TodayDashboard() {
             {t(`home.greeting.${greeting}`, { name: user?.name ?? "" })}
           </h1>
           <p className="mt-1 capitalize text-muted-foreground">
-            {formatMonthTitle(now, lang)}
+            {formatMonthTitle(zonedNow, lang)}
           </p>
         </header>
 
