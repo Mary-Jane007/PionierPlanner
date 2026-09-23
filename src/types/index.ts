@@ -46,7 +46,21 @@ export type CommitmentType =
   | "other"
 export type ExperienceVisibility = "private" | "share_ready"
 export type FollowUpKind = "return_visit" | "bible_study"
-export type FollowUpStatus = "active" | "paused" | "done"
+export type FollowUpContactType = "first_conversation" | "return_visit" | "bible_study"
+export type FollowUpStatus =
+  | "new"
+  | "planned"
+  | "regular"
+  | "bible_study"
+  | "not_interested"
+  | "try_later"
+export type FollowUpMaterialKind =
+  | "bible"
+  | "publication"
+  | "article"
+  | "video"
+  | "jw_link"
+  | "other"
 
 export interface FollowUpQuestion {
   id: string
@@ -60,15 +74,76 @@ export interface FollowUpVisit {
   notes: string
 }
 
+export interface FollowUpConversation {
+  topic: string
+  theySaid: string
+  interest: string
+  openQuestion: string
+  reaction: string
+  date?: string
+}
+
+export interface FollowUpScripture {
+  id: string
+  book: string
+  verse: string
+  why: string
+  reaction: string
+}
+
+export interface FollowUpNextQuestion {
+  question: string
+  scripture: string
+  topic: string
+  material: string
+}
+
+export interface FollowUpStudy {
+  date: string
+  publication: string
+  lesson: string
+  paragraphs: string
+  topic: string
+  understood: string
+  difficult: string
+  questions: string
+  textsDiscussed: string
+  textThatTouched: string
+  apply: string
+  agreed: string
+  nextLesson: string
+  nextTopic: string
+  nextQuestion: string
+  nextTexts: string
+}
+
 export interface FollowUp {
   id: string
   kind: FollowUpKind
+  contactType: FollowUpContactType
   name: string
   address?: string
   phone?: string
   language?: string
+  firstTalkDate?: string
+  firstTalkTime?: string
+  family?: string
+  background?: string
+  interests?: string
+  concerns?: string
   publication?: string
   nextDate?: string
+  nextTime?: string
+  nextLocation?: string
+  nextPurpose?: string
+  reminder: boolean
+  calendarEventId?: string
+  conversation: FollowUpConversation
+  scriptures: FollowUpScripture[]
+  materials: FollowUpMaterialKind[]
+  materialDetail?: string
+  nextQuestion: FollowUpNextQuestion
+  study: FollowUpStudy
   notes: string
   questions: FollowUpQuestion[]
   visits: FollowUpVisit[]
@@ -145,6 +220,7 @@ export interface CalendarEvent {
   location?: string
   notes?: string
   status: ActivityStatus
+  followUpId?: string
   createdAt: string
   updatedAt: string
 }

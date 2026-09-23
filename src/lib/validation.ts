@@ -45,7 +45,7 @@ export const followUpSchema = z.object({
   publication: z.string().max(160).optional(),
   nextDate: z.string().optional(),
   notes: z.string().max(20000).optional(),
-  status: z.enum(["active", "paused", "done"]),
+  status: z.enum(["new", "planned", "regular", "bible_study", "not_interested", "try_later"]),
 })
 
 export const experienceSchema = z.object({
