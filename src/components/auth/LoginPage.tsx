@@ -6,16 +6,17 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Logo } from "@/components/brand/Logo"
 import { PageLoader } from "@/components/layout/PageLoader"
 import { buttonVariants } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import {
   demoProfile,
-  rememberEmail,
+  rememberEmailIfSaved,
   rememberedEmail,
   registerAccount,
   resetAccountPassword,
+  saveLoginOnDevice,
+  setSaveLoginOnDevice,
   signInAccount,
-  signInWithGoogle,
-  storedAccountCount,
 } from "@/lib/auth"
 import { cloudAvailable } from "@/lib/cloud"
 import { useT } from "@/lib/i18n"
@@ -35,19 +36,24 @@ export function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [saveOnDevice, setSaveOnDevice] = useState(false)
   const [error, setError] = useState("")
-  const [googleError, setGoogleError] = useState("")
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
   const [cloudOn, setCloudOn] = useState(true)
   const login = useAppStore((s) => s.login)
   const user = useAppStore((s) => s.user)
+  const lastUser = useAppStore((s) => s.lastUser)
   const onboarded = useAppStore((s) => s.onboarded)
   const hydrated = useAppStore((s) => s.hydrated)
   const savedPlanner = useAppStore((s) => hasSavedPlanner(s))
+  const realPlannerSaved = savedPlanner && lastUser?.id && lastUser.id !== "demo-user"
 
   useEffect(() => {
     if (!hydrated) return
+    const keep = saveLoginOnDevice()
+    setSaveOnDevice(keep)
+    if (!keep) return
     const stored = rememberedEmail()
     if (!stored) return
     setEmail(stored)
@@ -68,17 +74,19 @@ export function LoginPage() {
   function switchMode(next: AuthMode) {
     setMode(next)
     setError("")
-    setGoogleError("")
     setNotice("")
     setPassword("")
     setConfirmPassword("")
+  }
+
+  function applySaveChoice() {
+    setSaveLoginOnDevice(saveOnDevice)
   }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
     if (pending) return
     setError("")
-    setGoogleError("")
     setNotice("")
     setPending(true)
     try {
@@ -104,6 +112,7 @@ export function LoginPage() {
         setNotice(t("auth.resetSuccess"))
         return
       }
+      applySaveChoice()
       const result =
         mode === "signup"
           ? await registerAccount(name, email, password)
@@ -121,7 +130,7 @@ export function LoginPage() {
         return
       }
       const profile = result.profile
-      rememberEmail(profile.email)
+      rememberEmailIfSaved(profile.email)
       login(profile, { fresh: mode === "signup", snapshot: result.snapshot ?? null })
       goToApp(useAppStore.getState().onboarded)
     } catch {
@@ -132,44 +141,11 @@ export function LoginPage() {
   }
 
   function openDemo() {
+    if (realPlannerSaved) return
     setError("")
-    setGoogleError("")
     setNotice("")
-    const profile = demoProfile()
-    rememberEmail(profile.email)
-    login(profile, { demo: true })
+    login(demoProfile(), { demo: true })
     goToApp(true)
-  }
-
-  async function continueWithGoogle() {
-    if (pending) return
-    setError("")
-    setGoogleError("")
-    setNotice("")
-    setPending(true)
-    try {
-      const result = await signInWithGoogle()
-      if ("error" in result) {
-        setGoogleError(
-          result.error === "cancelled"
-            ? t("auth.googleCancelled")
-            : result.error === "google"
-              ? t("auth.googleMissing")
-              : t("auth.googleFailed")
-        )
-        return
-      }
-      rememberEmail(result.profile.email)
-      login(result.profile, {
-        fresh: result.created,
-        snapshot: result.snapshot ?? null,
-      })
-      goToApp(useAppStore.getState().onboarded)
-    } catch {
-      setGoogleError(t("auth.googleFailed"))
-    } finally {
-      setPending(false)
-    }
   }
 
   if (!hydrated || (user && onboarded)) {
@@ -193,25 +169,13 @@ export function LoginPage() {
             ? cloudOn
               ? t("auth.resetCloud")
               : t("auth.resetHint")
-            : cloudOn
-              ? t("auth.cloudNote")
-              : t("auth.localNote")}
+            : t("auth.privateNote")}
         </p>
-        {mode !== "reset" ? (
-          <p className="mt-2 text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
-        ) : null}
-        {mode !== "reset" && savedPlanner ? (
-          <p className="mt-2 text-sm text-muted-foreground">{t("auth.savedPlannerHint")}</p>
-        ) : null}
-        {mode === "signin" && cloudOn === false ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {storedAccountCount() === 0
-              ? t("auth.noLocalAccounts")
-              : t("auth.localAccounts", { n: storedAccountCount() })}
-          </p>
+        {mode !== "reset" && realPlannerSaved ? (
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.signInForPlanner")}</p>
         ) : null}
 
-        {mode !== "reset" ? (
+        {mode !== "reset" && !realPlannerSaved ? (
           <button
             className={cn(buttonVariants(), "mt-8 h-11 rounded-xl")}
             onClick={openDemo}
@@ -220,7 +184,9 @@ export function LoginPage() {
           >
             {t(savedPlanner ? "auth.demoContinue" : "auth.demo")}
           </button>
-        ) : null}
+        ) : (
+          <div className={mode !== "reset" ? "mt-8" : undefined} />
+        )}
 
         <div className="relative my-8 text-center text-xs tracking-[0.16em] text-muted-foreground uppercase">
           <span className="bg-background px-3">
@@ -256,7 +222,7 @@ export function LoginPage() {
               className={fieldClass}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
+              autoComplete={saveOnDevice ? "username" : "off"}
               required
             />
           </label>
@@ -287,7 +253,19 @@ export function LoginPage() {
                 minLength={6}
               />
             </label>
-          ) : null}
+          ) : (
+            <label className="flex items-start gap-3 rounded-xl border border-border bg-card px-3 py-3">
+              <Checkbox
+                className="mt-0.5"
+                checked={saveOnDevice}
+                onCheckedChange={(checked) => setSaveOnDevice(Boolean(checked))}
+              />
+              <span className="grid gap-1">
+                <span className="text-sm font-medium leading-snug">{t("auth.saveOnDevice")}</span>
+                <span className="text-xs text-muted-foreground">{t("auth.saveOnDeviceHint")}</span>
+              </span>
+            </label>
+          )}
           {error ? (
             <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
               {error}
@@ -305,7 +283,7 @@ export function LoginPage() {
                 : mode === "reset"
                   ? t("auth.passwordHint")
                   : cloudOn
-                    ? t("auth.cloudNote")
+                    ? t("auth.signinHintCloud")
                     : t("auth.localNote")}
             </p>
           )}
@@ -343,25 +321,6 @@ export function LoginPage() {
               if (signedIn) goToApp(useAppStore.getState().onboarded)
             }}
           />
-        ) : null}
-
-        {mode !== "reset" ? (
-          <>
-            <button
-              className={cn(buttonVariants({ variant: "outline" }), "mt-3 h-11 rounded-xl")}
-              type="button"
-              onClick={() => void continueWithGoogle()}
-              disabled={pending}
-            >
-              {pending ? t("common.loading") : t("auth.google")}
-            </button>
-            <p className="mt-2 text-xs text-muted-foreground">{t("auth.googleHint")}</p>
-            {googleError ? (
-              <p className="mt-2 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
-                {googleError}
-              </p>
-            ) : null}
-          </>
         ) : null}
 
         <button

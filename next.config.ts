@@ -12,7 +12,6 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL ||
       (isGithubPages ? "https://pionierplanner.onrender.com" : ""),
-    NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
   },
   // Phone previews, tunnels, and GitHub Pages hosts besides localhost.
   allowedDevOrigins: [

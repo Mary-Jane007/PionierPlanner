@@ -1,10 +1,9 @@
 "use client"
 
-import { ACCOUNTS_KEY, LAST_EMAIL_KEY } from "@/lib/constants"
+import { ACCOUNTS_KEY, LAST_EMAIL_KEY, SAVE_LOGIN_KEY } from "@/lib/constants"
 import {
   cloudAvailable,
   cloudDeleteAccount,
-  cloudGoogleLogin,
   cloudLogin,
   cloudRegister,
   cloudToken,
@@ -13,13 +12,6 @@ import {
   clearCloudSession,
   type PlannerSnapshot,
 } from "@/lib/cloud"
-import {
-  disableGoogleAutoSelect,
-  fetchGoogleIdentity,
-  identityFromCredential,
-  requestGoogleAuth,
-  type GoogleIdentity,
-} from "@/lib/google-auth"
 import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type { UserAccount, UserProfile } from "@/types"
 
@@ -29,7 +21,7 @@ export type AuthSuccess = {
 }
 
 export type AuthFailure = {
-  error: "invalid" | "missing" | "exists" | "weak" | "offline" | "cloud" | "server" | "cancelled" | "google"
+  error: "invalid" | "missing" | "exists" | "weak" | "offline" | "cloud" | "server"
 }
 
 async function sha256Hash(password: string): Promise<string | null> {
@@ -129,7 +121,6 @@ export async function registerAccount(
       return { error: "server" }
     }
     await cacheLocalAccount(created.profile, password)
-    rememberEmail(created.profile.email)
     return { profile: created.profile, snapshot: null }
   }
 
@@ -188,130 +179,21 @@ export function mergeStoredAccounts(incoming: UserAccount[]) {
 const DEMO_EMAIL = "demo@pioniersplanner.app"
 const DEMO_USER_ID = "demo-user"
 
-function isDemoAccount(account: { id?: string; email?: string } | null | undefined) {
-  if (!account) return false
-  return account.id === DEMO_USER_ID || account.email?.trim().toLowerCase() === DEMO_EMAIL
+export function saveLoginOnDevice(): boolean {
+  return getDurable(SAVE_LOGIN_KEY) === "1"
 }
 
-function findLocalGoogleAccount(
-  accounts: UserAccount[],
-  identity: { id?: string; email: string; googleSub: string }
-): UserAccount | undefined {
-  const email = identity.email.trim().toLowerCase()
-  const bySub = accounts.find(
-    (account) => account.googleSub === identity.googleSub && !isDemoAccount(account)
-  )
-  if (bySub) return bySub
-  if (identity.id && identity.id !== DEMO_USER_ID) {
-    const byId = accounts.find((account) => account.id === identity.id && !isDemoAccount(account))
-    if (byId && (!byId.googleSub || byId.googleSub === identity.googleSub)) return byId
-  }
-  return accounts.find(
-    (account) =>
-      account.email === email &&
-      !isDemoAccount(account) &&
-      (!account.googleSub || account.googleSub === identity.googleSub)
-  )
-}
-
-function cacheGoogleLocal(profile: UserProfile, googleSub: string) {
-  if (isDemoAccount(profile) || !googleSub) return
-  const current = readAccounts()
-  const previous = findLocalGoogleAccount(current, {
-    id: profile.id,
-    email: profile.email,
-    googleSub,
-  })
-  const stored: UserAccount = {
-    id: previous?.id && previous.id !== DEMO_USER_ID ? previous.id : profile.id,
-    email: profile.email,
-    name: profile.name,
-    passwordHash:
-      previous && !previous.passwordHash.startsWith("google:")
-        ? previous.passwordHash
-        : `google:${googleSub}`,
-    googleSub,
-    createdAt: previous?.createdAt || profile.createdAt,
-  }
-  if (!previous) writeAccounts([...current, stored])
+export function setSaveLoginOnDevice(save: boolean) {
+  if (save) setDurable(SAVE_LOGIN_KEY, "1")
   else {
-    writeAccounts(current.map((account) => (account.id === previous.id ? stored : account)))
+    removeDurable(SAVE_LOGIN_KEY)
+    forgetRememberedEmail()
   }
 }
 
-export function upsertLocalGoogleAccount(identity: GoogleIdentity): {
-  profile: UserProfile
-  created: boolean
-} {
-  const email = identity.email.trim().toLowerCase()
-  const accounts = readAccounts()
-  const existing = findLocalGoogleAccount(accounts, {
-    email,
-    googleSub: identity.sub,
-  })
-  if (existing) {
-    const updated: UserAccount = {
-      ...existing,
-      email,
-      name: identity.name.trim() || existing.name,
-      googleSub: identity.sub,
-    }
-    writeAccounts(accounts.map((account) => (account.id === existing.id ? updated : account)))
-    return { profile: toProfile(updated), created: false }
-  }
-  const account: UserAccount = {
-    id: crypto.randomUUID(),
-    email,
-    name: identity.name.trim() || email.split("@")[0],
-    passwordHash: `google:${identity.sub}`,
-    googleSub: identity.sub,
-    createdAt: new Date().toISOString(),
-  }
-  writeAccounts([...accounts, account])
-  return { profile: toProfile(account), created: true }
-}
-
-function isBlockedGoogleProfile(identity: { id?: string; email?: string } | null) {
-  if (!identity) return true
-  return isDemoAccount(identity)
-}
-
-export async function signInWithGoogle(): Promise<
-  (AuthSuccess & { created: boolean }) | AuthFailure
-> {
-  disableGoogleAutoSelect()
-  const auth = await requestGoogleAuth()
-  if ("error" in auth) return auth
-
-  const online = await cloudAvailable()
-  if (online) {
-    const result = await cloudGoogleLogin(
-      "credential" in auth ? { credential: auth.credential } : { accessToken: auth.accessToken }
-    )
-    if (!("error" in result)) {
-      if (isBlockedGoogleProfile(result.profile) || !result.googleSub) return { error: "invalid" }
-      cacheGoogleLocal(result.profile, result.googleSub)
-      rememberEmail(result.profile.email)
-      return {
-        profile: result.profile,
-        snapshot: result.snapshot,
-        created: result.created,
-      }
-    }
-    if (result.error !== "offline") {
-      return { error: result.error === "invalid" ? "invalid" : "server" }
-    }
-  }
-
-  const identity =
-    "credential" in auth
-      ? identityFromCredential(auth.credential)
-      : await fetchGoogleIdentity(auth.accessToken)
-  if (!identity || isBlockedGoogleProfile(identity)) return { error: "invalid" }
-  const local = upsertLocalGoogleAccount(identity)
-  if (isBlockedGoogleProfile(local.profile)) return { error: "invalid" }
-  rememberEmail(local.profile.email)
-  return { profile: local.profile, snapshot: null, created: local.created }
+export function rememberEmailIfSaved(email: string) {
+  if (saveLoginOnDevice()) rememberEmail(email)
+  else forgetRememberedEmail()
 }
 
 export async function signInAccount(
@@ -323,7 +205,6 @@ export async function signInAccount(
     const result = await cloudLogin({ email, password })
     if (!("error" in result)) {
       await cacheLocalAccount(result.profile, password)
-      rememberEmail(result.profile.email)
       return { profile: result.profile, snapshot: result.snapshot }
     }
     if (result.error === "missing" || result.error === "invalid") return { error: result.error }
@@ -533,7 +414,7 @@ export async function deleteStoredAccount(userId: string) {
   const remaining = readAccounts().filter((account) => account.id !== userId)
   writeAccounts(remaining)
   clearCloudSession()
-  disableGoogleAutoSelect()
+  setSaveLoginOnDevice(false)
   const last = rememberedEmail()
   if (last && !remaining.some((account) => account.email === last)) {
     forgetRememberedEmail()

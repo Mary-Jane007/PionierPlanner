@@ -1,6 +1,6 @@
 "use client"
 
-import { CLOUD_TOKEN_KEY, LAST_EMAIL_KEY } from "@/lib/constants"
+import { CLOUD_TOKEN_KEY } from "@/lib/constants"
 import { getDurable, removeDurable, setDurable } from "@/lib/durable-storage"
 import type {
   ActivityCategory,
@@ -119,48 +119,7 @@ export async function cloudRegister(input: {
   if ("error" in result) return result
   if (!result.profile || !result.token) return { error: "server" }
   setCloudToken(result.token)
-  if (result.profile.email) setDurable(LAST_EMAIL_KEY, result.profile.email)
   return result
-}
-
-export async function cloudGoogleLogin(input: {
-  accessToken?: string
-  credential?: string
-}): Promise<
-  | {
-      profile: UserProfile
-      token: string
-      snapshot: PlannerSnapshot | null
-      created: boolean
-      googleSub: string
-    }
-  | CloudFail
-> {
-  const result = await request<{
-    profile: UserProfile
-    token: string
-    snapshot: PlannerSnapshot | null
-    created?: boolean
-    googleSub?: string
-  }>(
-    "/google",
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-    ""
-  )
-  if ("error" in result) return result
-  if (!result.profile || !result.token || !result.googleSub) return { error: "server" }
-  setCloudToken(result.token)
-  if (result.profile.email) setDurable(LAST_EMAIL_KEY, result.profile.email)
-  return {
-    profile: result.profile,
-    token: result.token,
-    snapshot: result.snapshot ?? null,
-    created: Boolean(result.created),
-    googleSub: result.googleSub,
-  }
 }
 
 export async function cloudLogin(input: {
@@ -178,7 +137,6 @@ export async function cloudLogin(input: {
   if ("error" in result) return result
   if (!result.profile || !result.token) return { error: "server" }
   setCloudToken(result.token)
-  if (result.profile.email) setDurable(LAST_EMAIL_KEY, result.profile.email)
   return result
 }
 

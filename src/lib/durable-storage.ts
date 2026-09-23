@@ -6,6 +6,7 @@ import {
   ACCOUNTS_KEY,
   CLOUD_TOKEN_KEY,
   LAST_EMAIL_KEY,
+  SAVE_LOGIN_KEY,
   STORAGE_KEY,
 } from "@/lib/constants"
 
@@ -13,6 +14,7 @@ export const DURABLE_KEYS = [
   STORAGE_KEY,
   ACCOUNTS_KEY,
   LAST_EMAIL_KEY,
+  SAVE_LOGIN_KEY,
   CLOUD_TOKEN_KEY,
 ] as const
 

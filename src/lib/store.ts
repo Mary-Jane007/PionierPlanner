@@ -22,9 +22,8 @@ import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } 
 import { detectScheduleConflict, historyFromEvents } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
-import { rememberEmail, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
+import { rememberEmail, saveLoginOnDevice, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
 import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
-import { disableGoogleAutoSelect } from "@/lib/google-auth"
 import { flushDurableStorage, removeDurable, zustandDurableStorage } from "@/lib/durable-storage"
 import type { PioneerTip } from "@/lib/tips"
 
@@ -205,16 +204,20 @@ export const useAppStore = create<AppState>()(
       customTips: [],
       setHydrated: (value) => set({ hydrated: value }),
       login: (profile, options) => {
-        if (profile.email) rememberEmail(profile.email)
+        if (profile.email && profile.id !== "demo-user" && saveLoginOnDevice()) {
+          rememberEmail(profile.email)
+        }
         const persistSoon = () => {
           queueMicrotask(() => {
             void flushDurableStorage()
           })
         }
-        const keepPlanner =
-          hasSavedPlanner(get()) && (Boolean(options?.demo) || plannerBelongsToUser(get(), profile))
+        const keepPlanner = hasSavedPlanner(get()) && plannerBelongsToUser(get(), profile)
 
         if (options?.demo && !keepPlanner) {
+          if (hasSavedPlanner(get()) && get().activeProfileId && get().activeProfileId !== "demo-user") {
+            return
+          }
           const data = createDemoData()
           set({
             user: {
@@ -290,7 +293,6 @@ export const useAppStore = create<AppState>()(
       logout: () => {
         const current = get().user
         clearCloudSession()
-        disableGoogleAutoSelect()
         set({
           user: null,
           lastUser: current ?? get().lastUser,
@@ -305,7 +307,7 @@ export const useAppStore = create<AppState>()(
         const next = { ...user, ...patch }
         set({ user: next, lastUser: next })
         if (patch.name !== undefined) updateStoredAccountName(user.id, next.name)
-        if (patch.email !== undefined && next.email) rememberEmail(next.email)
+        if (patch.email !== undefined && next.email && saveLoginOnDevice()) rememberEmail(next.email)
       },
       setPioneerGoal: (type, hours) => {
         const now = new Date()
@@ -559,7 +561,7 @@ export const useAppStore = create<AppState>()(
           timer: idleTimer,
           hydrated: true,
         })
-        if (user?.email) rememberEmail(user.email)
+        if (user?.email && saveLoginOnDevice()) rememberEmail(user.email)
         void flushDurableStorage()
         return { ok: true, signedIn: Boolean(user) }
       },
@@ -659,12 +661,11 @@ export const useAppStore = create<AppState>()(
             timer: idleTimer,
           })
         }
-        if (user.email) rememberEmail(user.email)
+        if (user.email && saveLoginOnDevice()) rememberEmail(user.email)
       },
       deleteAccountLocal: () => {
         removeDurable(LAST_EMAIL_KEY)
         clearCloudSession()
-        disableGoogleAutoSelect()
         set({
           user: null,
           lastUser: null,
@@ -689,7 +690,7 @@ export const useAppStore = create<AppState>()(
       skipHydration: true,
       storage: createJSONStorage(() => zustandDurableStorage),
       partialize: (state) => ({
-        user: state.user,
+        user: saveLoginOnDevice() && state.user?.id !== "demo-user" ? state.user : null,
         lastUser: state.lastUser,
         activeProfileId: state.activeProfileId,
         onboarded: state.onboarded,
@@ -715,6 +716,9 @@ export const useAppStore = create<AppState>()(
         }
       },
       onRehydrateStorage: () => (state) => {
+        if (!saveLoginOnDevice()) {
+          clearCloudSession()
+        }
         state?.setHydrated(true)
       },
     }
