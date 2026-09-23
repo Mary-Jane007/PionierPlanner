@@ -125,7 +125,7 @@ export function FollowUpDialog({
             <Label>{t("follow.contact")}</Label>
             <Select value={contactType} onValueChange={(value) => setContactType(value as FollowUpContactType)}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>{t(`follow.contact.${contactType}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="first_conversation">{t("follow.contact.first_conversation")}</SelectItem>
