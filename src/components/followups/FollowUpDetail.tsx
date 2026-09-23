@@ -21,13 +21,6 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   emptyScripture,
   FOLLOW_MATERIALS,
   FOLLOW_STATUSES,
@@ -153,24 +146,24 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
             <Input value={current.name} onChange={(e) => patch({ name: e.target.value })} />
           </Field>
           <Field label={t("follow.status")}>
-            <Select value={current.status} onValueChange={(value) => patch({ status: value as FollowUpStatus })}>
-              <SelectTrigger className="w-full">
-                <SelectValue>{t(`follow.status.${current.status}`)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {FOLLOW_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {t(`follow.status.${status}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              className={selectClass}
+              value={current.status}
+              onChange={(e) => patch({ status: e.target.value as FollowUpStatus })}
+            >
+              {FOLLOW_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {t(`follow.status.${status}`)}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label={t("follow.contact")}>
-            <Select
+            <select
+              className={selectClass}
               value={current.contactType}
-              onValueChange={(value) => {
-                const contactType = value as FollowUpContactType
+              onChange={(e) => {
+                const contactType = e.target.value as FollowUpContactType
                 patch({
                   contactType,
                   kind: contactType === "bible_study" ? "bible_study" : "return_visit",
@@ -178,15 +171,10 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
                 })
               }}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue>{t(`follow.contact.${current.contactType}`)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="first_conversation">{t("follow.contact.first_conversation")}</SelectItem>
-                <SelectItem value="return_visit">{t("follow.contact.return_visit")}</SelectItem>
-                <SelectItem value="bible_study">{t("follow.contact.bible_study")}</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="first_conversation">{t("follow.contact.first_conversation")}</option>
+              <option value="return_visit">{t("follow.contact.return_visit")}</option>
+              <option value="bible_study">{t("follow.contact.bible_study")}</option>
+            </select>
           </Field>
           <Field label={t("follow.firstTalk")}>
             <Input
@@ -565,3 +553,6 @@ function Field({
     </div>
   )
 }
+
+const selectClass =
+  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
