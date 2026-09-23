@@ -1030,6 +1030,7 @@ const messages = {
     pap: "No tin revisita ni estudio planeá e siman aki.",
   },
   "follow.viewAll": { nl: "Open overzicht", en: "Open overview", es: "Abrir listado", pap: "Habri overzicht" },
+  "follow.open": { nl: "Openen", en: "Open", es: "Abrir", pap: "Habri" },
   "follow.expLink": {
     nl: "Nabezoeken en studies hebben nu een eigen pagina, met aantekeningen en vragen.",
     en: "Return visits and studies now have their own page, with notes and questions.",

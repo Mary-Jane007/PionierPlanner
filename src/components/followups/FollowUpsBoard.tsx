@@ -132,7 +132,7 @@ export function FollowUpsBoard() {
                 ) : null}
                 <div className="mt-4 flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => openItem(item.id)}>
-                    {t("activity.edit")}
+                    {t("follow.open")}
                   </Button>
                   <ConfirmDeleteButton
                     title={t("activity.delete")}
