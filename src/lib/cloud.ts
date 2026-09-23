@@ -8,6 +8,7 @@ import type {
   CalendarEvent,
   Commitment,
   Experience,
+  FollowUp,
   HistoricalMonth,
   MonthlyGoal,
   PioneerTypeId,
@@ -30,6 +31,7 @@ export type PlannerSnapshot = {
   availability: AvailabilitySlot[]
   commitments: Commitment[]
   experiences: Experience[]
+  followUps?: FollowUp[]
   history: HistoricalMonth[]
   settings: UserSettings | unknown
   hiddenCategories: ActivityCategory[]

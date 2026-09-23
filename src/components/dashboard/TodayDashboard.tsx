@@ -6,8 +6,9 @@ import { TimelineItem } from "@/components/calendar/CalendarBoard"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
+import { dueSoon, isOverdue, sortFollowUps } from "@/lib/followups"
 import { formatDecimal, formatPercent } from "@/lib/format"
-import { formatHumanDate, formatMonthTitle, greetingKey, isoDate } from "@/lib/dates"
+import { formatHumanDate, formatMonthTitle, greetingKey, isoDate, parseDate } from "@/lib/dates"
 import { useMonthSnapshot } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -21,6 +22,7 @@ export function TodayDashboard() {
   const user = useAppStore((s) => s.user)
   const pioneerType = useAppStore((s) => s.pioneerType)
   const events = useAppStore((s) => s.events)
+  const followUps = useAppStore((s) => s.followUps)
   const customTips = useAppStore((s) => s.customTips)
   const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
@@ -36,6 +38,9 @@ export function TodayDashboard() {
   const nextLabel = snapshot.next
     ? `${snapshot.next.date === isoDate(new Date(now.getTime() + 86400000)) ? (lang === "en" ? "Tomorrow" : "Morgen") : formatHumanDate(new Date(`${snapshot.next.date}T12:00:00`), lang)} — ${snapshot.next.startTime}`
     : t("home.noneNext")
+  const upcomingFollowUps = sortFollowUps(followUps).filter(
+    (item) => item.status !== "done" && (dueSoon(item) || isOverdue(item))
+  )
 
   const bestStep = getBestStep(t, snapshot, lang)
 
@@ -159,6 +164,33 @@ export function TodayDashboard() {
             <p className="mt-3 text-sm text-primary">{tip.scriptureReference}</p>
           ) : null}
           <p className="mt-2 text-sm text-muted-foreground">{tip.text}</p>
+        </article>
+        <article className="surface-accent rounded-3xl p-5">
+          <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
+            {t("follow.todayTitle")}
+          </p>
+          {upcomingFollowUps.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">{t("follow.todayEmpty")}</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {upcomingFollowUps.slice(0, 4).map((item) => (
+                <li key={item.id}>
+                  <Link href={`/nabezoeken/?id=${item.id}`} className="block text-sm hover:text-primary">
+                    <span className="font-medium">{item.name}</span>
+                    {item.nextDate ? (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {formatHumanDate(parseDate(item.nextDate), lang)}
+                      </span>
+                    ) : null}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link href="/nabezoeken/" className={cn(buttonVariants({ variant: "link" }), "mt-2 h-auto px-0")}>
+            {t("follow.viewAll")}
+          </Link>
         </article>
         <article className="surface-primary rounded-3xl p-5">
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">

@@ -8,6 +8,7 @@ import type {
   CalendarEvent,
   Commitment,
   Experience,
+  FollowUp,
   HistoricalMonth,
   MonthlyGoal,
   PioneerTypeId,
@@ -42,6 +43,7 @@ export interface AppState {
   availability: AvailabilitySlot[]
   commitments: Commitment[]
   experiences: Experience[]
+  followUps: FollowUp[]
   history: HistoricalMonth[]
   settings: UserSettings
   timer: TimerState
@@ -70,6 +72,8 @@ export interface AppState {
   upsertExperience: (experience: Experience) => void
   deleteExperience: (id: string) => void
   toggleFavorite: (id: string) => void
+  upsertFollowUp: (followUp: FollowUp) => void
+  deleteFollowUp: (id: string) => void
   toggleCategory: (category: ActivityCategory) => void
   upsertCustomTip: (tip: PioneerTip) => void
   deleteCustomTip: (id: string) => void
@@ -115,6 +119,7 @@ function eventsWithHistory(events: CalendarEvent[]) {
 type PlannerBits = {
   events?: CalendarEvent[]
   experiences?: Experience[]
+  followUps?: FollowUp[]
   commitments?: Commitment[]
   history?: HistoricalMonth[]
   customTips?: PioneerTip[]
@@ -124,6 +129,7 @@ export function hasSavedPlanner(state: PlannerBits) {
   return (
     (state.events?.length ?? 0) +
       (state.experiences?.length ?? 0) +
+      (state.followUps?.length ?? 0) +
       (state.commitments?.length ?? 0) +
       (state.history?.length ?? 0) +
       (state.customTips?.length ?? 0) >
@@ -197,6 +203,7 @@ export const useAppStore = create<AppState>()(
       availability: [],
       commitments: [],
       experiences: [],
+      followUps: [],
       history: [],
       settings: DEFAULT_SETTINGS,
       timer: idleTimer,
@@ -236,6 +243,7 @@ export const useAppStore = create<AppState>()(
             availability: data.availability,
             commitments: data.commitments,
             experiences: data.experiences,
+            followUps: data.followUps,
             history: historyFromEvents(data.events),
             settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
             timer: idleTimer,
@@ -386,6 +394,20 @@ export const useAppStore = create<AppState>()(
             item.id === id ? { ...item, favorite: !item.favorite } : item
           ),
         }),
+      upsertFollowUp: (followUp) => {
+        const followUps = get().followUps
+        const index = followUps.findIndex((item) => item.id === followUp.id)
+        if (index === -1) set({ followUps: [followUp, ...followUps] })
+        else {
+          const next = [...followUps]
+          next[index] = followUp
+          set({ followUps: next })
+        }
+      },
+      deleteFollowUp: (id) =>
+        set({
+          followUps: get().followUps.filter((item) => item.id !== id),
+        }),
       toggleCategory: (category) => {
         const hidden = get().hiddenCategories
         set({
@@ -511,6 +533,7 @@ export const useAppStore = create<AppState>()(
             availability: state.availability,
             commitments: state.commitments,
             experiences: state.experiences,
+            followUps: state.followUps,
             history: state.history,
             settings: state.settings,
             hiddenCategories: state.hiddenCategories,
@@ -538,6 +561,7 @@ export const useAppStore = create<AppState>()(
         const events = Array.isArray(data.events) ? (data.events as CalendarEvent[]) : []
         const commitments = Array.isArray(data.commitments) ? (data.commitments as Commitment[]) : []
         const experiences = Array.isArray(data.experiences) ? (data.experiences as Experience[]) : []
+        const followUps = Array.isArray(data.followUps) ? (data.followUps as FollowUp[]) : []
         const history = Array.isArray(data.history) ? (data.history as HistoricalMonth[]) : []
         const customTips = Array.isArray(data.customTips) ? (data.customTips as PioneerTip[]) : []
         set({
@@ -546,7 +570,7 @@ export const useAppStore = create<AppState>()(
           activeProfileId: user?.id ?? null,
           onboarded:
             Boolean(data.onboarded ?? user) ||
-            hasSavedPlanner({ events, commitments, experiences, history, customTips }),
+            hasSavedPlanner({ events, commitments, experiences, followUps, history, customTips }),
           pioneerType,
           customMonthlyHours:
             typeof data.customMonthlyHours === "number" ? data.customMonthlyHours : DEFAULT_REGULAR_HOURS,
@@ -555,6 +579,7 @@ export const useAppStore = create<AppState>()(
           availability: Array.isArray(data.availability) ? data.availability : [],
           commitments,
           experiences,
+          followUps,
           settings: { ...DEFAULT_SETTINGS, ...(data.settings as UserSettings | undefined) },
           hiddenCategories: Array.isArray(data.hiddenCategories) ? data.hiddenCategories : [],
           customTips,
@@ -579,6 +604,7 @@ export const useAppStore = create<AppState>()(
           availability: state.availability,
           commitments: state.commitments,
           experiences: state.experiences,
+          followUps: state.followUps,
           history: state.history,
           settings: state.settings,
           hiddenCategories: state.hiddenCategories,
@@ -621,6 +647,10 @@ export const useAppStore = create<AppState>()(
               local.experiences,
               Array.isArray(snapshot.experiences) ? snapshot.experiences : []
             ),
+            followUps: mergeById(
+              local.followUps,
+              Array.isArray(snapshot.followUps) ? snapshot.followUps : []
+            ),
             settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: local.hiddenCategories,
             customTips: mergeById(
@@ -655,6 +685,7 @@ export const useAppStore = create<AppState>()(
             availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
             commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
             experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
+            followUps: Array.isArray(snapshot.followUps) ? snapshot.followUps : [],
             settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
             customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
@@ -678,6 +709,7 @@ export const useAppStore = create<AppState>()(
           availability: [],
           commitments: [],
           experiences: [],
+          followUps: [],
           history: [],
           settings: DEFAULT_SETTINGS,
           timer: idleTimer,
@@ -701,6 +733,7 @@ export const useAppStore = create<AppState>()(
         availability: state.availability,
         commitments: state.commitments,
         experiences: state.experiences,
+        followUps: state.followUps,
         history: state.history,
         settings: state.settings,
         hiddenCategories: state.hiddenCategories,
@@ -712,6 +745,7 @@ export const useAppStore = create<AppState>()(
           current.user && !stored.user ? current : { ...current, ...stored }
         return {
           ...merged,
+          followUps: Array.isArray(merged.followUps) ? merged.followUps : [],
           history: historyFromEvents(merged.events ?? []),
         }
       },
