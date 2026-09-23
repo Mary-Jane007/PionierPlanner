@@ -1,12 +1,19 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { calculateMonthSnapshot } from "@/lib/calculations"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
 import { isoDateInZone, resolveTimeZone, zonedDateParts } from "@/lib/timezones"
 
 export function useNow() {
-  return useMemo(() => new Date(), [])
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const tick = () => setNow(new Date())
+    tick()
+    const timer = window.setInterval(tick, 10_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  return now
 }
 
 export function useMonthSnapshot() {

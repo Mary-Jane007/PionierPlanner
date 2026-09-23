@@ -998,10 +998,10 @@ const messages = {
     pap: "Buska un pais…",
   },
   "settings.timezoneHint": {
-    nl: "{n} landen. Nu {time} ({offset}) in de gekozen zone.",
-    en: "{n} countries. Now {time} ({offset}) in the selected zone.",
-    es: "{n} países. Ahora {time} ({offset}) en la zona elegida.",
-    pap: "{n} pais. Awor {time} ({offset}) den e zona skogé.",
+    nl: "{n} landen. Nu {time} ({offset}) in {country}.",
+    en: "{n} countries. Now {time} ({offset}) in {country}.",
+    es: "{n} países. Ahora {time} ({offset}) en {country}.",
+    pap: "{n} pais. Awor {time} ({offset}) na {country}.",
   },
   "settings.highContrast": { nl: "Hoog contrast", en: "High contrast", es: "Alto contraste", pap: "Kontraste haltu" },
   "settings.deleteConfirm": {

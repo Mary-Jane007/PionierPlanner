@@ -257,10 +257,12 @@ const COUNTRY_ZONES: [string, string][] = [
 const ZONE_ALIASES: Record<string, string> = {
   "Europe/Kyiv": "Europe/Kiev",
   "America/Nuuk": "America/Godthab",
-  "America/Kralendijk": "America/Curacao",
+  "America/Kralendijk": "America/Puerto_Rico",
   "America/Lower_Princes": "America/Puerto_Rico",
   "America/Marigot": "America/Puerto_Rico",
   "America/St_Barthelemy": "America/Puerto_Rico",
+  "America/Curacao": "America/Puerto_Rico",
+  "America/Aruba": "America/Puerto_Rico",
   "Europe/Guernsey": "Europe/London",
   "Europe/Jersey": "Europe/London",
   "Europe/Isle_of_Man": "Europe/London",
@@ -307,6 +309,9 @@ export function resolveTimeZone(timeZone: string | null | undefined): string {
   if (isValidTimeZone(requested)) return requested
   const alias = ZONE_ALIASES[requested]
   if (alias && isValidTimeZone(alias)) return alias
+  if (requested === "America/Curacao" || requested === "America/Aruba" || requested === "America/Kralendijk") {
+    if (isValidTimeZone("America/Puerto_Rico")) return "America/Puerto_Rico"
+  }
   return DEFAULT_TIMEZONE
 }
 
@@ -328,6 +333,8 @@ export function timezoneOffsetLabel(timeZone: string, date = new Date()): string
     const parts = new Intl.DateTimeFormat("en-US", {
       timeZone: resolveTimeZone(timeZone),
       timeZoneName: "shortOffset",
+      hour: "numeric",
+      hour12: false,
     }).formatToParts(date)
     return parts.find((part) => part.type === "timeZoneName")?.value || ""
   } catch {
@@ -335,33 +342,58 @@ export function timezoneOffsetLabel(timeZone: string, date = new Date()): string
   }
 }
 
-export function formatTimeInZone(timeZone: string, lang: LocaleCode, date = new Date()): string {
-  const locale = lang === "pap" ? "nl" : lang
-  return new Intl.DateTimeFormat(locale, {
-    timeZone: resolveTimeZone(timeZone),
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(date)
-}
-
 export function zonedDateParts(date: Date, timeZone: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: resolveTimeZone(timeZone),
+  const tz = resolveTimeZone(timeZone)
+  const formatted = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: tz,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hourCycle: "h23",
+  }).format(date)
+  const match = formatted.match(/(\d{4})-(\d{2})-(\d{2}).(\d{2}):(\d{2}):(\d{2})/)
+  if (match) {
+    let hour = Number(match[4])
+    if (hour === 24) hour = 0
+    return {
+      year: Number(match[1]),
+      month: Number(match[2]),
+      day: Number(match[3]),
+      hour,
+      minute: Number(match[5]),
+      second: Number(match[6]),
+    }
+  }
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   }).formatToParts(date)
   const value = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((part) => part.type === type)?.value || "0")
+    parts.find((part) => part.type === type)?.value || "0"
+  let hour = Number(value("hour"))
+  if (hour === 24) hour = 0
   return {
-    year: value("year"),
-    month: value("month"),
-    day: value("day"),
-    hour: value("hour"),
+    year: Number(value("year")),
+    month: Number(value("month")),
+    day: Number(value("day")),
+    hour,
+    minute: Number(value("minute")),
+    second: Number(value("second")),
   }
+}
+
+export function formatTimeInZone(timeZone: string, _lang: LocaleCode, date = new Date()): string {
+  const { hour, minute } = zonedDateParts(date, timeZone)
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
 }
 
 export function isoDateInZone(date: Date, timeZone: string): string {
@@ -370,11 +402,13 @@ export function isoDateInZone(date: Date, timeZone: string): string {
 }
 
 export function findCountryByTimezone(timeZone: string): CountryTimezone | undefined {
-  const resolved = resolveTimeZone(timeZone)
-  return (
-    COUNTRY_TIMEZONES.find((country) => country.timezone === timeZone) ||
-    COUNTRY_TIMEZONES.find((country) => resolveTimeZone(country.timezone) === resolved)
-  )
+  const requested = String(timeZone || "").trim()
+  if (!requested) return undefined
+  const exact = COUNTRY_TIMEZONES.find((country) => country.timezone === requested)
+  if (exact) return exact
+  const resolved = resolveTimeZone(requested)
+  if (resolved === requested) return undefined
+  return COUNTRY_TIMEZONES.find((country) => country.timezone === resolved)
 }
 
 export function countryOptionLabel(country: CountryTimezone, lang: LocaleCode, date = new Date()): string {

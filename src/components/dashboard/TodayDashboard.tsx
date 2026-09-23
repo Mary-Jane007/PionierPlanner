@@ -9,7 +9,7 @@ import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
 import { formatHumanDate, formatMonthTitle, greetingKey } from "@/lib/dates"
 import { isoDateInZone } from "@/lib/timezones"
-import { useMonthSnapshot } from "@/lib/hooks"
+import { useMonthSnapshot, useNow } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
@@ -26,7 +26,7 @@ export function TodayDashboard() {
   const timezone = useAppStore((s) => s.settings.timezone)
   const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
-  const now = new Date()
+  const now = useNow()
   const today = isoDateInZone(now, timezone)
   const greeting = greetingKey(now, timezone)
   const daily = getDailyContent(lang, now, customTips)

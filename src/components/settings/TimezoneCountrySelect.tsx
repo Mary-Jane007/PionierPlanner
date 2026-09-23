@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input"
 import { useLang, useT } from "@/lib/i18n"
 import {
   COUNTRY_TIMEZONES,
+  countryName,
   countryOptionLabel,
   filterCountries,
   findCountryByTimezone,
   formatTimeInZone,
-  resolveTimeZone,
   timezoneOffsetLabel,
 } from "@/lib/timezones"
 import { cn } from "@/lib/utils"
@@ -27,28 +27,47 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
   const t = useT()
   const lang = useLang()
   const [query, setQuery] = useState("")
-  const [now, setNow] = useState(() => new Date())
-  const timezone = resolveTimeZone(value)
-  const selected = findCountryByTimezone(timezone)
+  const [now, setNow] = useState<Date | null>(null)
+  const selected = findCountryByTimezone(value)
+  const timezone = selected?.timezone ?? value
   const options = useMemo(() => {
     const list = filterCountries(query, lang)
-    if (selected && !list.some((country) => country.code === selected.code)) {
-      return [selected, ...list]
+    if (selected && query.trim() && !list.some((country) => country.code === selected.code)) {
+      return [...list, selected]
     }
     return list
   }, [query, lang, selected])
   const selectedCode = selected?.code ?? ""
+  const searching = Boolean(query.trim())
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30_000)
+    const tick = () => setNow(new Date())
+    tick()
+    const timer = window.setInterval(tick, 1000)
     return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    const needle = query.trim()
+    if (!needle) return
+    const matches = filterCountries(needle, lang)
+    if (matches.length !== 1) return
+    const country = matches[0]
+    if (country.timezone === value) return
+    onChange(country.timezone)
+  }, [query, lang, value, onChange])
 
   function selectCountry(code: string) {
     const country = COUNTRY_TIMEZONES.find((item) => item.code === code)
     if (!country) return
-    onChange(resolveTimeZone(country.timezone))
+    onChange(country.timezone)
+    setQuery("")
   }
+
+  const clock = now ?? new Date()
+  const timeLabel = now ? formatTimeInZone(timezone, lang, clock) : "--:--"
+  const offsetLabel = now ? timezoneOffsetLabel(timezone, clock) : ""
+  const countryLabel = selected ? countryName(selected.code, lang) : timezone
 
   return (
     <div className="grid gap-2">
@@ -65,7 +84,7 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
         className={cn(fieldClass, "bg-card")}
         value={selectedCode}
         onChange={(event) => selectCountry(event.target.value)}
-        size={query.trim() ? Math.min(10, Math.max(options.length, 2)) : undefined}
+        size={searching ? Math.min(10, Math.max(options.length, 2)) : undefined}
       >
         {!selectedCode ? (
           <option value="" disabled>
@@ -74,15 +93,16 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
         ) : null}
         {options.map((country) => (
           <option key={country.code} value={country.code}>
-            {countryOptionLabel(country, lang, now)}
+            {countryOptionLabel(country, lang, clock)}
           </option>
         ))}
       </select>
       <p className="text-xs text-muted-foreground">
         {t("settings.timezoneHint", {
           n: COUNTRY_TIMEZONES.length,
-          time: formatTimeInZone(timezone, lang, now),
-          offset: timezoneOffsetLabel(timezone, now),
+          time: timeLabel,
+          offset: offsetLabel,
+          country: countryLabel,
         })}
       </p>
     </div>
