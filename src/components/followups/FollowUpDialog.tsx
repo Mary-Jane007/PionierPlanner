@@ -148,7 +148,6 @@ export function FollowUpDialog({
             </label>
           </div>
 
-          <p className="text-xs text-muted-foreground">{t("follow.privacyCare")}</p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               {t("activity.cancel")}

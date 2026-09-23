@@ -1118,12 +1118,6 @@ const messages = {
     es: "Busca por nombre, tema, texto, estado o fecha",
     pap: "Buska riba nòmber, tópiko, teksto, status òf fecha",
   },
-  "follow.privacyCare": {
-    nl: "Jij bent verantwoordelijk voor wat je opslaat. Noteer weinig, liever initialen, en verwijder iemand als het contact stopt. Gegevens blijven in jouw account.",
-    en: "You are responsible for what you store. Note little, prefer initials, and delete someone when contact stops. Data stays in your account.",
-    es: "Tú eres responsable de lo que guardas. Anota poco, mejor iniciales, y elimina a alguien si el contacto termina. Los datos quedan en tu cuenta.",
-    pap: "Bo ta responsable pa loke bo warda. Nota tiki, preferá inicial, i kita un hende ora e kontakto stòp. Dato ta keda den bo kuenta.",
-  },
   "follow.saved": { nl: "Opgeslagen", en: "Saved", es: "Guardado", pap: "Wardá" },
   "follow.privacy": {
     nl: "Alleen jij ziet deze aantekeningen. Ze gaan niet naar JW.org.",

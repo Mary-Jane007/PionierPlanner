@@ -140,8 +140,6 @@ export function FollowUpsBoard() {
         </div>
       )}
 
-      <p className="text-xs leading-relaxed text-muted-foreground">{t("follow.privacyCare")}</p>
-
       <FollowUpDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreated={openItem} />
     </div>
   )
