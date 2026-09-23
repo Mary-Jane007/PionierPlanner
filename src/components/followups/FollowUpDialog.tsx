@@ -13,13 +13,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { emptyFollowUp } from "@/lib/followups"
 import { isoDate } from "@/lib/dates"
 import { useT } from "@/lib/i18n"
@@ -123,16 +116,15 @@ export function FollowUpDialog({
           </div>
           <label className="grid gap-1.5">
             <Label>{t("follow.contact")}</Label>
-            <Select value={contactType} onValueChange={(value) => setContactType(value as FollowUpContactType)}>
-              <SelectTrigger className="w-full">
-                <SelectValue>{t(`follow.contact.${contactType}`)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="first_conversation">{t("follow.contact.first_conversation")}</SelectItem>
-                <SelectItem value="return_visit">{t("follow.contact.return_visit")}</SelectItem>
-                <SelectItem value="bible_study">{t("follow.contact.bible_study")}</SelectItem>
-              </SelectContent>
-            </Select>
+            <select
+              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              value={contactType}
+              onChange={(e) => setContactType(e.target.value as FollowUpContactType)}
+            >
+              <option value="first_conversation">{t("follow.contact.first_conversation")}</option>
+              <option value="return_visit">{t("follow.contact.return_visit")}</option>
+              <option value="bible_study">{t("follow.contact.bible_study")}</option>
+            </select>
           </label>
 
           <div className="space-y-3 border-t border-border pt-4">
