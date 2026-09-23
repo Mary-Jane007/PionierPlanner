@@ -486,8 +486,6 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
         </Section>
       ) : null}
 
-      <p className="text-xs leading-relaxed text-muted-foreground">{t("follow.privacyCare")}</p>
-
       <ConfirmDeleteButton
         title={t("activity.delete")}
         description={t("follow.deleteConfirm")}
