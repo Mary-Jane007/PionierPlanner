@@ -23,6 +23,9 @@ export const JW_ORG_PIONEERS =
   "https://www.jw.org/nl/jehovahs-getuigen/vragen/wie-zijn-pioniers/"
 export const JW_ORG_MINISTRY =
   "https://www.jw.org/nl/jehovahs-getuigen/activiteiten/"
+export const JW_ORG_BIBLE = "https://www.jw.org/nl/bibliotheek/bijbel/"
+export const JW_ORG_LIBRARY = "https://www.jw.org/nl/bibliotheek/"
+export const JW_ORG_WOL = "https://wol.jw.org/nl/"
 
 export const DAY_PART_WINDOWS = {
   morning: { start: "09:00", end: "12:00" },

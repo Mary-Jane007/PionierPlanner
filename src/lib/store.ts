@@ -23,6 +23,7 @@ import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } 
 import { detectScheduleConflict, historyFromEvents } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
+import { calendarEventForFollowUp, normalizeFollowUp, shouldSyncCalendar } from "@/lib/followups"
 import { rememberEmail, saveLoginOnDevice, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
 import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
 import { flushDurableStorage, removeDurable, zustandDurableStorage } from "@/lib/durable-storage"
@@ -395,19 +396,43 @@ export const useAppStore = create<AppState>()(
           ),
         }),
       upsertFollowUp: (followUp) => {
-        const followUps = get().followUps
-        const index = followUps.findIndex((item) => item.id === followUp.id)
-        if (index === -1) set({ followUps: [followUp, ...followUps] })
-        else {
-          const next = [...followUps]
-          next[index] = followUp
-          set({ followUps: next })
+        const normalized = normalizeFollowUp(followUp)
+        const lang = get().settings.language
+        const events = get().events
+        const existingEvent =
+          events.find((event) => event.id === normalized.calendarEventId) ??
+          events.find((event) => event.followUpId === normalized.id)
+        const calendar = calendarEventForFollowUp(normalized, lang, existingEvent)
+        let nextEvents = events
+        if (calendar) {
+          const index = nextEvents.findIndex((event) => event.id === calendar.id)
+          nextEvents = index === -1 ? [...nextEvents, calendar] : nextEvents.map((event, i) => (i === index ? calendar : event))
+        } else if (existingEvent && !shouldSyncCalendar(normalized)) {
+          nextEvents = nextEvents.filter((event) => event.id !== existingEvent.id)
         }
-      },
-      deleteFollowUp: (id) =>
+        const saved = {
+          ...normalized,
+          calendarEventId: calendar?.id,
+        }
+        const followUps = get().followUps
+        const index = followUps.findIndex((item) => item.id === saved.id)
+        const nextFollowUps = index === -1 ? [saved, ...followUps] : followUps.map((item, i) => (i === index ? saved : item))
         set({
-          followUps: get().followUps.filter((item) => item.id !== id),
-        }),
+          followUps: nextFollowUps,
+          ...eventsWithHistory(nextEvents),
+        })
+      },
+      deleteFollowUp: (id) => {
+        const followUps = get().followUps
+        const current = followUps.find((item) => item.id === id)
+        const events = get().events.filter(
+          (event) => event.id !== current?.calendarEventId && event.followUpId !== id
+        )
+        set({
+          followUps: followUps.filter((item) => item.id !== id),
+          ...eventsWithHistory(events),
+        })
+      },
       toggleCategory: (category) => {
         const hidden = get().hiddenCategories
         set({
@@ -561,7 +586,9 @@ export const useAppStore = create<AppState>()(
         const events = Array.isArray(data.events) ? (data.events as CalendarEvent[]) : []
         const commitments = Array.isArray(data.commitments) ? (data.commitments as Commitment[]) : []
         const experiences = Array.isArray(data.experiences) ? (data.experiences as Experience[]) : []
-        const followUps = Array.isArray(data.followUps) ? (data.followUps as FollowUp[]) : []
+        const followUps = Array.isArray(data.followUps)
+          ? (data.followUps as FollowUp[]).map(normalizeFollowUp)
+          : []
         const history = Array.isArray(data.history) ? (data.history as HistoricalMonth[]) : []
         const customTips = Array.isArray(data.customTips) ? (data.customTips as PioneerTip[]) : []
         set({
@@ -649,7 +676,7 @@ export const useAppStore = create<AppState>()(
             ),
             followUps: mergeById(
               local.followUps,
-              Array.isArray(snapshot.followUps) ? snapshot.followUps : []
+              Array.isArray(snapshot.followUps) ? snapshot.followUps.map(normalizeFollowUp) : []
             ),
             settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: local.hiddenCategories,
@@ -685,7 +712,7 @@ export const useAppStore = create<AppState>()(
             availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
             commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
             experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
-            followUps: Array.isArray(snapshot.followUps) ? snapshot.followUps : [],
+            followUps: Array.isArray(snapshot.followUps) ? snapshot.followUps.map(normalizeFollowUp) : [],
             settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
             customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
@@ -745,7 +772,7 @@ export const useAppStore = create<AppState>()(
           current.user && !stored.user ? current : { ...current, ...stored }
         return {
           ...merged,
-          followUps: Array.isArray(merged.followUps) ? merged.followUps : [],
+          followUps: Array.isArray(merged.followUps) ? merged.followUps.map(normalizeFollowUp) : [],
           history: historyFromEvents(merged.events ?? []),
         }
       },

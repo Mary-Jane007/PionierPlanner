@@ -6,7 +6,7 @@ import { TimelineItem } from "@/components/calendar/CalendarBoard"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
-import { dueSoon, isOverdue, sortFollowUps } from "@/lib/followups"
+import { dueSoon, isOverdue, isTomorrow, reminderLine, sortFollowUps } from "@/lib/followups"
 import { formatDecimal, formatPercent } from "@/lib/format"
 import { formatHumanDate, formatMonthTitle, greetingKey, isoDate, parseDate } from "@/lib/dates"
 import { useMonthSnapshot } from "@/lib/hooks"
@@ -39,8 +39,9 @@ export function TodayDashboard() {
     ? `${snapshot.next.date === isoDate(new Date(now.getTime() + 86400000)) ? (lang === "en" ? "Tomorrow" : "Morgen") : formatHumanDate(new Date(`${snapshot.next.date}T12:00:00`), lang)} — ${snapshot.next.startTime}`
     : t("home.noneNext")
   const upcomingFollowUps = sortFollowUps(followUps).filter(
-    (item) => item.status !== "done" && (dueSoon(item) || isOverdue(item))
+    (item) => dueSoon(item) || isOverdue(item) || isTomorrow(item)
   )
+  const tomorrowFollowUps = sortFollowUps(followUps).filter((item) => item.reminder && isTomorrow(item))
 
   const bestStep = getBestStep(t, snapshot, lang)
 
@@ -55,6 +56,35 @@ export function TodayDashboard() {
             {formatMonthTitle(now, lang)}
           </p>
         </header>
+
+        {tomorrowFollowUps.map((item) => {
+          const line = reminderLine(item)
+          return (
+            <article key={item.id} className="surface-warm rounded-3xl p-6">
+              <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
+                {t(item.kind === "bible_study" ? "follow.kind.bible_study" : "follow.kind.return_visit")}
+              </p>
+              <h2 className="font-heading mt-2 text-2xl">
+                {t(item.kind === "bible_study" ? "follow.tomorrowStudy" : "follow.tomorrow", { name: item.name })}
+              </h2>
+              {line.openQuestion ? (
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {t("follow.wantedToKnow", { question: line.openQuestion })}
+                </p>
+              ) : line.previous ? (
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {t("follow.summaryPrevious")}: {line.previous}
+                </p>
+              ) : null}
+              <Link
+                href={`/nabezoeken/?id=${item.id}`}
+                className={cn(buttonVariants({ variant: "link" }), "mt-2 h-auto px-0")}
+              >
+                {t("follow.open")}
+              </Link>
+            </article>
+          )
+        })}
 
         <section className="surface-sage rounded-3xl p-6 sm:p-8">
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
@@ -173,7 +203,9 @@ export function TodayDashboard() {
             <p className="mt-3 text-sm text-muted-foreground">{t("follow.todayEmpty")}</p>
           ) : (
             <ul className="mt-3 space-y-2">
-              {upcomingFollowUps.slice(0, 4).map((item) => (
+              {upcomingFollowUps.slice(0, 4).map((item) => {
+                const line = reminderLine(item)
+                return (
                 <li key={item.id}>
                   <Link href={`/nabezoeken/?id=${item.id}`} className="block text-sm hover:text-primary">
                     <span className="font-medium">{item.name}</span>
@@ -183,9 +215,13 @@ export function TodayDashboard() {
                         · {formatHumanDate(parseDate(item.nextDate), lang)}
                       </span>
                     ) : null}
+                    {line.openQuestion ? (
+                      <span className="mt-1 block text-xs text-muted-foreground">{line.openQuestion}</span>
+                    ) : null}
                   </Link>
                 </li>
-              ))}
+                )
+              })}
             </ul>
           )}
           <Link href="/nabezoeken/" className={cn(buttonVariants({ variant: "link" }), "mt-2 h-auto px-0")}>
