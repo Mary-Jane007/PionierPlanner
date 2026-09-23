@@ -998,10 +998,16 @@ const messages = {
     pap: "Buska un pais…",
   },
   "settings.timezoneHint": {
-    nl: "{n} landen. Nu {time} ({offset}) in {country}.",
-    en: "{n} countries. Now {time} ({offset}) in {country}.",
-    es: "{n} países. Ahora {time} ({offset}) en {country}.",
-    pap: "{n} pais. Awor {time} ({offset}) na {country}.",
+    nl: "{n} landen. Nu {time} ({offset}) in {country}.{nlNote}",
+    en: "{n} countries. Now {time} ({offset}) in {country}.{nlNote}",
+    es: "{n} países. Ahora {time} ({offset}) en {country}.{nlNote}",
+    pap: "{n} pais. Awor {time} ({offset}) na {country}.{nlNote}",
+  },
+  "settings.timezoneNlDelta": {
+    nl: " Nederland is {n} uur vooruit ({time}).",
+    en: " The Netherlands is {n} hours ahead ({time}).",
+    es: " Países Bajos va {n} horas adelante ({time}).",
+    pap: " Hulanda ta {n} ora dilanti ({time}).",
   },
   "settings.highContrast": { nl: "Hoog contrast", en: "High contrast", es: "Alto contraste", pap: "Kontraste haltu" },
   "settings.deleteConfirm": {

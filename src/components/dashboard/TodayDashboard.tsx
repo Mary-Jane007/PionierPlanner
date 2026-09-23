@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { getDailyContent, getDailyTip } from "@/lib/jworg/daily"
 import { formatDecimal, formatPercent } from "@/lib/format"
 import { formatHumanDate, formatMonthTitle, greetingKey } from "@/lib/dates"
-import { isoDateInZone, resolveTimeZone, zonedDateParts, formatClockInZone } from "@/lib/timezones"
+import { isoDateInZone, resolveTimeZone, zonedDateParts, formatTimeInZone, netherlandsDelta, timezoneOffsetLabel } from "@/lib/timezones"
 import { useMonthSnapshot, useNow } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -42,6 +42,7 @@ export function TodayDashboard() {
     : t("home.noneNext")
 
   const bestStep = getBestStep(t, snapshot, lang)
+  const nl = netherlandsDelta(timezone, now)
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -51,7 +52,13 @@ export function TodayDashboard() {
             {t(`home.greeting.${greeting}`, { name: user?.name ?? "" })}
           </h1>
           <p className="font-heading mt-2 text-3xl tabular-nums tracking-tight">
-            {formatClockInZone(timezone, lang, now)}
+            {formatTimeInZone(timezone, lang, now)}
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            {timezoneOffsetLabel(timezone, now)}
+            {nl.hoursAhead !== 0
+              ? t("settings.timezoneNlDelta", { n: nl.hoursAhead, time: nl.nlTime })
+              : null}
           </p>
           <p className="mt-1 capitalize text-muted-foreground">
             {formatMonthTitle(zonedNow, lang)}

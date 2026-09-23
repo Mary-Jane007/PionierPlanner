@@ -9,7 +9,8 @@ import {
   countryOptionLabel,
   filterCountries,
   findCountryByTimezone,
-  formatClockInZone,
+  formatTimeInZone,
+  netherlandsDelta,
   timezoneOffsetLabel,
 } from "@/lib/timezones"
 import { cn } from "@/lib/utils"
@@ -74,9 +75,14 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
   }
 
   const clock = now ?? new Date()
-  const timeLabel = now ? formatClockInZone(timezone, lang, clock) : "--:--"
+  const timeLabel = now ? formatTimeInZone(timezone, lang, clock) : "--:--"
   const offsetLabel = now ? timezoneOffsetLabel(timezone, clock) : ""
   const countryLabel = selected ? countryName(selected.code, lang) : timezone
+  const nl = now ? netherlandsDelta(timezone, clock) : null
+  const nlNote =
+    now && nl && nl.hoursAhead !== 0
+      ? t("settings.timezoneNlDelta", { n: nl.hoursAhead, time: nl.nlTime })
+      : ""
 
   return (
     <div className="grid gap-2">
@@ -112,6 +118,7 @@ export function TimezoneCountrySelect({ value, onChange, id = "timezone-country"
           time: timeLabel,
           offset: offsetLabel,
           country: countryLabel,
+          nlNote,
         })}
       </p>
     </div>

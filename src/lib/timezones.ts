@@ -406,13 +406,14 @@ function partsFromUtcOffset(date: Date, offsetMinutes: number) {
 export function timezoneOffsetLabel(timeZone: string, date = new Date()): string {
   const minutes = zoneOffsetMinutes(date, timeZone)
   if (minutes == null) return ""
-  if (minutes === 0) return "GMT"
-  const sign = minutes < 0 ? "-" : "+"
+  if (isAtlanticIslandZone(timeZone) || minutes === -4 * 60) return "AST · UTC−4"
+  if (minutes === 0) return "UTC"
+  const sign = minutes < 0 ? "−" : "+"
   const abs = Math.abs(minutes)
   const hours = Math.floor(abs / 60)
   const rest = abs % 60
-  if (rest === 0) return `GMT${sign}${hours}`
-  return `GMT${sign}${hours}:${String(rest).padStart(2, "0")}`
+  if (rest === 0) return `UTC${sign}${hours}`
+  return `UTC${sign}${hours}:${String(rest).padStart(2, "0")}`
 }
 
 function isAtlanticIslandZone(timeZone: string): boolean {
@@ -490,14 +491,23 @@ export function formatTimeInZone(timeZone: string, _lang: LocaleCode, date = new
 }
 
 export function formatClockInZone(timeZone: string, lang: LocaleCode, date = new Date()): string {
-  const { hour, minute } = zonedDateParts(date, timeZone)
-  const hour12 = ((hour + 11) % 12) + 1
-  const mm = String(minute).padStart(2, "0")
-  const pm = hour >= 12
-  if (lang === "en") return `${hour12}:${mm} ${pm ? "PM" : "AM"}`
-  if (lang === "es") return `${hour12}:${mm} ${pm ? "p. m." : "a. m."}`
-  if (lang === "pap") return `${hour12}:${mm} ${pm ? "pm" : "am"}`
-  return `${hour12}:${mm} ${pm ? "p.m." : "a.m."}`
+  const time = formatTimeInZone(timeZone, lang, date)
+  const offset = timezoneOffsetLabel(timeZone, date)
+  return offset ? `${time} · ${offset}` : time
+}
+
+export function netherlandsDelta(timeZone: string, date = new Date()) {
+  const here = zonedDateParts(date, timeZone)
+  const nl = zonedDateParts(date, "Europe/Amsterdam")
+  const hereMinutes = here.hour * 60 + here.minute
+  const nlMinutes = nl.hour * 60 + nl.minute
+  let hoursAhead = Math.round((nlMinutes - hereMinutes) / 60)
+  if (hoursAhead <= -12) hoursAhead += 24
+  if (hoursAhead > 12) hoursAhead -= 24
+  return {
+    nlTime: formatTimeInZone("Europe/Amsterdam", "nl", date),
+    hoursAhead,
+  }
 }
 
 export function isoDateInZone(date: Date, timeZone: string): string {
