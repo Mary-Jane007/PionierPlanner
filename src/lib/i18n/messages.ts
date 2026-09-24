@@ -1115,7 +1115,7 @@ const messages = {
   "follow.tracker.chapterHint": { nl: "Les 4, hoofdstuk 3, …", en: "Lesson 4, chapter 3, …", es: "Lección 4, capítulo 3, …", pap: "Leshon 4, capítulo 3, …" },
   "follow.tracker.started": { nl: "Gestart", en: "Started", es: "Inicio", pap: "Kuminsá" },
   "follow.tracker.progress": { nl: "Voortgang", en: "Progress", es: "Progreso", pap: "Progreso" },
-  "follow.tracker.workOn": { nl: "Waar moet nog aan gewerkt worden?", en: "What still needs work?", es: "¿En qué hay que trabajar aún?", pap: "Na kiko ainda mester traha?" },
+  "follow.tracker.workOnShort": { nl: "Nog werken aan", en: "Still working on", es: "Aún trabajar en", pap: "Noch traha riba" },
   "follow.tracker.nextFocus": { nl: "Volgende aandachtspunt", en: "Next focus", es: "Próximo enfoque", pap: "Siguiente atenshon" },
   "follow.tracker.goals": { nl: "Doelen", en: "Goals", es: "Metas", pap: "Meta" },
   "follow.tracker.addGoal": { nl: "+ Doel", en: "+ Goal", es: "+ Meta", pap: "+ Meta" },
@@ -1142,6 +1142,12 @@ const messages = {
   "follow.tracker.questionNote": { nl: "Toelichting (optioneel)", en: "Note (optional)", es: "Nota (opcional)", pap: "Nota (opsional)" },
   "follow.tracker.now": { nl: "Nu in", en: "Now in", es: "Ahora en", pap: "Awor den" },
   "follow.tracker.noneYet": { nl: "nog geen boek genoteerd", en: "no book noted yet", es: "aún sin libro anotado", pap: "noch no tin buki notá" },
+  "follow.tracker.openGoal": {
+    nl: "{n} open doel",
+    en: "{n} open goal",
+    es: "{n} meta abierta",
+    pap: "{n} meta habrí",
+  },
   "follow.tracker.openGoals": {
     nl: "{n} open doelen",
     en: "{n} open goals",

@@ -112,12 +112,14 @@ export function FollowUpsBoard() {
                     )}
                     {summary.workOn ? (
                       <span className="mt-1 block text-xs text-muted-foreground">
-                        {t("follow.tracker.workOn")}: {summary.workOn}
+                        {t("follow.tracker.workOnShort")}: {summary.workOn}
                       </span>
                     ) : null}
                     {summary.openGoals > 0 ? (
                       <span className="mt-1 block text-xs text-primary">
-                        {t("follow.tracker.openGoals", { n: summary.openGoals })}
+                        {t(summary.openGoals === 1 ? "follow.tracker.openGoal" : "follow.tracker.openGoals", {
+                          n: summary.openGoals,
+                        })}
                       </span>
                     ) : null}
                   </button>
@@ -177,7 +179,7 @@ export function FollowUpsBoard() {
                   ) : null}
                   {summary?.workOn ? (
                     <div>
-                      <span className="text-foreground/80">{t("follow.tracker.workOn")}: </span>
+                      <span className="text-foreground/80">{t("follow.tracker.workOnShort")}: </span>
                       <span className="line-clamp-2">{summary.workOn}</span>
                     </div>
                   ) : null}
