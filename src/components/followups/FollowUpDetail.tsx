@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { StudentTrackerSection } from "@/components/followups/StudentTrackerSection"
 import {
   emptyScripture,
   FOLLOW_MATERIALS,
@@ -41,6 +42,7 @@ import type {
   FollowUpNextQuestion,
   FollowUpStatus,
   FollowUpStudy,
+  StudentTracker,
 } from "@/types"
 
 export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void }) {
@@ -98,6 +100,10 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
 
   const patchStudy = (partial: Partial<FollowUpStudy>) => {
     patch({ study: { ...current.study, ...partial } })
+  }
+
+  const patchTracker = (partial: Partial<StudentTracker>) => {
+    patch({ tracker: { ...current.tracker, ...partial } })
   }
 
   const summary = reminderLine(current)
@@ -427,6 +433,10 @@ export function FollowUpDetail({ id, onBack }: { id: string; onBack: () => void 
           <Switch checked={current.reminder} onCheckedChange={(checked) => patch({ reminder: Boolean(checked) })} />
         </label>
       </Section>
+
+      {studyMode ? (
+        <StudentTrackerSection tracker={current.tracker} onChange={patchTracker} />
+      ) : null}
 
       {studyMode ? (
         <Section icon={BookOpen} title={t("follow.studyTitle")} hint={t("follow.studyHint")}>

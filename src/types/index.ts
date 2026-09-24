@@ -117,6 +117,29 @@ export interface FollowUpStudy {
   nextTexts: string
 }
 
+export interface StudentGoal {
+  id: string
+  text: string
+  done: boolean
+}
+
+export interface StudentQuestion {
+  id: string
+  question: string
+  note: string
+}
+
+export interface StudentTracker {
+  publication: string
+  chapter: string
+  startedDate: string
+  progress: string
+  workOn: string
+  nextFocus: string
+  goals: StudentGoal[]
+  questions: StudentQuestion[]
+}
+
 export interface FollowUp {
   id: string
   kind: FollowUpKind
@@ -144,6 +167,7 @@ export interface FollowUp {
   materialDetail?: string
   nextQuestion: FollowUpNextQuestion
   study: FollowUpStudy
+  tracker: StudentTracker
   notes: string
   questions: FollowUpQuestion[]
   visits: FollowUpVisit[]
