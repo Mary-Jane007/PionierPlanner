@@ -8,7 +8,7 @@ import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { FollowUpDetail } from "@/components/followups/FollowUpDetail"
 import { FollowUpDialog } from "@/components/followups/FollowUpDialog"
-import { dueSoon, isOverdue, lastContactDate, lastTopic, matchesQuery, sortFollowUps } from "@/lib/followups"
+import { dueSoon, isOverdue, lastContactDate, lastTopic, matchesQuery, sortFollowUps, trackerSummary } from "@/lib/followups"
 import { formatHumanDate, parseDate } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -28,6 +28,10 @@ export function FollowUpsBoard() {
   const [filter, setFilter] = useState<Filter>("all")
   const [createOpen, setCreateOpen] = useState(false)
 
+  const students = useMemo(
+    () => sortFollowUps(followUps).filter((item) => item.kind === "bible_study"),
+    [followUps]
+  )
   const filtered = useMemo(() => {
     return sortFollowUps(followUps).filter((item) => {
       if (filter === "due" && !dueSoon(item) && !isOverdue(item)) return false
@@ -82,6 +86,48 @@ export function FollowUpsBoard() {
         ))}
       </div>
 
+      {students.length > 0 ? (
+        <section className="card-quiet space-y-3 rounded-3xl p-5">
+          <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">{t("follow.tracker.title")}</p>
+          <h2 className="font-heading text-2xl">{t("follow.tracker.overview")}</h2>
+          <ul className="space-y-2">
+            {students.map((item) => {
+              const summary = trackerSummary(item)
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="w-full rounded-2xl px-3 py-2 text-left text-sm hover:bg-primary/8"
+                    onClick={() => openItem(item.id)}
+                  >
+                    <span className="font-medium">{item.name}</span>
+                    {summary.publication ? (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {summary.publication}
+                        {summary.chapter ? ` · ${summary.chapter}` : ""}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground"> · {t("follow.tracker.noneYet")}</span>
+                    )}
+                    {summary.workOn ? (
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {t("follow.tracker.workOn")}: {summary.workOn}
+                      </span>
+                    ) : null}
+                    {summary.openGoals > 0 ? (
+                      <span className="mt-1 block text-xs text-primary">
+                        {t("follow.tracker.openGoals", { n: summary.openGoals })}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       {filtered.length === 0 ? (
         <div className="card-quiet rounded-3xl px-6 py-16 text-center">
           <h2 className="font-heading text-3xl">{t("follow.empty")}</h2>
@@ -95,6 +141,7 @@ export function FollowUpsBoard() {
             const last = lastContactDate(item)
             const topic = lastTopic(item)
             const overdue = isOverdue(item)
+            const summary = item.kind === "bible_study" ? trackerSummary(item) : null
             return (
               <article key={item.id} className="card-quiet flex flex-col rounded-3xl p-5">
                 <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
@@ -119,6 +166,19 @@ export function FollowUpsBoard() {
                     <div>
                       <span className="text-foreground/80">{t("follow.lastTopic")}: </span>
                       <span className="line-clamp-2">{topic}</span>
+                    </div>
+                  ) : null}
+                  {summary?.publication ? (
+                    <div>
+                      <span className="text-foreground/80">{t("follow.tracker.now")}: </span>
+                      {summary.publication}
+                      {summary.chapter ? ` · ${summary.chapter}` : ""}
+                    </div>
+                  ) : null}
+                  {summary?.workOn ? (
+                    <div>
+                      <span className="text-foreground/80">{t("follow.tracker.workOn")}: </span>
+                      <span className="line-clamp-2">{summary.workOn}</span>
                     </div>
                   ) : null}
                 </dl>

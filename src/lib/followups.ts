@@ -12,6 +12,9 @@ import type {
   FollowUpStatus,
   FollowUpStudy,
   LocaleCode,
+  StudentGoal,
+  StudentQuestion,
+  StudentTracker,
 } from "@/types"
 
 export const FOLLOW_STATUSES: FollowUpStatus[] = [
@@ -64,6 +67,58 @@ export function emptyStudy(): FollowUpStudy {
     nextTopic: "",
     nextQuestion: "",
     nextTexts: "",
+  }
+}
+
+export function emptyTracker(): StudentTracker {
+  return {
+    publication: "",
+    chapter: "",
+    startedDate: "",
+    progress: "",
+    workOn: "",
+    nextFocus: "",
+    goals: [],
+    questions: [],
+  }
+}
+
+export function emptyGoal(text = ""): StudentGoal {
+  return { id: crypto.randomUUID(), text, done: false }
+}
+
+export function emptyStudentQuestion(question = ""): StudentQuestion {
+  return { id: crypto.randomUUID(), question, note: "" }
+}
+
+export function normalizeTracker(
+  input?: Partial<StudentTracker>,
+  study?: Partial<FollowUpStudy>
+): StudentTracker {
+  const tracker = { ...emptyTracker(), ...(input ?? {}) }
+  const goals = Array.isArray(tracker.goals)
+    ? tracker.goals.map((goal) => ({
+        id: goal.id || crypto.randomUUID(),
+        text: asString(goal.text),
+        done: Boolean(goal.done),
+      }))
+    : []
+  const questions = Array.isArray(tracker.questions)
+    ? tracker.questions.map((entry) => ({
+        id: entry.id || crypto.randomUUID(),
+        question: asString(entry.question),
+        note: asString(entry.note),
+      }))
+    : []
+  return {
+    publication: tracker.publication.trim() || asString(study?.publication),
+    chapter: tracker.chapter.trim() || asString(study?.lesson),
+    startedDate: tracker.startedDate,
+    progress: tracker.progress,
+    workOn: tracker.workOn,
+    nextFocus: tracker.nextFocus,
+    goals,
+    questions,
   }
 }
 
@@ -148,6 +203,7 @@ export function normalizeFollowUp(input: Partial<FollowUp> & { id?: string; name
     materialDetail: input.materialDetail || undefined,
     nextQuestion,
     study: { ...emptyStudy(), ...(input.study ?? {}) },
+    tracker: normalizeTracker(input.tracker, input.study),
     notes: asString(input.notes),
     questions: Array.isArray(input.questions) ? input.questions : [],
     visits: Array.isArray(input.visits) ? input.visits : [],
@@ -178,6 +234,14 @@ export function withFollowUpPatch(item: FollowUp, partial: Partial<FollowUp>): F
     conversation: { ...item.conversation, ...partial.conversation },
     nextQuestion: { ...item.nextQuestion, ...partial.nextQuestion },
     study: { ...item.study, ...partial.study },
+    tracker: partial.tracker
+      ? {
+          ...item.tracker,
+          ...partial.tracker,
+          goals: partial.tracker.goals ?? item.tracker.goals,
+          questions: partial.tracker.questions ?? item.tracker.questions,
+        }
+      : item.tracker,
   })
 }
 
@@ -273,6 +337,13 @@ export function searchHaystack(item: FollowUp) {
     item.study.questions,
     item.study.textsDiscussed,
     item.study.nextQuestion,
+    item.tracker.publication,
+    item.tracker.chapter,
+    item.tracker.progress,
+    item.tracker.workOn,
+    item.tracker.nextFocus,
+    ...item.tracker.goals.map((goal) => goal.text),
+    ...item.tracker.questions.flatMap((entry) => [entry.question, entry.note]),
   ]
     .filter(Boolean)
     .join(" ")
@@ -338,5 +409,16 @@ export function reminderLine(item: FollowUp) {
     previous: lastTopic(item),
     openQuestion: item.conversation.openQuestion.trim() || item.nextQuestion.question.trim(),
     next: item.nextQuestion.scripture.trim() || item.nextQuestion.topic.trim() || item.nextPurpose?.trim() || "",
+  }
+}
+
+export function trackerSummary(item: FollowUp) {
+  const tracker = item.tracker
+  return {
+    publication: tracker.publication.trim(),
+    chapter: tracker.chapter.trim(),
+    workOn: tracker.workOn.trim(),
+    openGoals: tracker.goals.filter((goal) => goal.text.trim() && !goal.done).length,
+    openQuestions: tracker.questions.filter((entry) => entry.question.trim()).length,
   }
 }
