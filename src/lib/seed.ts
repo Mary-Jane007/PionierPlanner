@@ -1,4 +1,5 @@
 import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS } from "@/lib/constants"
+import { emptyGrowth } from "@/lib/progress"
 import type {
   AvailabilitySlot,
   CalendarEvent,
@@ -40,6 +41,7 @@ export function createDemoData(now = new Date()) {
     availability: defaultAvailability(),
     commitments: [] as Commitment[],
     experiences: [] as Experience[],
+    growth: emptyGrowth(),
     history: [] as HistoricalMonth[],
     settings: {
       ...DEFAULT_SETTINGS,
@@ -67,6 +69,7 @@ export function emptyUserData(profile: UserProfile) {
     availability: defaultAvailability(),
     commitments: [] as Commitment[],
     experiences: [] as Experience[],
+    growth: emptyGrowth(),
     history: [] as HistoricalMonth[],
     settings: DEFAULT_SETTINGS,
     monthlyGoals: [
