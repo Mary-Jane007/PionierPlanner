@@ -1039,8 +1039,8 @@ const messages = {
   "progress.card.bible": { nl: "Bijbellezen", en: "Bible reading", es: "Lectura bíblica", pap: "Lesa Beibel" },
   "progress.card.study": { nl: "Persoonlijke studie", en: "Personal study", es: "Estudio personal", pap: "Estudio personal" },
   "progress.card.goals": { nl: "Mijn doelen", en: "My goals", es: "Mis metas", pap: "Mi meta" },
-  "progress.days": { nl: "{n} dagen", en: "{n} days", es: "{n} días", pap: "{n} dia" },
-  "progress.sessions": { nl: "{n} sessies", en: "{n} sessions", es: "{n} sesiones", pap: "{n} seshon" },
+  "progress.days": { nl: "{n} dag(en)", en: "{n} days", es: "{n} días", pap: "{n} dia" },
+  "progress.sessions": { nl: "{n} keer studie", en: "{n} sessions", es: "{n} sesiones", pap: "{n} seshon" },
   "progress.steps": { nl: "{done} / {total} stappen", en: "{done} / {total} steps", es: "{done} / {total} pasos", pap: "{done} / {total} paso" },
   "progress.hoursOf": { nl: "{n} / {t} uur", en: "{n} / {t} hours", es: "{n} / {t} horas", pap: "{n} / {t} ora" },
   "progress.myYear": { nl: "Mijn dienstjaar", en: "My service year", es: "Mi año de servicio", pap: "Mi aña di servicio" },
@@ -1062,7 +1062,7 @@ const messages = {
     pap: "Bo seshon promedio ta dura {n}.",
   },
   "progress.insight.studyMonth": {
-    nl: "Je hebt deze maand {n} persoonlijke studiesessies geregistreerd.",
+    nl: "Aantal persoonlijke studiesessies deze maand: {n}.",
     en: "You recorded {n} personal study sessions this month.",
     es: "Registraste {n} sesiones de estudio personal este mes.",
     pap: "Bo a registrá {n} seshon di estudio personal e luna aki.",
@@ -1074,7 +1074,7 @@ const messages = {
     pap: "Bo seshon di estudio personal ta tuma lugá mas promé na atardi.",
   },
   "progress.insight.bibleMonth": {
-    nl: "Je hebt deze maand op {n} dagen bijbellezen genoteerd.",
+    nl: "Aantal dagen met bijbellezen deze maand: {n}.",
     en: "You noted Bible reading on {n} days this month.",
     es: "Anotaste lectura bíblica en {n} días este mes.",
     pap: "Bo a nota lesamentu di Beibel riba {n} dia e luna aki.",
