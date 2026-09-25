@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ProgressRing } from "@/components/progress/ProgressRing"
+import { HomeProgressCard } from "@/components/growth/HomeProgressCard"
 import { TimelineItem } from "@/components/calendar/CalendarBoard"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -102,6 +103,8 @@ export function TodayDashboard() {
             </div>
           </div>
         </section>
+
+        <HomeProgressCard />
 
         <section className={cn("rounded-3xl p-6", `health-${snapshot.health}`)}>
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
