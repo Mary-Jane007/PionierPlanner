@@ -9,6 +9,7 @@ import {
   Compass,
   Ellipsis,
   LayoutGrid,
+  NotebookPen,
   Plus,
   Sparkles,
   UserRound,
@@ -43,11 +44,13 @@ const desktopNav = [
   { href: "/activiteiten", key: "nav.activities", icon: ListTodo },
   { href: "/statistieken", key: "nav.statistics", icon: BarChart3 },
   { href: "/ervaringen", key: "nav.experiences", icon: BookOpen },
+  { href: "/nabezoeken", key: "nav.followups", icon: NotebookPen },
   { href: "/tips", key: "nav.tips", icon: LayoutGrid },
   { href: "/profiel", key: "nav.profile", icon: UserRound },
 ]
 
 const moreNav = [
+  { href: "/nabezoeken", key: "nav.followups", icon: NotebookPen },
   { href: "/activiteiten", key: "nav.activities", icon: ListTodo },
   { href: "/statistieken", key: "nav.statistics", icon: BarChart3 },
   { href: "/tips", key: "nav.tips", icon: LayoutGrid },

@@ -45,6 +45,136 @@ export type CommitmentType =
   | "appointment"
   | "other"
 export type ExperienceVisibility = "private" | "share_ready"
+export type FollowUpKind = "return_visit" | "bible_study"
+export type FollowUpContactType = "first_conversation" | "return_visit" | "bible_study"
+export type FollowUpStatus =
+  | "new"
+  | "planned"
+  | "regular"
+  | "bible_study"
+  | "not_interested"
+  | "try_later"
+export type FollowUpMaterialKind =
+  | "bible"
+  | "publication"
+  | "article"
+  | "video"
+  | "jw_link"
+  | "other"
+
+export interface FollowUpQuestion {
+  id: string
+  question: string
+  answer: string
+}
+
+export interface FollowUpVisit {
+  id: string
+  date: string
+  notes: string
+}
+
+export interface FollowUpConversation {
+  topic: string
+  theySaid: string
+  interest: string
+  openQuestion: string
+  reaction: string
+  date?: string
+}
+
+export interface FollowUpScripture {
+  id: string
+  book: string
+  verse: string
+  why: string
+  reaction: string
+}
+
+export interface FollowUpNextQuestion {
+  question: string
+  scripture: string
+  topic: string
+  material: string
+}
+
+export interface FollowUpStudy {
+  date: string
+  publication: string
+  lesson: string
+  paragraphs: string
+  topic: string
+  understood: string
+  difficult: string
+  questions: string
+  textsDiscussed: string
+  textThatTouched: string
+  apply: string
+  agreed: string
+  nextLesson: string
+  nextTopic: string
+  nextQuestion: string
+  nextTexts: string
+}
+
+export interface StudentGoal {
+  id: string
+  text: string
+  done: boolean
+}
+
+export interface StudentQuestion {
+  id: string
+  question: string
+  note: string
+}
+
+export interface StudentTracker {
+  publication: string
+  chapter: string
+  startedDate: string
+  progress: string
+  workOn: string
+  nextFocus: string
+  goals: StudentGoal[]
+  questions: StudentQuestion[]
+}
+
+export interface FollowUp {
+  id: string
+  kind: FollowUpKind
+  contactType: FollowUpContactType
+  name: string
+  address?: string
+  phone?: string
+  language?: string
+  firstTalkDate?: string
+  firstTalkTime?: string
+  family?: string
+  background?: string
+  interests?: string
+  concerns?: string
+  publication?: string
+  nextDate?: string
+  nextTime?: string
+  nextLocation?: string
+  nextPurpose?: string
+  reminder: boolean
+  calendarEventId?: string
+  conversation: FollowUpConversation
+  scriptures: FollowUpScripture[]
+  materials: FollowUpMaterialKind[]
+  materialDetail?: string
+  nextQuestion: FollowUpNextQuestion
+  study: FollowUpStudy
+  tracker: StudentTracker
+  notes: string
+  questions: FollowUpQuestion[]
+  visits: FollowUpVisit[]
+  status: FollowUpStatus
+  createdAt: string
+  updatedAt: string
+}
 
 export interface PioneerProfileConfig {
   id: PioneerTypeId
@@ -114,6 +244,7 @@ export interface CalendarEvent {
   location?: string
   notes?: string
   status: ActivityStatus
+  followUpId?: string
   createdAt: string
   updatedAt: string
 }
