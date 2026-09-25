@@ -668,7 +668,7 @@ export function GrowthBoard() {
         </div>
       </div>
 
-      <Section title={t("progress.prayer")} hint={t("progress.routines")} id="progress-prayer" collapsible>
+      <Section title={t("progress.routines")} id="progress-routines" collapsible>
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -681,7 +681,7 @@ export function GrowthBoard() {
           >
             {t("progress.useTemplates")}
           </Button>
-          <Button variant="outline" onClick={() => saveGrowth("routines", [emptyRoutine(t("progress.myRoutine"), [t("progress.routine.prayer")]), ...growth.routines])}>
+          <Button variant="outline" onClick={() => saveGrowth("routines", [emptyRoutine(t("progress.myRoutine"), [t("progress.routine.reflect")]), ...growth.routines])}>
             {t("progress.addRoutine")}
           </Button>
         </div>

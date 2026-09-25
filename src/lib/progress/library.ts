@@ -47,8 +47,8 @@ export const GOAL_LIBRARY: { category: string; keys: string[] }[] = [
 ]
 
 export const ROUTINE_TEMPLATES = [
-  { titleKey: "progress.routine.morning", items: ["progress.routine.prayer", "progress.routine.read", "progress.routine.text"] },
-  { titleKey: "progress.routine.beforeService", items: ["progress.routine.pray", "progress.routine.plan", "progress.routine.material"] },
+  { titleKey: "progress.routine.morning", items: ["progress.routine.read", "progress.routine.text"] },
+  { titleKey: "progress.routine.beforeService", items: ["progress.routine.plan", "progress.routine.material"] },
   { titleKey: "progress.routine.evening", items: ["progress.routine.reflect", "progress.routine.read", "progress.routine.tomorrow"] },
 ]
 
