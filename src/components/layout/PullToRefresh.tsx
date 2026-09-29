@@ -65,11 +65,16 @@ export function PullToRefresh({
 
   useEffect(() => subscribeRefreshBusy(setBusy), [])
 
+  function stopTracking() {
+    tracking.current = false
+    pulling.current = false
+    pullRef.current = 0
+    document.documentElement.classList.remove("ptr-tracking")
+  }
+
   useEffect(() => {
     if (disabled) {
-      tracking.current = false
-      pulling.current = false
-      pullRef.current = 0
+      stopTracking()
       setPull(0)
     }
   }, [disabled])
@@ -89,6 +94,7 @@ export function PullToRefresh({
       startX.current = point.x
       tracking.current = true
       pulling.current = false
+      document.documentElement.classList.add("ptr-tracking")
     }
 
     function move(event: TouchEvent | PointerEvent | MouseEvent) {
@@ -99,11 +105,11 @@ export function PullToRefresh({
       const dx = point.x - startX.current
       if (!pulling.current) {
         if (dy < 8 || Math.abs(dx) > dy) {
-          if (Math.abs(dx) > 12 || dy < -8) tracking.current = false
+          if (Math.abs(dx) > 12 || dy < -8) stopTracking()
           return
         }
         if (!pageAtTop() || nestedScrollNotAtTop(event.target) || overlayOpen()) {
-          tracking.current = false
+          stopTracking()
           return
         }
         pulling.current = true
@@ -121,10 +127,8 @@ export function PullToRefresh({
 
     function end() {
       if (!tracking.current) return
-      tracking.current = false
       const distance = pullRef.current
-      pulling.current = false
-      pullRef.current = 0
+      stopTracking()
       if (distance >= THRESHOLD && !busy && !disabled) {
         setPull(THRESHOLD)
         void refreshPlanner().finally(() => setPull(0))
@@ -143,6 +147,7 @@ export function PullToRefresh({
     window.addEventListener("pointerup", end, true)
     window.addEventListener("pointercancel", end, true)
     return () => {
+      document.documentElement.classList.remove("ptr-tracking")
       window.removeEventListener("touchstart", begin, true)
       window.removeEventListener("touchmove", move, true)
       window.removeEventListener("touchend", end, true)
