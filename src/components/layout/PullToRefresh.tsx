@@ -6,7 +6,7 @@ import { isPlannerRefreshing, refreshPlanner, subscribeRefreshBusy } from "@/lib
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
-const THRESHOLD = 72
+const THRESHOLD = 64
 const MAX_PULL = 128
 
 function overlayOpen() {
@@ -35,12 +35,16 @@ function pageAtTop() {
 }
 
 function dampen(distance: number) {
-  return Math.min(MAX_PULL, distance * 0.45)
+  return Math.min(MAX_PULL, distance * 0.55)
 }
 
-function allowPointer(event: PointerEvent) {
-  if (event.pointerType === "touch" || event.pointerType === "pen") return true
-  return event.pointerType === "mouse" && window.matchMedia("(max-width: 1023px)").matches
+function clientPoint(event: TouchEvent | PointerEvent | MouseEvent) {
+  if ("touches" in event) {
+    const touch = event.touches[0] ?? event.changedTouches[0]
+    if (!touch) return null
+    return { x: touch.clientX, y: touch.clientY }
+  }
+  return { x: event.clientX, y: event.clientY }
 }
 
 export function PullToRefresh({
@@ -71,27 +75,30 @@ export function PullToRefresh({
   }, [disabled])
 
   useEffect(() => {
-    function onStart(event: PointerEvent) {
-      if (disabled || busy || overlayOpen() || !allowPointer(event)) return
-      if (event.button !== 0 && event.pointerType === "mouse") return
+    function begin(event: TouchEvent | PointerEvent | MouseEvent) {
+      if (disabled || busy || overlayOpen() || tracking.current) return
+      if ("button" in event && event.button !== undefined && event.button > 0) return
       const target = event.target
-      if (target instanceof HTMLElement) {
-        const tag = target.closest("input, textarea, select, [contenteditable='true']")
-        if (tag) return
+      if (target instanceof HTMLElement && target.closest("input, textarea, select, [contenteditable='true']")) {
+        return
       }
       if (!pageAtTop() || nestedScrollNotAtTop(event.target)) return
-      startY.current = event.clientY
-      startX.current = event.clientX
+      const point = clientPoint(event)
+      if (!point) return
+      startY.current = point.y
+      startX.current = point.x
       tracking.current = true
       pulling.current = false
     }
 
-    function onMove(event: PointerEvent) {
+    function move(event: TouchEvent | PointerEvent | MouseEvent) {
       if (!tracking.current || disabled || busy) return
-      const dy = event.clientY - startY.current
-      const dx = event.clientX - startX.current
+      const point = clientPoint(event)
+      if (!point) return
+      const dy = point.y - startY.current
+      const dx = point.x - startX.current
       if (!pulling.current) {
-        if (dy < 10 || Math.abs(dx) > dy) {
+        if (dy < 8 || Math.abs(dx) > dy) {
           if (Math.abs(dx) > 12 || dy < -8) tracking.current = false
           return
         }
@@ -112,7 +119,7 @@ export function PullToRefresh({
       setPull(next)
     }
 
-    function onEnd() {
+    function end() {
       if (!tracking.current) return
       tracking.current = false
       const distance = pullRef.current
@@ -126,15 +133,24 @@ export function PullToRefresh({
       setPull(0)
     }
 
-    window.addEventListener("pointerdown", onStart)
-    window.addEventListener("pointermove", onMove, { passive: false })
-    window.addEventListener("pointerup", onEnd)
-    window.addEventListener("pointercancel", onEnd)
+    const opts = { capture: true, passive: false } as const
+    window.addEventListener("touchstart", begin, opts)
+    window.addEventListener("touchmove", move, opts)
+    window.addEventListener("touchend", end, true)
+    window.addEventListener("touchcancel", end, true)
+    window.addEventListener("pointerdown", begin, opts)
+    window.addEventListener("pointermove", move, opts)
+    window.addEventListener("pointerup", end, true)
+    window.addEventListener("pointercancel", end, true)
     return () => {
-      window.removeEventListener("pointerdown", onStart)
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onEnd)
-      window.removeEventListener("pointercancel", onEnd)
+      window.removeEventListener("touchstart", begin, true)
+      window.removeEventListener("touchmove", move, true)
+      window.removeEventListener("touchend", end, true)
+      window.removeEventListener("touchcancel", end, true)
+      window.removeEventListener("pointerdown", begin, true)
+      window.removeEventListener("pointermove", move, true)
+      window.removeEventListener("pointerup", end, true)
+      window.removeEventListener("pointercancel", end, true)
     }
   }, [busy, disabled])
 
