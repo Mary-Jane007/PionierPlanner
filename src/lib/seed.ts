@@ -5,6 +5,7 @@ import type {
   CalendarEvent,
   Commitment,
   Experience,
+  FollowUp,
   HistoricalMonth,
   UserProfile,
   UserSettings,
@@ -41,6 +42,7 @@ export function createDemoData(now = new Date()) {
     availability: defaultAvailability(),
     commitments: [] as Commitment[],
     experiences: [] as Experience[],
+    followUps: [] as FollowUp[],
     growth: emptyGrowth(),
     history: [] as HistoricalMonth[],
     settings: {
@@ -69,6 +71,7 @@ export function emptyUserData(profile: UserProfile) {
     availability: defaultAvailability(),
     commitments: [] as Commitment[],
     experiences: [] as Experience[],
+    followUps: [] as FollowUp[],
     growth: emptyGrowth(),
     history: [] as HistoricalMonth[],
     settings: DEFAULT_SETTINGS,

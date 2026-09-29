@@ -49,6 +49,7 @@
 }
 
 :root {
+  color-scheme: light;
   --background: #f7f5ef;
   --foreground: #252925;
   --card: #ffffff;
@@ -87,6 +88,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #1e2421;
   --foreground: #f2efe7;
   --card: #272e2a;
@@ -360,6 +362,17 @@ input[type="number"],
 input[type="email"],
 input[type="password"],
 input[type="text"],
-input[type="search"] {
+input[type="search"],
+select {
   color-scheme: inherit;
+}
+
+select {
+  color: var(--foreground);
+  background-color: var(--card);
+}
+
+select option {
+  color: var(--popover-foreground);
+  background-color: var(--popover);
 }

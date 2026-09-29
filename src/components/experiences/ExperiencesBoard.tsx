@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import { Heart, Search, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
@@ -51,6 +52,11 @@ export function ExperiencesBoard() {
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">{t("exp.title")}</p>
           <h1 className="font-heading text-4xl">{t("exp.title")}</h1>
           <p className="mt-1 text-muted-foreground">{t("exp.subtitle")}</p>
+          <p className="mt-2 text-sm">
+            <Link href="/nabezoeken/" className="text-primary underline-offset-4 hover:underline">
+              {t("follow.expLink")}
+            </Link>
+          </p>
         </div>
         <Button className="h-11 rounded-xl" onClick={() => openExperience(null)}>
           {t("exp.new")}

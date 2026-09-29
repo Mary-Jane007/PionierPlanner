@@ -21,6 +21,7 @@ const REQUIRED_URLS = [
   "./statistieken/",
   "./vorderingen/",
   "./ervaringen/",
+  "./nabezoeken/",
   "./tips/",
   "./profiel/",
   "./setup/",
