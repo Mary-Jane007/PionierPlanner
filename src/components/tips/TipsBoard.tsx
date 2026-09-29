@@ -15,6 +15,7 @@ import {
   type PioneerTip,
   type TipCategory,
 } from "@/lib/tips"
+import { surfaceClass } from "@/lib/constants"
 
 export function TipsBoard() {
   const t = useT()
@@ -58,7 +59,7 @@ export function TipsBoard() {
         ) : null}
       </header>
 
-      <article className="card-quiet rounded-3xl p-6">
+      <article className="surface-warm rounded-3xl p-6">
         <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">{t("home.tip")}</p>
         <h2 className="font-heading mt-2 text-3xl">{todayTip.title}</h2>
         {todayTip.scriptureReference ? (
@@ -85,7 +86,7 @@ export function TipsBoard() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card-quiet rounded-3xl px-6 py-16 text-center">
+        <div className="surface-sage rounded-3xl px-6 py-16 text-center">
           <h2 className="font-heading text-3xl">{t("tips.empty")}</h2>
           {owner ? (
             <Button className="mt-4" onClick={openNew}>
@@ -95,8 +96,8 @@ export function TipsBoard() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {filtered.map((item) => (
-            <article key={item.id} className="card-quiet rounded-3xl p-5">
+          {filtered.map((item, index) => (
+            <article key={item.id} className={`${surfaceClass(index)} rounded-3xl p-5`}>
               <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
                 {t(`tips.cat.${item.category}`)}
                 {item.ownerAdded ? ` · ${t("tips.ownerAdded")}` : ""}

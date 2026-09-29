@@ -81,7 +81,7 @@ export function ProfileBoard() {
       <AccountSettings />
 
       {native ? null : (
-        <section className="card-quiet space-y-4 rounded-3xl p-6">
+        <section className="surface-sage space-y-4 rounded-3xl p-6">
           <h2 className="font-heading text-2xl">{t("download.title")}</h2>
           <p className="text-sm text-muted-foreground">{t("landing.installHint")}</p>
           <InstallAppButtons />
@@ -93,7 +93,7 @@ export function ProfileBoard() {
         </section>
       )}
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
+      <section className="surface-warm space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.goal")}</h2>
         <p className="text-sm">
           {t(`pioneer.${pioneerType}`)} · {t("pioneer.hoursMonth", { n: target })}
@@ -129,7 +129,7 @@ export function ProfileBoard() {
         </a>
       </section>
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
+      <section className="surface-accent space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.planning")}</h2>
         <label className="grid gap-1.5">
           <Label>{t("planner.step.style")}</Label>
@@ -157,7 +157,7 @@ export function ProfileBoard() {
         </label>
       </section>
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
+      <section className="surface-primary space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.notifications")}</h2>
         {(
           [
@@ -181,7 +181,7 @@ export function ProfileBoard() {
         ))}
       </section>
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
+      <section className="surface-sage space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.language")}</h2>
         <Select
           value={settings.language}
@@ -199,7 +199,7 @@ export function ProfileBoard() {
         </Select>
       </section>
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
+      <section className="surface-warm space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.theme")}</h2>
         <Select
           value={settings.theme}
@@ -256,14 +256,14 @@ export function ProfileBoard() {
         </label>
       </section>
 
-      <section className="card-quiet space-y-4 rounded-3xl p-6">
+      <section className="surface-accent space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.privacy")}</h2>
         <p className="text-sm text-muted-foreground">{t("exp.visibilityHint")}</p>
         <p className="text-sm text-muted-foreground">{t("auth.cloudNote")}</p>
         <p className="text-sm text-muted-foreground">{t("auth.staySignedIn")}</p>
       </section>
 
-      <section className="card-quiet space-y-3 rounded-3xl p-6">
+      <section className="surface-primary space-y-3 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.data")}</h2>
         <StartOverDialog />
         <p className="text-xs text-muted-foreground">{t("calendar.clearConfirm")}</p>

@@ -198,7 +198,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-primary bg-primary px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-primary-foreground lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-nav bg-nav px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-nav-foreground lg:hidden"
         aria-label="Mobiel menu"
       >
         <div className="mx-auto grid max-w-lg grid-cols-5">
@@ -211,7 +211,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={cn(
                   "flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[11px] leading-tight",
-                  active ? "text-primary-foreground" : "text-primary-foreground/65"
+                  active ? "text-nav-foreground" : "text-nav-foreground/65"
                 )}
               >
                 <Icon className="size-4 shrink-0" />

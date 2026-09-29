@@ -109,7 +109,7 @@ export function AccountSettings() {
   }
 
   return (
-    <section className="card-quiet space-y-4 rounded-3xl p-6">
+    <section className="surface-primary space-y-4 rounded-3xl p-6">
       <h2 className="font-heading text-2xl">{t("settings.account")}</h2>
       <p className="text-sm text-muted-foreground">{t("settings.accountHint")}</p>
       <label className="grid gap-1.5">

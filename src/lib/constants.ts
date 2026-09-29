@@ -57,6 +57,18 @@ export const COLOR_THEME_SWATCHES: Record<ColorTheme, string[]> = {
   blush: ["#CAA697", "#FED1CA", "#F4CFB9", "#CDAB95"],
 }
 
+export const SURFACE_TONES = ["primary", "sage", "warm", "accent"] as const
+
+export function surfaceClass(index: number) {
+  return `surface-${SURFACE_TONES[index % SURFACE_TONES.length]}`
+}
+
+export function surfaceClassFromKey(key: string) {
+  let n = 0
+  for (let i = 0; i < key.length; i += 1) n += key.charCodeAt(i) * (i + 1)
+  return surfaceClass(n)
+}
+
 export const DEFAULT_SETTINGS: UserSettings = {
   language: "nl",
   timezone: "Europe/Amsterdam",
