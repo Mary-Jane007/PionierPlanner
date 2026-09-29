@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Plus,
   Sparkles,
+  Sprout,
   UserRound,
   BarChart3,
   ListTodo,
@@ -42,12 +43,14 @@ const desktopNav = [
   { href: "/kalender", key: "nav.calendar", icon: CalendarDays },
   { href: "/activiteiten", key: "nav.activities", icon: ListTodo },
   { href: "/statistieken", key: "nav.statistics", icon: BarChart3 },
+  { href: "/vorderingen", key: "nav.progress", icon: Sprout },
   { href: "/ervaringen", key: "nav.experiences", icon: BookOpen },
   { href: "/tips", key: "nav.tips", icon: LayoutGrid },
   { href: "/profiel", key: "nav.profile", icon: UserRound },
 ]
 
 const moreNav = [
+  { href: "/vorderingen", key: "nav.progress", icon: Sprout },
   { href: "/activiteiten", key: "nav.activities", icon: ListTodo },
   { href: "/statistieken", key: "nav.statistics", icon: BarChart3 },
   { href: "/tips", key: "nav.tips", icon: LayoutGrid },

@@ -19,9 +19,11 @@ import type {
   UserSettings,
 } from "@/types"
 import { DEFAULT_REGULAR_HOURS, DEFAULT_SETTINGS, LAST_EMAIL_KEY, STORAGE_KEY } from "@/lib/constants"
-import { detectScheduleConflict, historyFromEvents } from "@/lib/calculations"
+import { detectScheduleConflict, historyFromEvents, resolveTargetHours } from "@/lib/calculations"
 import { minutesBetween } from "@/lib/dates"
 import { createDemoData, emptyUserData } from "@/lib/seed"
+import { emptyGrowth, hasGrowthData, normalizeGrowth } from "@/lib/progress"
+import type { GrowthState } from "@/types/growth"
 import { rememberEmail, saveLoginOnDevice, updateStoredAccountName, mergeStoredAccounts, readStoredAccounts } from "@/lib/auth"
 import { clearCloudSession, type PlannerSnapshot } from "@/lib/cloud"
 import { flushDurableStorage, removeDurable, zustandDurableStorage } from "@/lib/durable-storage"
@@ -42,6 +44,7 @@ export interface AppState {
   availability: AvailabilitySlot[]
   commitments: Commitment[]
   experiences: Experience[]
+  growth: GrowthState
   history: HistoricalMonth[]
   settings: UserSettings
   timer: TimerState
@@ -70,6 +73,7 @@ export interface AppState {
   upsertExperience: (experience: Experience) => void
   deleteExperience: (id: string) => void
   toggleFavorite: (id: string) => void
+  setGrowth: (patch: Partial<GrowthState>) => void
   toggleCategory: (category: ActivityCategory) => void
   upsertCustomTip: (tip: PioneerTip) => void
   deleteCustomTip: (id: string) => void
@@ -115,6 +119,7 @@ function eventsWithHistory(events: CalendarEvent[]) {
 type PlannerBits = {
   events?: CalendarEvent[]
   experiences?: Experience[]
+  growth?: GrowthState
   commitments?: Commitment[]
   history?: HistoricalMonth[]
   customTips?: PioneerTip[]
@@ -127,7 +132,7 @@ export function hasSavedPlanner(state: PlannerBits) {
       (state.commitments?.length ?? 0) +
       (state.history?.length ?? 0) +
       (state.customTips?.length ?? 0) >
-    0
+      0 || hasGrowthData(state.growth)
   )
 }
 
@@ -197,6 +202,7 @@ export const useAppStore = create<AppState>()(
       availability: [],
       commitments: [],
       experiences: [],
+      growth: emptyGrowth(),
       history: [],
       settings: DEFAULT_SETTINGS,
       timer: idleTimer,
@@ -236,6 +242,7 @@ export const useAppStore = create<AppState>()(
             availability: data.availability,
             commitments: data.commitments,
             experiences: data.experiences,
+            growth: normalizeGrowth(data.growth),
             history: historyFromEvents(data.events),
             settings: { ...DEFAULT_SETTINGS, ...data.settings } satisfies UserSettings,
             timer: idleTimer,
@@ -386,6 +393,10 @@ export const useAppStore = create<AppState>()(
             item.id === id ? { ...item, favorite: !item.favorite } : item
           ),
         }),
+      setGrowth: (patch) =>
+        set({
+          growth: normalizeGrowth({ ...get().growth, ...patch }),
+        }),
       toggleCategory: (category) => {
         const hidden = get().hiddenCategories
         set({
@@ -511,6 +522,7 @@ export const useAppStore = create<AppState>()(
             availability: state.availability,
             commitments: state.commitments,
             experiences: state.experiences,
+            growth: state.growth,
             history: state.history,
             settings: state.settings,
             hiddenCategories: state.hiddenCategories,
@@ -538,6 +550,7 @@ export const useAppStore = create<AppState>()(
         const events = Array.isArray(data.events) ? (data.events as CalendarEvent[]) : []
         const commitments = Array.isArray(data.commitments) ? (data.commitments as Commitment[]) : []
         const experiences = Array.isArray(data.experiences) ? (data.experiences as Experience[]) : []
+        const growth = normalizeGrowth(data.growth as GrowthState | undefined)
         const history = Array.isArray(data.history) ? (data.history as HistoricalMonth[]) : []
         const customTips = Array.isArray(data.customTips) ? (data.customTips as PioneerTip[]) : []
         set({
@@ -546,7 +559,7 @@ export const useAppStore = create<AppState>()(
           activeProfileId: user?.id ?? null,
           onboarded:
             Boolean(data.onboarded ?? user) ||
-            hasSavedPlanner({ events, commitments, experiences, history, customTips }),
+            hasSavedPlanner({ events, commitments, experiences, history, customTips, growth }),
           pioneerType,
           customMonthlyHours:
             typeof data.customMonthlyHours === "number" ? data.customMonthlyHours : DEFAULT_REGULAR_HOURS,
@@ -555,6 +568,7 @@ export const useAppStore = create<AppState>()(
           availability: Array.isArray(data.availability) ? data.availability : [],
           commitments,
           experiences,
+          growth,
           settings: { ...DEFAULT_SETTINGS, ...(data.settings as UserSettings | undefined) },
           hiddenCategories: Array.isArray(data.hiddenCategories) ? data.hiddenCategories : [],
           customTips,
@@ -579,6 +593,7 @@ export const useAppStore = create<AppState>()(
           availability: state.availability,
           commitments: state.commitments,
           experiences: state.experiences,
+          growth: state.growth,
           history: state.history,
           settings: state.settings,
           hiddenCategories: state.hiddenCategories,
@@ -621,6 +636,24 @@ export const useAppStore = create<AppState>()(
               local.experiences,
               Array.isArray(snapshot.experiences) ? snapshot.experiences : []
             ),
+            growth: normalizeGrowth({
+              ...local.growth,
+              ...(snapshot.growth ?? {}),
+              goals: mergeById(local.growth.goals, snapshot.growth?.goals ?? []),
+              bibleEntries: mergeById(local.growth.bibleEntries, snapshot.growth?.bibleEntries ?? []),
+              studySessions: mergeById(local.growth.studySessions, snapshot.growth?.studySessions ?? []),
+              studyProjects: mergeById(local.growth.studyProjects, snapshot.growth?.studyProjects ?? []),
+              routines: mergeById(local.growth.routines, snapshot.growth?.routines ?? []),
+              skills: mergeById(local.growth.skills, snapshot.growth?.skills ?? []),
+              monthlyReflections: mergeById(
+                local.growth.monthlyReflections,
+                snapshot.growth?.monthlyReflections ?? []
+              ),
+              weeklyReflections: mergeById(local.growth.weeklyReflections, snapshot.growth?.weeklyReflections ?? []),
+              yearReflections: mergeById(local.growth.yearReflections, snapshot.growth?.yearReflections ?? []),
+              routineChecks: mergeById(local.growth.routineChecks, snapshot.growth?.routineChecks ?? []),
+              meetingPrep: mergeById(local.growth.meetingPrep, snapshot.growth?.meetingPrep ?? []),
+            }),
             settings: { ...DEFAULT_SETTINGS, ...local.settings, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: local.hiddenCategories,
             customTips: mergeById(
@@ -655,6 +688,7 @@ export const useAppStore = create<AppState>()(
             availability: Array.isArray(snapshot.availability) ? snapshot.availability : [],
             commitments: Array.isArray(snapshot.commitments) ? snapshot.commitments : [],
             experiences: Array.isArray(snapshot.experiences) ? snapshot.experiences : [],
+            growth: normalizeGrowth(snapshot.growth),
             settings: { ...DEFAULT_SETTINGS, ...(snapshot.settings as UserSettings | undefined) },
             hiddenCategories: Array.isArray(snapshot.hiddenCategories) ? snapshot.hiddenCategories : [],
             customTips: Array.isArray(snapshot.customTips) ? snapshot.customTips : [],
@@ -678,6 +712,7 @@ export const useAppStore = create<AppState>()(
           availability: [],
           commitments: [],
           experiences: [],
+          growth: emptyGrowth(),
           history: [],
           settings: DEFAULT_SETTINGS,
           timer: idleTimer,
@@ -701,6 +736,7 @@ export const useAppStore = create<AppState>()(
         availability: state.availability,
         commitments: state.commitments,
         experiences: state.experiences,
+        growth: state.growth,
         history: state.history,
         settings: state.settings,
         hiddenCategories: state.hiddenCategories,
@@ -713,6 +749,7 @@ export const useAppStore = create<AppState>()(
         return {
           ...merged,
           history: historyFromEvents(merged.events ?? []),
+          growth: normalizeGrowth(merged.growth),
         }
       },
       onRehydrateStorage: () => (state) => {
@@ -733,10 +770,7 @@ export function useCurrentTarget(): number {
   const current = monthlyGoals.find(
     (goal) => goal.year === now.getFullYear() && goal.month === now.getMonth()
   )
-  if (current) return current.targetHours
-  if (pioneerType === "auxiliary") return 30
-  if (pioneerType === "custom") return custom
-  return 50
+  return resolveTargetHours(pioneerType, custom, current?.targetHours)
 }
 
 export function useSessionPreferences(): SessionPreference[] {

@@ -129,6 +129,7 @@ export interface Experience {
   favorite: boolean
   visibility: ExperienceVisibility
   followUpDate?: string
+  goalId?: string
   createdAt: string
   updatedAt: string
 }

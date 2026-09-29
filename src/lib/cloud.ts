@@ -15,6 +15,7 @@ import type {
   UserSettings,
 } from "@/types"
 import type { PioneerTip } from "@/lib/tips"
+import type { GrowthState } from "@/types/growth"
 
 export { CLOUD_TOKEN_KEY } from "@/lib/constants"
 
@@ -34,6 +35,7 @@ export type PlannerSnapshot = {
   settings: UserSettings | unknown
   hiddenCategories: ActivityCategory[]
   customTips: PioneerTip[]
+  growth?: GrowthState
 }
 
 export type CloudError = "invalid" | "missing" | "exists" | "weak" | "offline" | "unauthorized" | "server"

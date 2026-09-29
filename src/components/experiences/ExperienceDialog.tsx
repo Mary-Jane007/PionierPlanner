@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Star } from "lucide-react"
 import {
   Dialog,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/select"
 import { experienceSchema } from "@/lib/validation"
 import { isoDate } from "@/lib/dates"
+import { emptyGoal, emptyStep, goalCategoryFromExperience, upsertById } from "@/lib/progress"
 import { useT } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
@@ -73,6 +75,9 @@ function ExperienceForm({
   onClose: () => void
   onSave: (experience: Experience) => void
 }) {
+  const router = useRouter()
+  const growth = useAppStore((s) => s.growth)
+  const setGrowth = useAppStore((s) => s.setGrowth)
   const [title, setTitle] = useState(existing?.title ?? "")
   const [date, setDate] = useState(existing?.date ?? isoDate(new Date()))
   const [category, setCategory] = useState<ExperienceCategory>(existing?.category ?? "nice_response")
@@ -80,6 +85,52 @@ function ExperienceForm({
   const [learned, setLearned] = useState(existing?.learned ?? "")
   const [followUpDate, setFollowUpDate] = useState(existing?.followUpDate ?? "")
   const [visibility, setVisibility] = useState<ExperienceVisibility>(existing?.visibility ?? "private")
+  const [savedExperience, setSavedExperience] = useState<Experience | null>(null)
+
+  function createGoalFromExperience(experience: Experience) {
+    const now = new Date().toISOString()
+    const lesson = experience.learned?.trim() || experience.text.trim()
+    const goal = {
+      ...emptyGoal(experience.title),
+      category: goalCategoryFromExperience(experience.category),
+      reason: t("progress.createdFromExperience"),
+      firstStep: lesson,
+      steps: lesson ? [emptyStep(lesson)] : [],
+      experienceIds: [experience.id],
+      createdAt: now,
+      updatedAt: now,
+    }
+    setGrowth({ goals: upsertById(growth.goals, goal) })
+    onSave({ ...experience, goalId: goal.id, updatedAt: now })
+    onClose()
+    router.push(`/vorderingen/?goal=${goal.id}`)
+  }
+
+  if (savedExperience) {
+    return (
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-2xl">{t("progress.makeGoal")}</DialogTitle>
+          <DialogDescription>{t("progress.emptyGoalsHint")}</DialogDescription>
+        </DialogHeader>
+        <p className="text-sm leading-relaxed text-muted-foreground">{savedExperience.title}</p>
+        {savedExperience.learned ? (
+          <p className="text-sm">{savedExperience.learned}</p>
+        ) : null}
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          {t(`progress.cat.${goalCategoryFromExperience(savedExperience.category)}`)}
+        </p>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            {t("progress.notNow")}
+          </Button>
+          <Button type="button" onClick={() => createGoalFromExperience(savedExperience)}>
+            {t("progress.addAsGoal")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    )
+  }
 
   return (
     <DialogContent className="sm:max-w-lg">
@@ -107,10 +158,15 @@ function ExperienceForm({
             ...parsed.data,
             tags: [t(`exp.cat.${category}`).toLowerCase().replace(/\s+/g, "")],
             favorite: existing?.favorite ?? false,
+            goalId: existing?.goalId,
             createdAt: existing?.createdAt ?? now,
             updatedAt: now,
           }
           onSave(value)
+          if (!value.goalId) {
+            setSavedExperience(value)
+            return
+          }
           onClose()
         }}
       >

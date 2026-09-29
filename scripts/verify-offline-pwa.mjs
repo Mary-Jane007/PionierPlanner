@@ -19,6 +19,7 @@ const REQUIRED_URLS = [
   "./kalender/",
   "./activiteiten/",
   "./statistieken/",
+  "./vorderingen/",
   "./ervaringen/",
   "./tips/",
   "./profiel/",
