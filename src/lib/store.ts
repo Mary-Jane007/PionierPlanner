@@ -226,21 +226,26 @@ export const useAppStore = create<AppState>()(
             void flushDurableStorage()
           })
         }
-        const keepPlanner = hasSavedPlanner(get()) && plannerBelongsToUser(get(), profile)
+        const keepPlanner =
+          plannerBelongsToUser(get(), profile) &&
+          (hasSavedPlanner(get()) ||
+            Boolean(options?.demo && get().onboarded && get().activeProfileId === "demo-user"))
 
         if (options?.demo && !keepPlanner) {
           if (hasSavedPlanner(get()) && get().activeProfileId && get().activeProfileId !== "demo-user") {
             return
           }
           const data = createDemoData()
+          const demoUser = {
+            ...data.profile,
+            name: profile.name,
+            email: profile.email,
+            id: profile.id,
+            createdAt: profile.createdAt,
+          }
           set({
-            user: {
-              ...data.profile,
-              name: profile.name,
-              email: profile.email,
-              id: profile.id,
-              createdAt: profile.createdAt,
-            },
+            user: demoUser,
+            lastUser: demoUser,
             activeProfileId: profile.id,
             onboarded: true,
             pioneerType: data.pioneerType,
@@ -811,6 +816,7 @@ export const useAppStore = create<AppState>()(
           followUps: Array.isArray(merged.followUps) ? merged.followUps.map(normalizeFollowUp) : [],
           history: historyFromEvents(merged.events ?? []),
           growth: normalizeGrowth(merged.growth),
+          settings: { ...DEFAULT_SETTINGS, ...merged.settings },
         }
       },
       onRehydrateStorage: () => (state) => {
