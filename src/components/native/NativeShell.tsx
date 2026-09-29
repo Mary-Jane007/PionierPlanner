@@ -5,19 +5,24 @@ import { App } from "@capacitor/app"
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard"
 import { StatusBar, Style } from "@capacitor/status-bar"
 import { SplashScreen } from "@capacitor/splash-screen"
+import { COLOR_THEME_META } from "@/lib/constants"
 import { flushDurableStorage } from "@/lib/durable-storage"
 import { isNativeApp } from "@/lib/native"
+import { useAppStore } from "@/lib/store"
 
 export function NativeShell() {
+  const colorTheme = useAppStore((state) => state.settings.colorTheme ?? "earth")
+
   useEffect(() => {
     if (!isNativeApp()) return
     let cancelled = false
+    const themeColor = COLOR_THEME_META[colorTheme]
 
     async function setup() {
       try {
         await StatusBar.setStyle({ style: Style.Light })
         await StatusBar.setOverlaysWebView({ overlay: true })
-        await StatusBar.setBackgroundColor({ color: "#6A6A53" })
+        await StatusBar.setBackgroundColor({ color: themeColor })
       } catch {
         // Some platforms reject overlay/style calls.
       }
@@ -75,7 +80,7 @@ export function NativeShell() {
       void pause.then((handle) => handle.remove())
       void resume.then((handle) => handle.remove())
     }
-  }, [])
+  }, [colorTheme])
 
   return null
 }

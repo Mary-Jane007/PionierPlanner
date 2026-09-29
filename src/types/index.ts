@@ -36,6 +36,7 @@ export type SessionPreference =
 export type DayPart = "morning" | "afternoon" | "evening"
 export type LocaleCode = "nl" | "en" | "es" | "pap"
 export type ThemeMode = "light" | "dark" | "system"
+export type ColorTheme = "earth" | "forest"
 export type SourceType = "official" | "original"
 export type CommitmentType =
   | "work"
@@ -208,6 +209,7 @@ export interface UserSettings {
   language: LocaleCode
   timezone: string
   theme: ThemeMode
+  colorTheme: ColorTheme
   highContrast: boolean
   notifications: NotificationSettings
   planningStyle: PlanningStyle

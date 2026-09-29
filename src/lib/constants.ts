@@ -1,5 +1,6 @@
 import type {
   ActivityCategory,
+  ColorTheme,
   PioneerProfileConfig,
   UserSettings,
 } from "@/types"
@@ -42,10 +43,23 @@ export const CATEGORY_ORDER: ActivityCategory[] = [
   "other",
 ]
 
+export const COLOR_THEME_IDS: ColorTheme[] = ["earth", "forest"]
+
+export const COLOR_THEME_META: Record<ColorTheme, string> = {
+  earth: "#6A6A53",
+  forest: "#29483F",
+}
+
+export const COLOR_THEME_SWATCHES: Record<ColorTheme, string[]> = {
+  earth: ["#6A6A53", "#9B9879", "#4D342D", "#EDE7DB", "#DDCCB7"],
+  forest: ["#29483F", "#708579", "#C68F68", "#F7F5EF", "#FFFFFF"],
+}
+
 export const DEFAULT_SETTINGS: UserSettings = {
   language: "nl",
   timezone: "Europe/Amsterdam",
   theme: "system",
+  colorTheme: "earth",
   highContrast: false,
   notifications: {
     tomorrowReminder: true,

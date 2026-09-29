@@ -24,7 +24,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { ANNUAL_REFERENCE_HOURS, DEFAULT_AUXILIARY_HOURS, DEFAULT_REGULAR_HOURS, JW_ORG_PIONEERS } from "@/lib/constants"
+import {
+  ANNUAL_REFERENCE_HOURS,
+  COLOR_THEME_IDS,
+  COLOR_THEME_SWATCHES,
+  DEFAULT_AUXILIARY_HOURS,
+  DEFAULT_REGULAR_HOURS,
+  JW_ORG_PIONEERS,
+} from "@/lib/constants"
 import { useT } from "@/lib/i18n"
 import { isNativeApp } from "@/lib/native"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
@@ -207,6 +214,39 @@ export function ProfileBoard() {
             <SelectItem value="system">{t("settings.theme.system")}</SelectItem>
           </SelectContent>
         </Select>
+        <div>
+          <p className="mb-2 text-sm font-medium">{t("settings.colorTheme")}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {COLOR_THEME_IDS.map((id) => {
+              const active = (settings.colorTheme ?? "earth") === id
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setSettings({ colorTheme: id })}
+                  className={`rounded-2xl border p-4 text-left ${
+                    active ? "border-primary bg-primary/8" : "border-border"
+                  }`}
+                >
+                  <p className="font-medium">{t(`settings.colorTheme.${id}`)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t(`settings.colorTheme.${id}Hint`)}
+                  </p>
+                  <span className="mt-3 flex gap-1.5" aria-hidden>
+                    {COLOR_THEME_SWATCHES[id].map((color) => (
+                      <span
+                        key={color}
+                        className="size-5 rounded-full border border-border"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
         <label className="flex items-center justify-between">
           <span>{t("settings.highContrast")}</span>
           <Switch
