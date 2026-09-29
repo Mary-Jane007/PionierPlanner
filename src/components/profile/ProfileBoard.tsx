@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { InstallAppButtons } from "@/components/landing/InstallAppButtons"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -24,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ANNUAL_REFERENCE_HOURS, DEFAULT_AUXILIARY_HOURS, DEFAULT_REGULAR_HOURS, JW_ORG_PIONEERS } from "@/lib/constants"
 import { useT } from "@/lib/i18n"
+import { isNativeApp } from "@/lib/native"
 import { useAppStore, useCurrentTarget } from "@/lib/store"
 import { deleteStoredAccount } from "@/lib/auth"
 import type { LocaleCode, ThemeMode } from "@/types"
@@ -45,6 +48,11 @@ export function ProfileBoard() {
   const target = useCurrentTarget()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [native, setNative] = useState(false)
+
+  useEffect(() => {
+    setNative(isNativeApp())
+  }, [])
 
   function exportFile() {
     const blob = new Blob([exportData()], { type: "application/json" })
@@ -64,6 +72,19 @@ export function ProfileBoard() {
       </header>
 
       <AccountSettings />
+
+      {native ? null : (
+        <section className="card-quiet space-y-4 rounded-3xl p-6">
+          <h2 className="font-heading text-2xl">{t("download.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("landing.installHint")}</p>
+          <InstallAppButtons />
+          <p>
+            <Link href="/download" className="text-sm text-primary underline-offset-4 hover:underline">
+              {t("landing.installHelp")}
+            </Link>
+          </p>
+        </section>
+      )}
 
       <section className="card-quiet space-y-4 rounded-3xl p-6">
         <h2 className="font-heading text-2xl">{t("settings.goal")}</h2>
