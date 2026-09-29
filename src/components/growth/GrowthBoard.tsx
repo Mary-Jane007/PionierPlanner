@@ -1362,7 +1362,7 @@ function printReport(
   const popup = window.open("", "_blank")
   if (!popup) return
   popup.document.write(`<!doctype html><html><head><title>${t("progress.title")}</title>
-    <style>body{font-family:Georgia,serif;background:#F7F5EF;color:#252925;padding:48px;max-width:720px;margin:auto}h1{font-weight:500}</style>
+    <style>body{font-family:Georgia,serif;background:#EDE7DB;color:#4D342D;padding:48px;max-width:720px;margin:auto}h1{font-weight:500}</style>
     </head><body>
     <h1>${t("progress.title")}</h1>
     <p>${t("progress.serviceYear", { label: year.year.label })}</p>

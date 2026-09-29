@@ -94,11 +94,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         Skip
       </a>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 text-sidebar-foreground lg:flex">
         <Link href="/vandaag" className="px-2">
-          <Logo />
+          <Logo className="[&>span]:text-sidebar-foreground" />
         </Link>
-        <p className="mt-3 px-2 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-3 px-2 text-xs leading-relaxed text-sidebar-foreground/70">
           {t("app.tagline")}
         </p>
         <nav className="mt-8 flex flex-1 flex-col gap-1" aria-label="Hoofdmenu">
@@ -112,8 +112,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                   active
-                    ? "bg-primary/12 text-primary"
-                    : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground"
+                    ? "bg-sidebar-accent text-sidebar-foreground"
+                    : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
               >
                 <Icon className="size-4" />
@@ -124,22 +124,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <RefreshButton variant="sidebar" />
         <Button
-          className="h-11 w-full rounded-xl"
+          className="h-11 w-full rounded-xl bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90"
           onClick={openNewActivity}
         >
           <Plus className="size-4" />
           {t("nav.addActivity")}
         </Button>
         {user ? (
-          <p className="mt-4 px-1 text-xs text-muted-foreground">{user.name}</p>
+          <p className="mt-4 px-1 text-xs text-sidebar-foreground/70">{user.name}</p>
         ) : null}
-        <p className="mt-3 px-1 text-[10px] leading-relaxed text-muted-foreground/80">
+        <p className="mt-3 px-1 text-[10px] leading-relaxed text-sidebar-foreground/55">
           {t("app.disclaimer")}
         </p>
       </aside>
 
       <div className="lg:pl-[248px]">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-border/80 bg-background/85 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-border/80 bg-linen/90 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden">
           <Logo mark={false} className="[&>span]:text-lg" />
           <div className="flex items-center gap-2">
             <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
@@ -198,7 +198,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-primary bg-primary px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-primary-foreground lg:hidden"
         aria-label="Mobiel menu"
       >
         <div className="mx-auto grid max-w-lg grid-cols-5">
@@ -211,7 +211,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={cn(
                   "flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[11px] leading-tight",
-                  active ? "text-primary" : "text-muted-foreground"
+                  active ? "text-primary-foreground" : "text-primary-foreground/65"
                 )}
               >
                 <Icon className="size-4 shrink-0" />

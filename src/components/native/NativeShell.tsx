@@ -17,7 +17,7 @@ export function NativeShell() {
       try {
         await StatusBar.setStyle({ style: Style.Light })
         await StatusBar.setOverlaysWebView({ overlay: true })
-        await StatusBar.setBackgroundColor({ color: "#29483F" })
+        await StatusBar.setBackgroundColor({ color: "#6A6A53" })
       } catch {
         // Some platforms reject overlay/style calls.
       }
