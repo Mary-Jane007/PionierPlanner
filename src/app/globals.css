@@ -155,6 +155,11 @@
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
   }
+  html.ptr-tracking,
+  html.ptr-tracking * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
   h1,
   h2,
   h3,
