@@ -26,6 +26,8 @@ import { useUiStore } from "@/lib/ui-store"
 import { cn } from "@/lib/utils"
 import { ServiceTimer } from "@/components/activities/ServiceTimer"
 import { PageLoader } from "@/components/layout/PageLoader"
+import { PullToRefresh } from "@/components/layout/PullToRefresh"
+import { RefreshButton } from "@/components/layout/RefreshButton"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ExperienceDialog } from "@/components/experiences/ExperienceDialog"
 import { MoveEventSheet } from "@/components/calendar/MoveEventSheet"
@@ -84,7 +86,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <PullToRefresh disabled={moreOpen}>
+      <div className="min-h-dvh bg-background">
       <a
         href="#inhoud"
         className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-md focus:bg-card focus:px-3 focus:py-2"
@@ -119,6 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )
           })}
         </nav>
+        <RefreshButton variant="sidebar" />
         <Button
           className="h-11 w-full rounded-xl"
           onClick={openNewActivity}
@@ -152,6 +156,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <SheetTitle>{t("nav.more")}</SheetTitle>
                 </SheetHeader>
                 <nav className="grid gap-1 px-4 pb-4" aria-label={t("nav.more")}>
+                  <RefreshButton variant="row" onDone={() => setMoreOpen(false)} />
                   {moreNav.map((item) => {
                     const Icon = item.icon
                     const active = pathname === item.href
@@ -173,6 +178,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </nav>
               </SheetContent>
             </Sheet>
+            <RefreshButton />
             <Button
               size="icon"
               className="size-11 rounded-full"
@@ -230,7 +236,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MoveEventSheet />
       <ConflictDialog />
       <ServiceTimer />
-    </div>
+      </div>
+    </PullToRefresh>
   )
 }
 

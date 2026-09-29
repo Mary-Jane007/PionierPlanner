@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from "react"
 import { Network } from "@capacitor/network"
-import { cloudPush, cloudPull, cloudToken } from "@/lib/cloud"
+import { cloudPush, cloudToken } from "@/lib/cloud"
 import { isNativeApp } from "@/lib/native"
-import { hasSavedPlanner, useAppStore } from "@/lib/store"
+import { isSkippingCloudPush, syncPlannerFromCloud } from "@/lib/planner-sync"
+import { useAppStore } from "@/lib/store"
 
 export function CloudSync() {
   const hydrated = useAppStore((state) => state.hydrated)
   const userId = useAppStore((state) => state.user?.id)
-  const skipPush = useRef(false)
   const timer = useRef<number>(0)
 
   useEffect(() => {
@@ -17,35 +17,15 @@ export function CloudSync() {
 
     let cancelled = false
 
-    async function hydrateFromCloud() {
-      const pulled = await cloudPull()
-      if (cancelled || "error" in pulled) return
-      const local = useAppStore.getState()
-      if (hasSavedPlanner(local) && (!pulled.snapshot || !hasSavedPlanner(pulled.snapshot))) {
-        await cloudPush(local.exportSnapshot())
-        return
-      }
-      if (pulled.snapshot && local.user) {
-        skipPush.current = true
-        useAppStore.getState().applyPlannerSnapshot(pulled.snapshot, local.user)
-        skipPush.current = false
-        if (hasSavedPlanner(local)) {
-          await cloudPush(useAppStore.getState().exportSnapshot())
-        }
-        return
-      }
-      await cloudPush(useAppStore.getState().exportSnapshot())
-    }
-
     function pushLocal() {
-      if (cancelled || skipPush.current || !cloudToken()) return
+      if (cancelled || isSkippingCloudPush() || !cloudToken()) return
       window.clearTimeout(timer.current)
       timer.current = window.setTimeout(() => {
         void cloudPush(useAppStore.getState().exportSnapshot())
       }, 900)
     }
 
-    void hydrateFromCloud()
+    void syncPlannerFromCloud()
 
     const unsub = useAppStore.subscribe(pushLocal)
 
