@@ -28,6 +28,7 @@ function ThemeSync() {
   useEffect(() => {
     const root = document.documentElement
     root.classList.toggle("palette-forest", colorTheme === "forest")
+    root.classList.toggle("palette-blush", colorTheme === "blush")
     const color = COLOR_THEME_META[colorTheme]
     document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
       meta.setAttribute("content", color)

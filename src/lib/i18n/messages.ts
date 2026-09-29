@@ -1292,6 +1292,13 @@ const messages = {
     es: "El tema verde original.",
     pap: "E tema bèrdè original.",
   },
+  "settings.colorTheme.blush": { nl: "Roze", en: "Blush", es: "Rosa", pap: "Rosa" },
+  "settings.colorTheme.blushHint": {
+    nl: "Burnt sienna, pink bliss, white beige en neutral.",
+    en: "Burnt sienna, pink bliss, white beige, and neutral.",
+    es: "Burnt sienna, pink bliss, white beige y neutral.",
+    pap: "Burnt sienna, pink bliss, white beige i neutral.",
+  },
   "settings.privacy": { nl: "Privacy", en: "Privacy", es: "Privacidad", pap: "Privasidat" },
   "settings.data": { nl: "Gegevens", en: "Data", es: "Datos", pap: "Dato" },
   "settings.delete": { nl: "Account verwijderen", en: "Delete account", es: "Eliminar cuenta", pap: "Kita kuenta" },
