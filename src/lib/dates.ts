@@ -108,6 +108,20 @@ export function formatMonthTitle(date: Date, lang: LocaleCode): string {
   return format(date, "LLLL yyyy", { locale: dateLocale(lang) })
 }
 
+export function formatWeekTitle(date: Date, lang: LocaleCode): string {
+  const days = weekDays(date)
+  const start = days[0]
+  const end = days[days.length - 1]
+  const locale = dateLocale(lang)
+  if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
+    return `${format(start, "d", { locale })}–${format(end, "d MMM yyyy", { locale })}`
+  }
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${format(start, "d MMM", { locale })} – ${format(end, "d MMM yyyy", { locale })}`
+  }
+  return `${format(start, "d MMM yyyy", { locale })} – ${format(end, "d MMM yyyy", { locale })}`
+}
+
 export function formatWeekdayShort(date: Date, lang: LocaleCode): string {
   return format(date, "EEEEEE", { locale: dateLocale(lang) })
 }

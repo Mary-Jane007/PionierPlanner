@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
+import { addMonths, addWeeks, subMonths, subWeeks } from "date-fns"
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Dialog,
   DialogContent,
@@ -33,10 +35,16 @@ import {
 import { formatDecimal, formatHoursShort } from "@/lib/format"
 import {
   addHoursToTime,
+  formatHumanDate,
+  formatMonthTitle,
+  formatWeekTitle,
   formatWeekdayLong,
   isoDate,
+  isSameMonthDate,
   isValidIsoDate,
+  monthDays,
   parseDate,
+  startOfMonth,
   weekDays,
 } from "@/lib/dates"
 import { useMonthSnapshot } from "@/lib/hooks"
@@ -79,10 +87,24 @@ function reportApply(
   if (!result.added && !result.skipped) toast.info(t("planner.nothingAdded"))
 }
 
+function planningNow(cursor: Date, view: "month" | "week"): Date {
+  const now = new Date()
+  if (view === "week") {
+    const days = weekDays(cursor)
+    const today = isoDate(now)
+    if (days.some((day) => isoDate(day) === today)) return now
+    return days[0]
+  }
+  if (isSameMonthDate(cursor, now)) return now
+  return startOfMonth(cursor)
+}
+
 export function PlannerBoard() {
   const t = useT()
   const lang = useLang()
-  const snapshot = useMonthSnapshot()
+  const [cursor, setCursor] = useState(() => new Date())
+  const [view, setView] = useState<"month" | "week">("month")
+  const snapshot = useMonthSnapshot(cursor)
   const events = useAppStore((s) => s.events)
   const availability = useAppStore((s) => s.availability)
   const commitments = useAppStore((s) => s.commitments)
@@ -95,9 +117,13 @@ export function PlannerBoard() {
   const setWhatIfOpen = useUiStore((s) => s.setWhatIfOpen)
   const fillOpen = useUiStore((s) => s.fillWeekOpen)
   const setFillOpen = useUiStore((s) => s.setFillWeekOpen)
-  const now = new Date()
+  const now = planningNow(cursor, view)
   const weekNeed = Math.max(0, snapshot.requiredWeekly - snapshot.weekHours)
   const under = Math.max(0, snapshot.target - snapshot.projected)
+  const heading = view === "week" ? formatWeekTitle(cursor, lang) : formatMonthTitle(cursor, lang)
+  const periodDays = view === "week" ? weekDays(cursor) : monthDays(cursor.getFullYear(), cursor.getMonth())
+  const prevLabel = view === "week" ? t("calendar.prevWeek") : t("calendar.prevMonth")
+  const nextLabel = view === "week" ? t("calendar.nextWeek") : t("calendar.nextMonth")
 
   const plannerInput: PlannerInput = {
     targetHours: target,
@@ -115,8 +141,15 @@ export function PlannerBoard() {
   const recovery = useMemo(
     () => generateSuggestedSchedule({ ...plannerInput, hoursNeeded: Math.max(under, weekNeed) }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [snapshot.completed, snapshot.planned, events, availability, commitments, target]
+    [snapshot.completed, snapshot.planned, events, availability, commitments, target, now]
   )
+
+  function shiftCursor(direction: 1 | -1) {
+    setCursor((current) => {
+      if (view === "week") return direction > 0 ? addWeeks(current, 1) : subWeeks(current, 1)
+      return direction > 0 ? addMonths(current, 1) : subMonths(current, 1)
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -125,11 +158,26 @@ export function PlannerBoard() {
           <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
             {t("planner.title")}
           </p>
-          <h1 className="font-heading text-4xl sm:text-5xl">{t("planner.monthWizard")}</h1>
+          <h1 className="font-heading text-4xl capitalize sm:text-5xl">{heading}</h1>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => shiftCursor(-1)} aria-label={prevLabel}>
+            <ChevronLeft />
+          </Button>
+          <Button variant="outline" onClick={() => setCursor(new Date())}>
+            {t("calendar.todayMark")}
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => shiftCursor(1)} aria-label={nextLabel}>
+            <ChevronRight />
+          </Button>
+          <Tabs value={view} onValueChange={(value) => setView(value as typeof view)}>
+            <TabsList>
+              <TabsTrigger value="month">{t("calendar.month")}</TabsTrigger>
+              <TabsTrigger value="week">{t("calendar.week")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <StartTimerButton />
-          <StartOverDialog />
+          <StartOverDialog monthDate={cursor} />
           <Button variant="outline" onClick={() => setWhatIfOpen(true)}>
             {t("planner.whatIf")}
           </Button>
@@ -174,12 +222,21 @@ export function PlannerBoard() {
             {t(`planner.health.${snapshot.health}`)}
           </h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            {snapshot.daysRemaining} {lang === "en" ? "days left in the month" : "dagen over in de maand"}
+            {t("planner.daysLeft", { n: snapshot.daysRemaining })}
           </p>
         </article>
       </section>
 
-      <WeeklyBoard />
+      <PeriodBoard
+        days={periodDays}
+        title={view === "week" ? t("planner.weekTitle") : t("planner.monthTitle")}
+        hoursLabel={
+          view === "week"
+            ? `${formatDecimal(snapshot.weekHours, lang)}u · ${t("planner.weekGoal")} ${formatDecimal(snapshot.requiredWeekly, lang)}u`
+            : `${formatDecimal(snapshot.completed + snapshot.planned, lang)}u · ${t("planner.goal")} ${snapshot.target}u`
+        }
+        remaining={view === "week" ? Math.max(0, snapshot.requiredWeekly - snapshot.weekHours) : 0}
+      />
 
       {under > 1 ? (
         <section className="planner-suggest rounded-3xl p-6">
@@ -200,13 +257,14 @@ export function PlannerBoard() {
         </section>
       ) : null}
 
-      <MonthWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />
+      <MonthWizard open={wizardOpen} onClose={() => setWizardOpen(false)} monthDate={cursor} />
       <WhatIfDialog open={whatIfOpen} onClose={() => setWhatIfOpen(false)} />
       <FillWeekDialog
         open={fillOpen}
         onClose={() => setFillOpen(false)}
         hoursNeeded={weekNeed}
         input={plannerInput}
+        weekAnchor={cursor}
       />
     </div>
   )
@@ -229,24 +287,29 @@ function Stat({
   )
 }
 
-function WeeklyBoard() {
+function PeriodBoard({
+  days,
+  title,
+  hoursLabel,
+  remaining,
+}: {
+  days: Date[]
+  title: string
+  hoursLabel: string
+  remaining: number
+}) {
   const t = useT()
   const lang = useLang()
   const events = useAppStore((s) => s.events)
-  const snapshot = useMonthSnapshot()
   const openActivity = useUiStore((s) => s.openActivity)
   const setFillOpen = useUiStore((s) => s.setFillWeekOpen)
-  const days = weekDays(new Date())
-  const remaining = Math.max(0, snapshot.requiredWeekly - snapshot.weekHours)
 
   return (
     <section className="planner-week rounded-3xl p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-heading text-3xl">{t("planner.weekTitle")}</h2>
-          <p className="text-sm text-muted-foreground">
-            {formatDecimal(snapshot.weekHours, lang)}u · {t("planner.weekGoal")} {formatDecimal(snapshot.requiredWeekly, lang)}u
-          </p>
+          <h2 className="font-heading text-3xl">{title}</h2>
+          <p className="text-sm text-muted-foreground">{hoursLabel}</p>
         </div>
         {remaining > 0.4 ? (
           <Button onClick={() => setFillOpen(true)}>
@@ -269,7 +332,10 @@ function WeeklyBoard() {
               className="planner-week-row flex items-start justify-between gap-3 rounded-2xl px-4 py-3"
             >
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{formatWeekdayLong(day, lang)}</p>
+                <p className="text-sm font-medium">
+                  {formatWeekdayLong(day, lang)}
+                  <span className="ml-2 text-muted-foreground">{formatHumanDate(day, lang)}</span>
+                </p>
                 {items.length === 0 ? (
                   <p className="text-xs text-muted-foreground">—</p>
                 ) : (
@@ -400,7 +466,15 @@ function OptionCard({
   )
 }
 
-function MonthWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
+function MonthWizard({
+  open,
+  onClose,
+  monthDate,
+}: {
+  open: boolean
+  onClose: () => void
+  monthDate: Date
+}) {
   const t = useT()
   const [step, setStep] = useState(1)
   const pioneerType = useAppStore((s) => s.pioneerType)
@@ -434,11 +508,11 @@ function MonthWizard({ open, onClose }: { open: boolean; onClose: () => void }) 
   ]
 
   function generate() {
-    const now = new Date()
+    const now = planningNow(monthDate, "month")
     const nextHours =
       type === "regular" ? DEFAULT_REGULAR_HOURS : type === "auxiliary" ? DEFAULT_AUXILIARY_HOURS : hours
     setPioneerGoal(type, nextHours)
-    const completed = calculateCompletedHours(events, now.getFullYear(), now.getMonth())
+    const completed = calculateCompletedHours(events, monthDate.getFullYear(), monthDate.getMonth())
     setOptions(
       generateSuggestedSchedule({
         targetHours: nextHours,
@@ -770,11 +844,13 @@ function FillWeekDialog({
   onClose,
   hoursNeeded,
   input,
+  weekAnchor,
 }: {
   open: boolean
   onClose: () => void
   hoursNeeded: number
   input: PlannerInput
+  weekAnchor: Date
 }) {
   const t = useT()
   const lang = useLang()
@@ -782,10 +858,10 @@ function FillWeekDialog({
   const openActivity = useUiStore((s) => s.openActivity)
   const blocks = useMemo(
     () => suggestWeekFill(input, Math.max(1, hoursNeeded)).filter((block) => {
-      const week = weekDays(new Date())
+      const week = weekDays(weekAnchor)
       return week.some((item) => isoDate(item) === block.date)
     }),
-    [input, hoursNeeded]
+    [input, hoursNeeded, weekAnchor]
   )
 
   return (

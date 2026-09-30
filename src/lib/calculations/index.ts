@@ -275,19 +275,57 @@ export interface MonthSnapshot {
   next?: CalendarEvent
 }
 
+export function calculatePeriodHours(
+  events: CalendarEvent[],
+  cursor: Date,
+  view: "month" | "week" | "day"
+): { planned: number; completed: number; total: number } {
+  let planned = 0
+  let completed = 0
+  if (view === "day") {
+    const date = isoDate(cursor)
+    planned = calculateHoursForDay(events, date, ["planned"])
+    completed = calculateHoursForDay(events, date, ["completed"])
+  } else if (view === "week") {
+    planned = calculateWeekHours(events, cursor, ["planned"])
+    completed = calculateWeekHours(events, cursor, ["completed"])
+  } else {
+    planned = calculatePlannedHours(events, cursor.getFullYear(), cursor.getMonth())
+    completed = calculateCompletedHours(events, cursor.getFullYear(), cursor.getMonth())
+  }
+  return {
+    planned: Math.round(planned * 10) / 10,
+    completed: Math.round(completed * 10) / 10,
+    total: Math.round((planned + completed) * 10) / 10,
+  }
+}
+
 export function calculateMonthSnapshot(input: {
   events: CalendarEvent[]
   year: number
   month: number
   target: number
   now: Date
+  weekAnchor?: Date
 }): MonthSnapshot {
   const { events, year, month, target, now } = input
+  const weekAnchor = input.weekAnchor ?? now
   const completed = calculateCompletedHours(events, year, month)
   const planned = calculatePlannedHours(events, year, month)
   const cancelled = calculateCancelledHours(events, year, month)
   const remaining = calculateRemainingHours(target, completed)
-  const daysRemaining = daysLeftCount(now)
+  const sameMonth = now.getFullYear() === year && now.getMonth() === month
+  const futureMonth = new Date(year, month, 1) > now
+  const daysRemaining = sameMonth
+    ? daysLeftCount(now)
+    : futureMonth
+      ? monthDays(year, month).length
+      : 0
+  const remainingDayCount = sameMonth
+    ? remainingDaysInMonth(now).length
+    : futureMonth
+      ? monthDays(year, month).length
+      : 0
   const today = isoDate(now)
   const monthEvents = eventsInMonth(events, year, month).filter(
     (event) => isFieldService(event) && event.status === "completed"
@@ -305,15 +343,15 @@ export function calculateMonthSnapshot(input: {
     percent: calculateProgressPercentage(completed, target),
     projected: calculateProjectedTotal(completed, planned),
     daysRemaining,
-    weeklyAverage: calculateWeeklyAverage(events, year, month, now),
+    weeklyAverage: calculateWeeklyAverage(events, year, month, sameMonth ? now : new Date(year, month, 28)),
     requiredWeekly: calculateRequiredWeeklyAverage(remaining, daysRemaining),
     requiredDaily: calculateRequiredDailyAverage(
       Math.max(0, remaining - planned),
-      remainingDaysInMonth(now).length
+      remainingDayCount
     ),
     todayHours: calculateHoursForDay(events, today),
-    weekHours: calculateWeekHours(events, now),
-    weekCompleted: calculateWeekHours(events, now, ["completed"]),
+    weekHours: calculateWeekHours(events, weekAnchor),
+    weekCompleted: calculateWeekHours(events, weekAnchor, ["completed"]),
     averageSession: calculateAverageSession(events, year, month),
     sessionsCompleted: monthEvents.length,
     health: calculatePlanningHealth({

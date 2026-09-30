@@ -8,19 +8,23 @@ export function useNow() {
   return useMemo(() => new Date(), [])
 }
 
-export function useMonthSnapshot() {
+export function useMonthSnapshot(anchor?: Date) {
   const events = useAppStore((state) => state.events)
   const target = useCurrentTarget()
   const now = useNow()
+  const year = (anchor ?? now).getFullYear()
+  const month = (anchor ?? now).getMonth()
+  const weekAnchor = anchor ?? now
   return useMemo(
     () =>
       calculateMonthSnapshot({
         events,
-        year: now.getFullYear(),
-        month: now.getMonth(),
+        year,
+        month,
         target,
         now,
+        weekAnchor,
       }),
-    [events, target, now]
+    [events, target, now, year, month, weekAnchor]
   )
 }
