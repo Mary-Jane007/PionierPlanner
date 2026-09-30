@@ -24,8 +24,8 @@ import {
   isToday,
   weekDays,
 } from "@/lib/dates"
-import { formatHoursShort, hoursFromMinutes } from "@/lib/format"
-import { calculateHoursForDay } from "@/lib/calculations"
+import { formatDecimal, formatHoursShort, hoursFromMinutes } from "@/lib/format"
+import { calculateHoursForDay, calculatePeriodHours } from "@/lib/calculations"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
@@ -48,6 +48,10 @@ export function CalendarBoard() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const visibleEvents = events.filter((event) => !hidden.includes(event.category))
+  const monthHours = useMemo(
+    () => calculatePeriodHours(events, cursor, "month"),
+    [events, cursor]
+  )
 
   function onDragEnd(event: DragEndEvent) {
     const over = event.over
@@ -88,15 +92,37 @@ export function CalendarBoard() {
           <h1 className="font-heading text-4xl capitalize">
             {formatMonthTitle(cursor, lang)}
           </h1>
+          <p className="mt-1 text-sm">
+            <span className="font-medium">
+              {t("calendar.hoursNow", { n: formatDecimal(monthHours.total, lang) })}
+            </span>
+            <span className="text-muted-foreground">
+              {" · "}
+              {t("calendar.hoursSummary", {
+                completed: formatDecimal(monthHours.completed, lang),
+                planned: formatDecimal(monthHours.planned, lang),
+              })}
+            </span>
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => setCursor((d) => subMonths(d, 1))} aria-label="Vorige">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCursor((d) => subMonths(d, 1))}
+            aria-label={t("calendar.prevMonth")}
+          >
             <ChevronLeft />
           </Button>
           <Button variant="outline" onClick={() => setCursor(new Date())}>
             {t("calendar.todayMark")}
           </Button>
-          <Button variant="outline" size="icon" onClick={() => setCursor((d) => addMonths(d, 1))} aria-label="Volgende">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCursor((d) => addMonths(d, 1))}
+            aria-label={t("calendar.nextMonth")}
+          >
             <ChevronRight />
           </Button>
           <StartOverDialog monthDate={cursor} />

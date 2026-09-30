@@ -595,6 +595,22 @@ const messages = {
     pap: "Kopiá {n} biaha.",
   },
   "calendar.todayMark": { nl: "Vandaag", en: "Today", es: "Hoy", pap: "Awe" },
+  "calendar.prevMonth": { nl: "Vorige maand", en: "Previous month", es: "Mes anterior", pap: "Luna anterior" },
+  "calendar.nextMonth": { nl: "Volgende maand", en: "Next month", es: "Mes siguiente", pap: "Próksimo luna" },
+  "calendar.prevWeek": { nl: "Vorige week", en: "Previous week", es: "Semana anterior", pap: "Siman anterior" },
+  "calendar.nextWeek": { nl: "Volgende week", en: "Next week", es: "Semana siguiente", pap: "Próksimo siman" },
+  "calendar.hoursNow": {
+    nl: "{n} u deze maand",
+    en: "{n} h this month",
+    es: "{n} h este mes",
+    pap: "{n} ora e luna aki",
+  },
+  "calendar.hoursSummary": {
+    nl: "{completed} u voltooid · {planned} u in planning",
+    en: "{completed} h completed · {planned} h planned",
+    es: "{completed} h completadas · {planned} h planificadas",
+    pap: "{completed} ora kompletá · {planned} ora planeá",
+  },
   "calendar.startOver": { nl: "Opnieuw beginnen", en: "Start over", es: "Empezar de nuevo", pap: "Kuminsá di nobo" },
   "calendar.startOverTitle": {
     nl: "Opnieuw beginnen?",
@@ -817,6 +833,13 @@ const messages = {
   "planner.option.weekend": { nl: "Optie B — Weekend", en: "Option B — Weekend", es: "Opción B — Fin de semana", pap: "Opshon B — Fin di siman" },
   "planner.option.flexible": { nl: "Optie C — Flexibel", en: "Option C — Flexible", es: "Opción C — Flexible", pap: "Opshon C — Flexibel" },
   "planner.weekTitle": { nl: "Deze week", en: "This week", es: "Esta semana", pap: "E siman aki" },
+  "planner.monthTitle": { nl: "Deze maand", en: "This month", es: "Este mes", pap: "E luna aki" },
+  "planner.daysLeft": {
+    nl: "{n} dagen over in de maand",
+    en: "{n} days left in the month",
+    es: "{n} días restantes en el mes",
+    pap: "{n} dia over den e luna",
+  },
   "planner.weekGoal": { nl: "Richtlijn", en: "Guide", es: "Guía", pap: "Guia" },
   "planner.planHours": { nl: "Plan {n} uur", en: "Plan {n} hours", es: "Planificar {n} horas", pap: "Planeá {n} ora" },
   "planner.fillNeed": {
