@@ -48,13 +48,13 @@ export const COLOR_THEME_IDS: ColorTheme[] = ["earth", "forest", "blush"]
 export const COLOR_THEME_META: Record<ColorTheme, string> = {
   earth: "#6A6A53",
   forest: "#29483F",
-  blush: "#CAA697",
+  blush: "#6E2C3A",
 }
 
 export const COLOR_THEME_SWATCHES: Record<ColorTheme, string[]> = {
   earth: ["#6A6A53", "#9B9879", "#4D342D", "#EDE7DB", "#DDCCB7"],
   forest: ["#29483F", "#708579", "#C68F68", "#F7F5EF", "#FFFFFF"],
-  blush: ["#CAA697", "#FED1CA", "#F4CFB9", "#CDAB95"],
+  blush: ["#6E2C3A", "#F3E6D8", "#CAA697", "#E8D5C4"],
 }
 
 export const SURFACE_TONES = ["primary", "sage", "warm", "accent"] as const
