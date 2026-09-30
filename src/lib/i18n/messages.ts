@@ -1435,6 +1435,18 @@ const messages = {
     es: "Añade una actividad, o ve a otro mes.",
     pap: "Sumá un aktividat, òf bai un otro luna.",
   },
+  "empty.activitiesFilter": {
+    nl: "Geen {category} in {month}.",
+    en: "No {category} in {month}.",
+    es: "No hay {category} en {month}.",
+    pap: "No tin {category} den {month}.",
+  },
+  "empty.activitiesFilterText": {
+    nl: "Kies een andere categorie, of voeg zelf een activiteit toe.",
+    en: "Choose another category, or add an activity yourself.",
+    es: "Elige otra categoría, o añade una actividad.",
+    pap: "Skoge un otro kategoria, òf sumá un aktividat.",
+  },
   "empty.planFirst": { nl: "Eerste activiteit plannen", en: "Plan a first activity", es: "Planificar la primera actividad", pap: "Planeá prome aktividat" },
   "quick.service": { nl: "Velddienst", en: "Field service", es: "Predicación", pap: "Servicio" },
   "quick.event": { nl: "Agenda-item", en: "Calendar item", es: "Evento", pap: "Item di agenda" },

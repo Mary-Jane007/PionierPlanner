@@ -10,9 +10,9 @@ import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
 import { Button } from "@/components/ui/button"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
-import { surfaceClass } from "@/lib/constants"
+import { CATEGORY_ORDER, surfaceClass } from "@/lib/constants"
 import { cn } from "@/lib/utils"
-import type { CalendarEvent } from "@/types"
+import type { ActivityCategory, CalendarEvent } from "@/types"
 
 function defaultDateForMonth(cursor: Date): string {
   const now = new Date()
@@ -37,6 +37,7 @@ export function ActivitiesBoard() {
   const setEventStatus = useAppStore((s) => s.setEventStatus)
   const openActivity = useUiStore((s) => s.openActivity)
   const [cursor, setCursor] = useState(() => new Date())
+  const [category, setCategory] = useState<ActivityCategory | "all">("all")
   const monthTitle = formatMonthTitle(cursor, lang)
 
   const monthEvents = useMemo(
@@ -46,11 +47,16 @@ export function ActivitiesBoard() {
         .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`)),
     [events, cursor]
   )
-  const grouped = useMemo(() => groupByDate(monthEvents), [monthEvents])
+  const visibleEvents = useMemo(
+    () =>
+      category === "all" ? monthEvents : monthEvents.filter((event) => event.category === category),
+    [monthEvents, category]
+  )
+  const grouped = useMemo(() => groupByDate(visibleEvents), [visibleEvents])
 
   function addInMonth() {
     openActivity({
-      category: "field_service",
+      category: category === "all" ? "field_service" : category,
       date: defaultDateForMonth(cursor),
     })
   }
@@ -88,6 +94,38 @@ export function ActivitiesBoard() {
           <Button onClick={addInMonth}>{t("nav.addActivity")}</Button>
         </div>
       </header>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setCategory("all")}
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs transition-colors",
+            category === "all"
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border bg-card text-muted-foreground"
+          )}
+        >
+          {t("calendar.filter.all")}
+        </button>
+        {CATEGORY_ORDER.map((item) => {
+          const active = category === item
+          return (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setCategory(item)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs transition-colors",
+                active
+                  ? cn("cat-" + item, "border-transparent")
+                  : "border-border bg-card text-muted-foreground"
+              )}
+            >
+              {t(`category.${item}`)}
+            </button>
+          )
+        })}
+      </div>
       {monthEvents.length === 0 ? (
         <div className="surface-sage rounded-3xl px-6 py-16 text-center">
           <h2 className="font-heading text-2xl">
@@ -97,6 +135,16 @@ export function ActivitiesBoard() {
           <Button className="mt-6" onClick={addInMonth}>
             {t("empty.planFirst")}
           </Button>
+        </div>
+      ) : visibleEvents.length === 0 ? (
+        <div className="surface-sage rounded-3xl px-6 py-16 text-center">
+          <h2 className="font-heading text-2xl">
+            {t("empty.activitiesFilter", {
+              category: t(`category.${category}`),
+              month: monthTitle,
+            })}
+          </h2>
+          <p className="mt-2 text-muted-foreground">{t("empty.activitiesFilterText")}</p>
         </div>
       ) : (
         <div className="space-y-6">
