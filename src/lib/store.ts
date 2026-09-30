@@ -72,6 +72,7 @@ export interface AppState {
   upsertEvent: (event: CalendarEvent) => void
   deleteEvent: (id: string) => void
   moveEvent: (id: string, date: string, startTime?: string, endTime?: string) => void
+  copyEventToDates: (id: string, dates: string[]) => { copied: number; skipped: number }
   setEventStatus: (id: string, status: CalendarEvent["status"]) => void
   upsertExperience: (experience: Experience) => void
   deleteExperience: (id: string) => void
@@ -376,6 +377,33 @@ export const useAppStore = create<AppState>()(
           }
         })
         set(eventsWithHistory(events))
+      },
+      copyEventToDates: (id, dates) => {
+        const source = get().events.find((item) => item.id === id)
+        if (!source) return { copied: 0, skipped: 0 }
+        const unique = [...new Set(dates.filter((date) => date && date !== source.date))].sort()
+        const existing = get().events
+        const created: CalendarEvent[] = []
+        let skipped = 0
+        const now = new Date().toISOString()
+        for (const date of unique) {
+          const candidate: CalendarEvent = {
+            ...source,
+            id: crypto.randomUUID(),
+            date,
+            status: "planned",
+            followUpId: undefined,
+            createdAt: now,
+            updatedAt: now,
+          }
+          if (detectScheduleConflict([...existing, ...created], candidate)) {
+            skipped += 1
+            continue
+          }
+          created.push(candidate)
+        }
+        if (created.length > 0) set(eventsWithHistory([...existing, ...created]))
+        return { copied: created.length, skipped }
       },
       setEventStatus: (id, status) =>
         set(
