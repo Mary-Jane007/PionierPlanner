@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#6A6A53",
+  themeColor: "#29483F",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -46,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="nl"
-      className={`${manrope.variable} ${cormorant.variable} h-full`}
+      className={`${manrope.variable} ${cormorant.variable} palette-forest h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

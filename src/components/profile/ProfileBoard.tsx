@@ -218,7 +218,7 @@ export function ProfileBoard() {
           <p className="mb-2 text-sm font-medium">{t("settings.colorTheme")}</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {COLOR_THEME_IDS.map((id) => {
-              const active = (settings.colorTheme ?? "earth") === id
+              const active = (settings.colorTheme ?? "forest") === id
               return (
                 <button
                   key={id}

@@ -11,7 +11,7 @@ import { isNativeApp } from "@/lib/native"
 import { useAppStore } from "@/lib/store"
 
 export function NativeShell() {
-  const colorTheme = useAppStore((state) => state.settings.colorTheme ?? "earth")
+  const colorTheme = useAppStore((state) => state.settings.colorTheme ?? "forest")
 
   useEffect(() => {
     if (!isNativeApp()) return
