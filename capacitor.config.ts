@@ -5,14 +5,14 @@ const config: CapacitorConfig = {
   appId: "app.pioniersplanner",
   appName: "Pioniersplanner",
   webDir: "out",
-  backgroundColor: "#29483F",
+  backgroundColor: "#6A6A53",
   android: {
     allowMixedContent: true,
-    backgroundColor: "#29483F",
+    backgroundColor: "#6A6A53",
   },
   ios: {
     contentInset: "never",
-    backgroundColor: "#29483F",
+    backgroundColor: "#6A6A53",
     preferredContentMode: "mobile",
     scheme: "Pioniersplanner",
     scrollEnabled: true,
@@ -21,7 +21,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 500,
       launchAutoHide: true,
-      backgroundColor: "#29483F",
+      backgroundColor: "#6A6A53",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
       splashFullScreen: true,
@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: "LIGHT",
-      backgroundColor: "#29483F",
+      backgroundColor: "#6A6A53",
     },
     Keyboard: {
       resize: KeyboardResize.Body,

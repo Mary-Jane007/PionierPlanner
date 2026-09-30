@@ -8,16 +8,16 @@ export function Logo({ className, mark = false }: { className?: string; mark?: b
         className="size-9 shrink-0"
         aria-hidden
       >
-        <rect width="40" height="40" rx="11" fill="currentColor" className="text-primary" />
+        <rect width="40" height="40" rx="11" fill="var(--primary)" />
         <path
           d="M13 28V12h8.2a5.6 5.6 0 0 1 0 11.2H13"
           fill="none"
-          stroke="#F7F5EF"
+          stroke="var(--primary-foreground)"
           strokeWidth="2.3"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx="28.2" cy="13.4" r="2.15" fill="#C68F68" />
+        <circle cx="28.2" cy="13.4" r="2.15" fill="var(--accent)" />
       </svg>
       {!mark ? (
         <span className="font-heading text-xl leading-none tracking-tight text-foreground">

@@ -8,6 +8,7 @@ import { useUiStore } from "@/lib/ui-store"
 import { Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StartTimerButton } from "@/components/activities/ServiceTimer"
+import { surfaceClass } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 export function ActivitiesBoard() {
@@ -32,17 +33,18 @@ export function ActivitiesBoard() {
         </div>
       </header>
       {sorted.length === 0 ? (
-        <div className="card-quiet rounded-3xl px-6 py-16 text-center">
+        <div className="surface-sage rounded-3xl px-6 py-16 text-center">
           <h2 className="font-heading text-2xl">{t("empty.month")}</h2>
           <p className="mt-2 text-muted-foreground">{t("empty.monthText")}</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {sorted.map((event) => (
+          {sorted.map((event, index) => (
             <article
               key={event.id}
               className={cn(
-                "card-quiet flex items-center justify-between gap-3 rounded-2xl px-4 py-3",
+                surfaceClass(index),
+                "flex items-center justify-between gap-3 rounded-2xl px-4 py-3",
                 `stripe-${event.category}`
               )}
             >

@@ -34,7 +34,7 @@ import {
 } from "@/lib/progress"
 import { endTimeFromDuration, formatHumanDate, formatMonthTitle, isoDate, parseDate } from "@/lib/dates"
 import { formatDecimal, formatPercent } from "@/lib/format"
-import { JW_ORG_LIBRARY } from "@/lib/constants"
+import { JW_ORG_LIBRARY, surfaceClass, surfaceClassFromKey } from "@/lib/constants"
 import { useNow } from "@/lib/hooks"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
@@ -207,10 +207,10 @@ export function GrowthBoard() {
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label={t("progress.card.service")} value={t("progress.hoursOf", { n: formatDecimal(month.completed, lang), t: month.target })} />
-        <SummaryCard label={t("progress.card.bible")} value={`${bible.monthDays} / ${bible.monthTarget}`} />
-        <SummaryCard label={t("progress.card.study")} value={t("progress.sessions", { n: study.monthSessions })} />
-        <SummaryCard label={t("progress.card.goals")} value={t("progress.steps", { done: goals.stepDone, total: goals.stepTotal })} />
+        <SummaryCard tone={0} label={t("progress.card.service")} value={t("progress.hoursOf", { n: formatDecimal(month.completed, lang), t: month.target })} />
+        <SummaryCard tone={1} label={t("progress.card.bible")} value={`${bible.monthDays} / ${bible.monthTarget}`} />
+        <SummaryCard tone={2} label={t("progress.card.study")} value={t("progress.sessions", { n: study.monthSessions })} />
+        <SummaryCard tone={3} label={t("progress.card.goals")} value={t("progress.steps", { done: goals.stepDone, total: goals.stepTotal })} />
       </div>
 
       <Section title={t("progress.myFocus")} hint={t("progress.chooseFocus")} id="progress-focus">
@@ -1249,9 +1249,10 @@ function Section({
       {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
     </div>
   )
+  const band = surfaceClassFromKey(id ?? title)
   if (collapsible) {
     return (
-      <details id={id} className="card-quiet rounded-3xl p-6" open>
+      <details id={id} className={`${band} rounded-3xl p-6`} open>
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           {heading}
         </summary>
@@ -1260,16 +1261,16 @@ function Section({
     )
   }
   return (
-    <section id={id} className="card-quiet space-y-4 rounded-3xl p-6">
+    <section id={id} className={`${band} space-y-4 rounded-3xl p-6`}>
       {heading}
       {children}
     </section>
   )
 }
 
-function SummaryCard({ label, value }: { label: string; value: string }) {
+function SummaryCard({ label, value, tone = 0 }: { label: string; value: string; tone?: number }) {
   return (
-    <article className="card-quiet rounded-3xl p-5">
+    <article className={`${surfaceClass(tone)} rounded-3xl p-5`}>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="font-heading mt-2 text-2xl">{value}</p>
     </article>
@@ -1362,7 +1363,7 @@ function printReport(
   const popup = window.open("", "_blank")
   if (!popup) return
   popup.document.write(`<!doctype html><html><head><title>${t("progress.title")}</title>
-    <style>body{font-family:Georgia,serif;background:#F7F5EF;color:#252925;padding:48px;max-width:720px;margin:auto}h1{font-weight:500}</style>
+    <style>body{font-family:Georgia,serif;background:#EDE7DB;color:#4D342D;padding:48px;max-width:720px;margin:auto}h1{font-weight:500}</style>
     </head><body>
     <h1>${t("progress.title")}</h1>
     <p>${t("progress.serviceYear", { label: year.year.label })}</p>

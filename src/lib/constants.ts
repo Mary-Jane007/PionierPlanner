@@ -1,5 +1,6 @@
 import type {
   ActivityCategory,
+  ColorTheme,
   PioneerProfileConfig,
   UserSettings,
 } from "@/types"
@@ -42,10 +43,37 @@ export const CATEGORY_ORDER: ActivityCategory[] = [
   "other",
 ]
 
+export const COLOR_THEME_IDS: ColorTheme[] = ["earth", "forest", "blush"]
+
+export const COLOR_THEME_META: Record<ColorTheme, string> = {
+  earth: "#6A6A53",
+  forest: "#29483F",
+  blush: "#6E2C3A",
+}
+
+export const COLOR_THEME_SWATCHES: Record<ColorTheme, string[]> = {
+  earth: ["#6A6A53", "#9B9879", "#4D342D", "#EDE7DB", "#DDCCB7"],
+  forest: ["#29483F", "#708579", "#C68F68", "#F7F5EF", "#FFFFFF"],
+  blush: ["#6E2C3A", "#F3E6D8", "#CAA697", "#E8D5C4"],
+}
+
+export const SURFACE_TONES = ["primary", "sage", "warm", "accent"] as const
+
+export function surfaceClass(index: number) {
+  return `surface-${SURFACE_TONES[index % SURFACE_TONES.length]}`
+}
+
+export function surfaceClassFromKey(key: string) {
+  let n = 0
+  for (let i = 0; i < key.length; i += 1) n += key.charCodeAt(i) * (i + 1)
+  return surfaceClass(n)
+}
+
 export const DEFAULT_SETTINGS: UserSettings = {
   language: "nl",
   timezone: "Europe/Amsterdam",
   theme: "system",
+  colorTheme: "earth",
   highContrast: false,
   notifications: {
     tomorrowReminder: true,

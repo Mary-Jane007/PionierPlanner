@@ -11,10 +11,10 @@ backup="$(mktemp)"
 cp "$manifest" "$backup"
 
 npx capacitor-assets generate \
-  --iconBackgroundColor '#29483F' \
-  --iconBackgroundColorDark '#29483F' \
-  --splashBackgroundColor '#29483F' \
-  --splashBackgroundColorDark '#29483F' \
+  --iconBackgroundColor '#6A6A53' \
+  --iconBackgroundColorDark '#4D342D' \
+  --splashBackgroundColor '#6A6A53' \
+  --splashBackgroundColorDark '#4D342D' \
   --logoSplashScale 0.28
 
 # capacitor-assets rewrites the PWA manifest with broken paths; keep ours.

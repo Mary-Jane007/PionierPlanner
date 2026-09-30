@@ -45,7 +45,7 @@ export function RefreshButton({
     return (
       <Button
         variant="outline"
-        className="mb-2 h-11 w-full rounded-xl"
+        className="mb-2 h-11 w-full rounded-xl border-sidebar-foreground/35 bg-transparent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         disabled={busy}
         onClick={() => void onClick()}
       >

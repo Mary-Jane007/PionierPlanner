@@ -34,7 +34,7 @@ export function HomeProgressCard() {
   const focus = growth.focus[0]
 
   return (
-    <article className="card-quiet rounded-3xl p-6">
+    <article className="surface-primary rounded-3xl p-6">
       <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">{t("progress.home")}</p>
       <h2 className="font-heading mt-2 text-3xl">{t("progress.home")}</h2>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">

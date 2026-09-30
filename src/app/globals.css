@@ -41,6 +41,13 @@
   --color-card: var(--card);
   --color-warm: var(--warm);
   --color-sage: var(--sage);
+  --color-linen: var(--linen);
+  --color-moss: var(--moss);
+  --color-olive: var(--olive);
+  --color-mahogany: var(--mahogany);
+  --color-eggshell: var(--eggshell);
+  --color-nav: var(--nav);
+  --color-nav-foreground: var(--nav-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -50,6 +57,136 @@
 
 :root {
   color-scheme: light;
+  --moss: #6a6a53;
+  --olive: #9b9879;
+  --mahogany: #4d342d;
+  --eggshell: #ede7db;
+  --linen: #ddccb7;
+  --background: var(--eggshell);
+  --foreground: var(--mahogany);
+  --card: #f6f1e6;
+  --card-foreground: var(--mahogany);
+  --popover: #fbf7ef;
+  --popover-foreground: var(--mahogany);
+  --primary: var(--moss);
+  --primary-foreground: var(--eggshell);
+  --secondary: var(--olive);
+  --secondary-foreground: var(--mahogany);
+  --muted: #e6dccb;
+  --muted-foreground: var(--moss);
+  --accent: var(--mahogany);
+  --accent-foreground: var(--eggshell);
+  --destructive: #8b4036;
+  --border: #c9bba4;
+  --input: #c9bba4;
+  --ring: var(--moss);
+  --sage: var(--olive);
+  --warm: var(--mahogany);
+  --chart-1: var(--moss);
+  --chart-2: var(--mahogany);
+  --chart-3: var(--olive);
+  --chart-4: #c4b091;
+  --chart-5: var(--linen);
+  --radius: 0.8rem;
+  --sidebar: var(--moss);
+  --sidebar-foreground: var(--eggshell);
+  --sidebar-primary: var(--eggshell);
+  --sidebar-primary-foreground: var(--moss);
+  --sidebar-accent: #5c5c47;
+  --sidebar-accent-foreground: var(--eggshell);
+  --sidebar-border: #5a5a46;
+  --sidebar-ring: var(--linen);
+  --nav: var(--mahogany);
+  --nav-foreground: var(--eggshell);
+  --cat-field: #6a6a53;
+  --cat-field-fg: #ede7db;
+  --cat-work: #4d342d;
+  --cat-work-fg: #ede7db;
+  --cat-meeting: #c4b091;
+  --cat-meeting-fg: #4d342d;
+  --cat-personal: #ddccb7;
+  --cat-personal-fg: #4d342d;
+  --cat-rest: #ede7db;
+  --cat-rest-fg: #4d342d;
+  --cat-other: #3d2a24;
+  --cat-other-fg: #ede7db;
+  --shadow-card: 0 1px 2px rgb(77 52 45 / 0.06), 0 10px 28px rgb(106 106 83 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  --moss: #9b9879;
+  --olive: #c4b091;
+  --mahogany: #ddccb7;
+  --eggshell: #ede7db;
+  --linen: #3d2e28;
+  --background: #2a211c;
+  --foreground: var(--eggshell);
+  --card: #3d2e28;
+  --card-foreground: var(--eggshell);
+  --popover: #4d342d;
+  --popover-foreground: var(--eggshell);
+  --primary: #9b9879;
+  --primary-foreground: #2a211c;
+  --secondary: #4d342d;
+  --secondary-foreground: var(--eggshell);
+  --muted: #3a2d28;
+  --muted-foreground: #c4b8a0;
+  --accent: var(--eggshell);
+  --accent-foreground: #4d342d;
+  --destructive: #e08b7c;
+  --border: rgb(237 231 219 / 14%);
+  --input: rgb(237 231 219 / 16%);
+  --ring: #9b9879;
+  --sage: #9b9879;
+  --warm: #ddccb7;
+  --chart-1: #9b9879;
+  --chart-2: #ddccb7;
+  --chart-3: #c4b091;
+  --chart-4: #6a6a53;
+  --chart-5: #4d342d;
+  --sidebar: #4d342d;
+  --sidebar-foreground: var(--eggshell);
+  --sidebar-primary: var(--eggshell);
+  --sidebar-primary-foreground: #4d342d;
+  --sidebar-accent: #3d2e28;
+  --sidebar-accent-foreground: var(--eggshell);
+  --sidebar-border: rgb(237 231 219 / 12%);
+  --sidebar-ring: #9b9879;
+  --nav: #9b9879;
+  --nav-foreground: #2a211c;
+  --cat-field: #9b9879;
+  --cat-field-fg: #2a211c;
+  --cat-work: #ddccb7;
+  --cat-work-fg: #2a211c;
+  --cat-meeting: #c4b091;
+  --cat-meeting-fg: #2a211c;
+  --cat-personal: #4d342d;
+  --cat-personal-fg: #ede7db;
+  --cat-rest: #ede7db;
+  --cat-rest-fg: #2a211c;
+  --cat-other: #3d2e28;
+  --cat-other-fg: #ede7db;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.28), 0 12px 32px rgb(0 0 0 / 0.28);
+}
+
+.high-contrast {
+  --border: var(--mahogany);
+  --muted-foreground: #3f2a24;
+}
+
+.dark.high-contrast {
+  --border: var(--eggshell);
+  --muted-foreground: var(--eggshell);
+}
+
+html.palette-forest {
+  color-scheme: light;
+  --moss: #29483f;
+  --olive: #708579;
+  --mahogany: #2a1f16;
+  --eggshell: #f7f5ef;
+  --linen: #eef3ef;
   --background: #f7f5ef;
   --foreground: #252925;
   --card: #ffffff;
@@ -75,7 +212,6 @@
   --chart-3: #708579;
   --chart-4: #a3b4a8;
   --chart-5: #d9c3ae;
-  --radius: 0.8rem;
   --sidebar: #eef3ef;
   --sidebar-foreground: #252925;
   --sidebar-primary: #29483f;
@@ -84,11 +220,30 @@
   --sidebar-accent-foreground: #29483f;
   --sidebar-border: #e5e1d7;
   --sidebar-ring: #708579;
+  --nav: #1e2421;
+  --nav-foreground: #f2efe7;
+  --cat-field: #29483f;
+  --cat-field-fg: #f7f5ef;
+  --cat-work: #c68f68;
+  --cat-work-fg: #2a1f16;
+  --cat-meeting: #d4b07a;
+  --cat-meeting-fg: #2a1f16;
+  --cat-personal: #efe6d6;
+  --cat-personal-fg: #252925;
+  --cat-rest: #8b6f5a;
+  --cat-rest-fg: #f7f5ef;
+  --cat-other: #3a332c;
+  --cat-other-fg: #f7f5ef;
   --shadow-card: 0 1px 2px rgb(37 41 37 / 0.04), 0 8px 24px rgb(41 72 63 / 0.05);
 }
 
-.dark {
+html.palette-forest.dark {
   color-scheme: dark;
+  --moss: #a8c0b4;
+  --olive: #8ea396;
+  --mahogany: #d4a07a;
+  --eggshell: #f2efe7;
+  --linen: #272e2a;
   --background: #1e2421;
   --foreground: #f2efe7;
   --card: #272e2a;
@@ -122,17 +277,155 @@
   --sidebar-accent-foreground: #f2efe7;
   --sidebar-border: rgb(242 239 231 / 10%);
   --sidebar-ring: #a8c0b4;
+  --nav: #1e2421;
+  --nav-foreground: #f2efe7;
+  --cat-field: #a8c0b4;
+  --cat-field-fg: #1e2421;
+  --cat-work: #d4a07a;
+  --cat-work-fg: #1e2421;
+  --cat-meeting: #e0c08a;
+  --cat-meeting-fg: #1e2421;
+  --cat-personal: #cfc3b0;
+  --cat-personal-fg: #1e2421;
+  --cat-rest: #a67c65;
+  --cat-rest-fg: #1e2421;
+  --cat-other: #3a332c;
+  --cat-other-fg: #f2efe7;
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2), 0 10px 28px rgb(0 0 0 / 0.18);
 }
 
-.high-contrast {
+html.palette-forest.high-contrast {
   --border: #252925;
   --muted-foreground: #3d423d;
 }
 
-.dark.high-contrast {
+html.palette-forest.dark.high-contrast {
   --border: #f2efe7;
   --muted-foreground: #d5dbd5;
+}
+
+html.palette-blush {
+  color-scheme: light;
+  --moss: #6e2c3a;
+  --olive: #cdab95;
+  --mahogany: #4a1f28;
+  --eggshell: #f3e6d8;
+  --linen: #e8d5c4;
+  --background: #f3e6d8;
+  --foreground: #4a1f28;
+  --card: #fbf6f0;
+  --card-foreground: #4a1f28;
+  --popover: #fbf6f0;
+  --popover-foreground: #4a1f28;
+  --primary: #6e2c3a;
+  --primary-foreground: #fbf6f0;
+  --secondary: #e8d5c4;
+  --secondary-foreground: #4a1f28;
+  --muted: #eadccf;
+  --muted-foreground: #7a564f;
+  --accent: #caa697;
+  --accent-foreground: #4a1f28;
+  --destructive: #9a4a3c;
+  --border: #d4c0b0;
+  --input: #d4c0b0;
+  --ring: #6e2c3a;
+  --sage: #cdab95;
+  --warm: #6e2c3a;
+  --chart-1: #6e2c3a;
+  --chart-2: #caa697;
+  --chart-3: #cdab95;
+  --chart-4: #e8d5c4;
+  --chart-5: #f3e6d8;
+  --sidebar: #6e2c3a;
+  --sidebar-foreground: #f3e6d8;
+  --sidebar-primary: #f3e6d8;
+  --sidebar-primary-foreground: #6e2c3a;
+  --sidebar-accent: #5c2430;
+  --sidebar-accent-foreground: #f3e6d8;
+  --sidebar-border: #5a2430;
+  --sidebar-ring: #e8d5c4;
+  --nav: #6e2c3a;
+  --nav-foreground: #f3e6d8;
+  --cat-field: #6e2c3a;
+  --cat-field-fg: #f3e6d8;
+  --cat-work: #caa697;
+  --cat-work-fg: #4a1f28;
+  --cat-meeting: #e8d5c4;
+  --cat-meeting-fg: #4a1f28;
+  --cat-personal: #cdab95;
+  --cat-personal-fg: #4a1f28;
+  --cat-rest: #9a6b5c;
+  --cat-rest-fg: #fbf6f0;
+  --cat-other: #4a1f28;
+  --cat-other-fg: #f3e6d8;
+  --shadow-card: 0 1px 2px rgb(74 31 40 / 0.08), 0 10px 28px rgb(110 44 58 / 0.12);
+}
+
+html.palette-blush.dark {
+  color-scheme: dark;
+  --moss: #c47a86;
+  --olive: #cdab95;
+  --mahogany: #e8d5c4;
+  --eggshell: #f3e6d8;
+  --linen: #3a2428;
+  --background: #2a1c1e;
+  --foreground: #f3e6d8;
+  --card: #3a2428;
+  --card-foreground: #f3e6d8;
+  --popover: #4a3034;
+  --popover-foreground: #f3e6d8;
+  --primary: #c47a86;
+  --primary-foreground: #2a1c1e;
+  --secondary: #4a3034;
+  --secondary-foreground: #f3e6d8;
+  --muted: #3f282c;
+  --muted-foreground: #d4b6aa;
+  --accent: #caa697;
+  --accent-foreground: #2a1c1e;
+  --destructive: #e08b7c;
+  --border: rgb(243 230 216 / 14%);
+  --input: rgb(243 230 216 / 16%);
+  --ring: #c47a86;
+  --sage: #cdab95;
+  --warm: #c47a86;
+  --chart-1: #c47a86;
+  --chart-2: #caa697;
+  --chart-3: #cdab95;
+  --chart-4: #e8d5c4;
+  --chart-5: #6e2c3a;
+  --sidebar: #3a2428;
+  --sidebar-foreground: #f3e6d8;
+  --sidebar-primary: #e8d5c4;
+  --sidebar-primary-foreground: #3a2428;
+  --sidebar-accent: #4a3034;
+  --sidebar-accent-foreground: #f3e6d8;
+  --sidebar-border: rgb(243 230 216 / 12%);
+  --sidebar-ring: #caa697;
+  --nav: #6e2c3a;
+  --nav-foreground: #f3e6d8;
+  --cat-field: #c47a86;
+  --cat-field-fg: #2a1c1e;
+  --cat-work: #caa697;
+  --cat-work-fg: #2a1c1e;
+  --cat-meeting: #e8d5c4;
+  --cat-meeting-fg: #2a1c1e;
+  --cat-personal: #cdab95;
+  --cat-personal-fg: #2a1c1e;
+  --cat-rest: #6e2c3a;
+  --cat-rest-fg: #f3e6d8;
+  --cat-other: #4a3034;
+  --cat-other-fg: #f3e6d8;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.28), 0 12px 32px rgb(0 0 0 / 0.28);
+}
+
+html.palette-blush.high-contrast {
+  --border: #4a1f28;
+  --muted-foreground: #4a1f28;
+}
+
+html.palette-blush.dark.high-contrast {
+  --border: #f3e6d8;
+  --muted-foreground: #f3e6d8;
 }
 
 @layer base {
@@ -196,170 +489,146 @@
 }
 
 .surface-primary {
-  background: color-mix(in oklab, var(--primary) 8%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 16%, var(--border));
+  background: color-mix(in oklab, var(--primary) 44%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 50%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .surface-sage {
-  background: color-mix(in oklab, var(--sage) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 20%, var(--border));
+  background: color-mix(in oklab, var(--sage) 52%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 48%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .surface-warm {
-  background: color-mix(in oklab, var(--warm) 11%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 20%, var(--border));
+  background: color-mix(in oklab, var(--warm) 38%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 44%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .surface-accent {
-  background: color-mix(in oklab, var(--accent) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
+  background: color-mix(in oklab, var(--linen) 62%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--olive) 40%, var(--border));
   box-shadow: var(--shadow-card);
 }
 
 .cat-field_service {
-  background: color-mix(in oklab, var(--primary) 16%, white);
-  color: var(--primary);
-}
-.dark .cat-field_service {
-  background: color-mix(in oklab, var(--primary) 22%, transparent);
-  color: var(--primary);
+  background: var(--cat-field);
+  color: var(--cat-field-fg);
 }
 .cat-work {
-  background: color-mix(in oklab, var(--chart-4) 28%, white);
-  color: #3f5348;
-}
-.dark .cat-work {
-  background: color-mix(in oklab, var(--chart-4) 18%, transparent);
-  color: #c5ced3;
+  background: var(--cat-work);
+  color: var(--cat-work-fg);
 }
 .cat-meeting {
-  background: color-mix(in oklab, var(--accent) 22%, white);
-  color: #8a5a38;
-}
-.dark .cat-meeting {
-  background: color-mix(in oklab, var(--accent) 22%, transparent);
-  color: var(--accent);
+  background: var(--cat-meeting);
+  color: var(--cat-meeting-fg);
 }
 .cat-personal {
-  background: color-mix(in oklab, var(--warm) 18%, white);
-  color: #7a5340;
-}
-.dark .cat-personal {
-  background: color-mix(in oklab, var(--warm) 20%, transparent);
-  color: var(--accent);
+  background: var(--cat-personal);
+  color: var(--cat-personal-fg);
 }
 .cat-rest {
-  background: color-mix(in oklab, var(--sage) 22%, white);
-  color: #3f5348;
-}
-.dark .cat-rest {
-  background: color-mix(in oklab, var(--sage) 22%, transparent);
-  color: var(--sage);
+  background: var(--cat-rest);
+  color: var(--cat-rest-fg);
 }
 .cat-other {
-  background: color-mix(in oklab, var(--chart-5) 42%, white);
-  color: #6b5340;
-}
-.dark .cat-other {
-  background: color-mix(in oklab, var(--chart-5) 18%, transparent);
-  color: var(--warm);
+  background: var(--cat-other);
+  color: var(--cat-other-fg);
 }
 
 .stat-goal {
-  background: color-mix(in oklab, var(--primary) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+  background: color-mix(in oklab, var(--primary) 42%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 48%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .stat-done {
-  background: color-mix(in oklab, var(--sage) 18%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 26%, var(--border));
+  background: color-mix(in oklab, var(--sage) 50%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 46%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .stat-left {
-  background: color-mix(in oklab, var(--warm) 16%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 24%, var(--border));
+  background: color-mix(in oklab, var(--warm) 36%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 42%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .stat-planned {
-  background: color-mix(in oklab, var(--accent) 15%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+  background: color-mix(in oklab, var(--olive) 46%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--olive) 44%, var(--border));
   box-shadow: var(--shadow-card);
 }
 
 .planner-pace {
-  background: color-mix(in oklab, var(--primary) 8%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+  background: color-mix(in oklab, var(--primary) 40%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 46%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .planner-week {
-  background: color-mix(in oklab, var(--sage) 10%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 18%, var(--border));
+  background: color-mix(in oklab, var(--sage) 46%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 42%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .planner-suggest {
-  background: color-mix(in oklab, var(--warm) 9%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 18%, var(--border));
+  background: color-mix(in oklab, var(--warm) 34%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 40%, var(--border));
   box-shadow: var(--shadow-card);
 }
 
 .planner-week-row {
-  background: color-mix(in oklab, var(--card) 70%, white);
-  border: 1px solid color-mix(in oklab, var(--sage) 16%, var(--border));
+  background: color-mix(in oklab, var(--card) 80%, var(--eggshell));
+  border: 1px solid color-mix(in oklab, var(--sage) 22%, var(--border));
 }
 
 .option-card-suggested,
 .option-card-even,
 .whatif-preview {
-  background: color-mix(in oklab, var(--primary) 9%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+  background: color-mix(in oklab, var(--primary) 40%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 46%, var(--border));
 }
 .option-card-weekend {
-  background: color-mix(in oklab, var(--warm) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 20%, var(--border));
+  background: color-mix(in oklab, var(--warm) 36%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 42%, var(--border));
 }
 .option-card-flexible {
-  background: color-mix(in oklab, var(--sage) 12%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 20%, var(--border));
+  background: color-mix(in oklab, var(--sage) 46%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 42%, var(--border));
 }
 
 .health-balanced {
-  background: color-mix(in oklab, var(--sage) 16%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--sage) 24%, var(--border));
+  background: color-mix(in oklab, var(--sage) 48%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--sage) 44%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .health-full {
-  background: color-mix(in oklab, var(--warm) 15%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--warm) 24%, var(--border));
+  background: color-mix(in oklab, var(--warm) 36%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--warm) 42%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .health-space {
-  background: color-mix(in oklab, var(--primary) 10%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--border));
+  background: color-mix(in oklab, var(--primary) 40%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--primary) 46%, var(--border));
   box-shadow: var(--shadow-card);
 }
 .health-adjust {
-  background: color-mix(in oklab, var(--accent) 15%, var(--card));
-  border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+  background: color-mix(in oklab, var(--olive) 44%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--olive) 42%, var(--border));
   box-shadow: var(--shadow-card);
 }
 
 .cal-weekdays {
-  background: color-mix(in oklab, var(--sage) 18%, var(--muted));
+  background: color-mix(in oklab, var(--sage) 42%, var(--muted));
 }
 .cal-weekend {
-  background: color-mix(in oklab, var(--warm) 14%, var(--card));
+  background: color-mix(in oklab, var(--warm) 28%, var(--card));
 }
 .cal-today {
-  background: color-mix(in oklab, var(--primary) 10%, var(--card));
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 32%, transparent);
+  background: color-mix(in oklab, var(--primary) 32%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 48%, transparent);
 }
 
-.stripe-field_service { border-left: 4px solid var(--primary); }
-.stripe-work { border-left: 4px solid var(--sage); }
-.stripe-meeting { border-left: 4px solid var(--accent); }
-.stripe-personal { border-left: 4px solid var(--warm); }
-.stripe-rest { border-left: 4px solid var(--chart-4); }
-.stripe-other { border-left: 4px solid var(--chart-5); }
+.stripe-field_service { border-left: 4px solid var(--cat-field); }
+.stripe-work { border-left: 4px solid var(--cat-work); }
+.stripe-meeting { border-left: 4px solid var(--cat-meeting); }
+.stripe-personal { border-left: 4px solid var(--cat-personal); }
+.stripe-rest { border-left: 4px solid var(--cat-rest); }
+.stripe-other { border-left: 4px solid var(--cat-other); }
 
 input[type="date"],
 input[type="time"],

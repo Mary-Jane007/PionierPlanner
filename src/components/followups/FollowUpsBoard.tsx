@@ -12,6 +12,7 @@ import { dueSoon, isOverdue, lastContactDate, lastTopic, matchesQuery, sortFollo
 import { formatHumanDate, parseDate } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
 import { useAppStore } from "@/lib/store"
+import { surfaceClass } from "@/lib/constants"
 import type { FollowUpKind } from "@/types"
 
 type Filter = "all" | FollowUpKind | "due"
@@ -87,7 +88,7 @@ export function FollowUpsBoard() {
       </div>
 
       {students.length > 0 ? (
-        <section className="card-quiet space-y-3 rounded-3xl p-5">
+        <section className="surface-sage space-y-3 rounded-3xl p-5">
           <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">{t("follow.tracker.title")}</p>
           <h2 className="font-heading text-2xl">{t("follow.tracker.overview")}</h2>
           <ul className="space-y-2">
@@ -131,7 +132,7 @@ export function FollowUpsBoard() {
       ) : null}
 
       {filtered.length === 0 ? (
-        <div className="card-quiet rounded-3xl px-6 py-16 text-center">
+        <div className="surface-warm rounded-3xl px-6 py-16 text-center">
           <h2 className="font-heading text-3xl">{t("follow.empty")}</h2>
           <Button className="mt-4" onClick={() => setCreateOpen(true)}>
             {t("follow.newPerson")}
@@ -139,13 +140,13 @@ export function FollowUpsBoard() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {filtered.map((item) => {
+          {filtered.map((item, index) => {
             const last = lastContactDate(item)
             const topic = lastTopic(item)
             const overdue = isOverdue(item)
             const summary = item.kind === "bible_study" ? trackerSummary(item) : null
             return (
-              <article key={item.id} className="card-quiet flex flex-col rounded-3xl p-5">
+              <article key={item.id} className={`${surfaceClass(index)} flex flex-col rounded-3xl p-5`}>
                 <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
                   {t(`follow.kind.${item.kind}`)} · {t(`follow.status.${item.status}`)}
                 </p>

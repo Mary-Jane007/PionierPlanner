@@ -43,15 +43,17 @@ export function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
-        <Logo />
-        <div className="flex gap-2">
-          <Link href="/inloggen" className={cn(buttonVariants({ variant: "ghost" }), "min-h-11 px-3")}>
-            {t("landing.login")}
-          </Link>
-          <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "min-h-11 px-3")}>
-            {t("landing.cta")}
-          </Link>
+      <header className="border-b border-border bg-linen">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
+          <Logo />
+          <div className="flex gap-2">
+            <Link href="/inloggen" className={cn(buttonVariants({ variant: "ghost" }), "min-h-11 px-3")}>
+              {t("landing.login")}
+            </Link>
+            <Link href="/inloggen?mode=start" className={cn(buttonVariants(), "min-h-11 px-3")}>
+              {t("landing.cta")}
+            </Link>
+          </div>
         </div>
       </header>
 

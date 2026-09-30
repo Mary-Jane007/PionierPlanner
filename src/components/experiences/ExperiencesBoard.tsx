@@ -8,6 +8,7 @@ import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { formatHumanDate, parseDate } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
+import { surfaceClass } from "@/lib/constants"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
 import type { ExperienceCategory } from "@/types"
@@ -93,7 +94,7 @@ export function ExperiencesBoard() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card-quiet rounded-3xl px-6 py-16 text-center">
+        <div className="surface-sage rounded-3xl px-6 py-16 text-center">
           <h2 className="font-heading text-3xl">{t("exp.empty")}</h2>
           <Button className="mt-4" onClick={() => openExperience(null)}>
             {t("exp.new")}
@@ -101,8 +102,8 @@ export function ExperiencesBoard() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {filtered.map((item) => (
-            <article key={item.id} className="card-quiet rounded-3xl p-5">
+          {filtered.map((item, index) => (
+            <article key={item.id} className={`${surfaceClass(index)} rounded-3xl p-5`}>
               <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
                 {formatHumanDate(parseDate(item.date), lang)}
               </p>

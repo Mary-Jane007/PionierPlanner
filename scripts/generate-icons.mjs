@@ -20,10 +20,10 @@ function maskableSvg(size) {
   const pad = Math.round(size * 0.12)
   const inner = size - pad * 2
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" fill="#29483F"/>
+  <rect width="${size}" height="${size}" fill="#6A6A53"/>
   <g transform="translate(${pad} ${pad}) scale(${inner / 40})">
-    <path d="M13 28V12h8.2a5.6 5.6 0 0 1 0 11.2H13" fill="none" stroke="#F7F5EF" stroke-width="2.3" stroke-linecap="round"/>
-    <circle cx="28.2" cy="13.4" r="2.15" fill="#C68F68"/>
+    <path d="M13 28V12h8.2a5.6 5.6 0 0 1 0 11.2H13" fill="none" stroke="#EDE7DB" stroke-width="2.3" stroke-linecap="round"/>
+    <circle cx="28.2" cy="13.4" r="2.15" fill="#4D342D"/>
   </g>
 </svg>`
 }
@@ -42,10 +42,10 @@ writeFileSync(
   join(resourcesDir, "splash.png"),
   pngFromSvg(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
-  <rect width="2732" height="2732" fill="#29483F"/>
+  <rect width="2732" height="2732" fill="#6A6A53"/>
   <g transform="translate(966 966) scale(20)">
-    <path d="M13 28V12h8.2a5.6 5.6 0 0 1 0 11.2H13" fill="none" stroke="#F7F5EF" stroke-width="2.3" stroke-linecap="round"/>
-    <circle cx="28.2" cy="13.4" r="2.15" fill="#C68F68"/>
+    <path d="M13 28V12h8.2a5.6 5.6 0 0 1 0 11.2H13" fill="none" stroke="#EDE7DB" stroke-width="2.3" stroke-linecap="round"/>
+    <circle cx="28.2" cy="13.4" r="2.15" fill="#4D342D"/>
   </g>
 </svg>`,
     2732

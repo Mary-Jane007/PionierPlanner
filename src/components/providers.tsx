@@ -8,11 +8,13 @@ import { RegisterSW } from "@/components/pwa/RegisterSW"
 import { OfflineBanner } from "@/components/pwa/OfflineBanner"
 import { CloudSync } from "@/components/cloud/CloudSync"
 import { NativeShell } from "@/components/native/NativeShell"
+import { COLOR_THEME_META } from "@/lib/constants"
 import { useAppStore } from "@/lib/store"
 
 function ThemeSync() {
   const { setTheme } = useTheme()
   const theme = useAppStore((state) => state.settings.theme)
+  const colorTheme = useAppStore((state) => state.settings.colorTheme ?? "earth")
   const highContrast = useAppStore((state) => state.settings.highContrast)
 
   useEffect(() => {
@@ -22,6 +24,16 @@ function ThemeSync() {
   useEffect(() => {
     document.documentElement.classList.toggle("high-contrast", highContrast)
   }, [highContrast])
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.toggle("palette-forest", colorTheme === "forest")
+    root.classList.toggle("palette-blush", colorTheme === "blush")
+    const color = COLOR_THEME_META[colorTheme]
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+      meta.setAttribute("content", color)
+    })
+  }, [colorTheme])
 
   return null
 }

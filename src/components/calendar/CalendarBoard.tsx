@@ -358,17 +358,17 @@ export function TimelineItem({ event }: { event: CalendarEvent }) {
         "flex w-full gap-4 rounded-2xl p-4 text-left"
       )}
     >
-      <div className="w-16 shrink-0 text-sm tabular-nums text-muted-foreground">
+      <div className="w-16 shrink-0 text-sm tabular-nums opacity-80">
         <p>{event.startTime}</p>
-        <div className="my-1 ml-2 h-8 w-px bg-border" />
+        <div className="my-1 ml-2 h-8 w-px bg-current opacity-40" />
         <p>{event.endTime}</p>
       </div>
       <div className="flex-1">
-        <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">
+        <p className="text-xs tracking-[0.14em] uppercase opacity-70">
           {t(`category.${event.category}`)}
         </p>
         <h3 className="font-heading text-2xl">{event.title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm opacity-80">
           {formatHoursShort(event.durationMinutes / 60, lang)}
           {event.companion ? ` · ${t("activity.companion")}: ${event.companion}` : ""}
         </p>
