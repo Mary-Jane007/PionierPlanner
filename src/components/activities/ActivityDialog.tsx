@@ -437,6 +437,18 @@ function ActivityForm({
           </Field>
           <DialogFooter className="sticky bottom-0">
             {editingId ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  onClose()
+                  useUiStore.getState().openMove(editingId)
+                }}
+              >
+                {t("calendar.copyToDates")}
+              </Button>
+            ) : null}
+            {editingId ? (
               <ConfirmDeleteButton
                 variant="destructive"
                 size="default"

@@ -346,12 +346,25 @@ export function TimelineItem({ event }: { event: CalendarEvent }) {
   const t = useT()
   const lang = useLang()
   const openActivity = useUiStore((s) => s.openActivity)
+  const openMove = useUiStore((s) => s.openMove)
   return (
     <button
       type="button"
       onClick={(e) => {
         e.stopPropagation()
         openActivity(event, event.id)
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        openMove(event.id)
+      }}
+      onPointerDown={(pointer) => {
+        if (pointer.pointerType !== "touch") return
+        const handle = window.setTimeout(() => openMove(event.id), 500)
+        const clear = () => window.clearTimeout(handle)
+        window.addEventListener("pointerup", clear, { once: true })
+        window.addEventListener("pointercancel", clear, { once: true })
       }}
       className={cn(
         "cat-" + event.category,
