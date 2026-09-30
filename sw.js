@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "pioniersplanner-2525d5234361"
+const CACHE_NAME = "pioniersplanner-078de2e01d35"
 const PRECACHE_URLS = [
   "./",
   "./404.html",
@@ -10,6 +10,7 @@ const PRECACHE_URLS = [
   "./__next._tree.txt",
   "./__online_check/",
   "./__online_check/index.html",
+  "./_next/static/chunks/0392hf9gzco5j.js",
   "./_next/static/chunks/03aj05hbnmcxj.css",
   "./_next/static/chunks/0cngl-lvxytmm.js",
   "./_next/static/chunks/0cz1d0mv5g_q7.js",
@@ -23,7 +24,6 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/0xd00v7f6bj1g.js",
   "./_next/static/chunks/0y97kgihqjfro.js",
   "./_next/static/chunks/11hp-mc9fwhi_.js",
-  "./_next/static/chunks/190_8jo-06mbv.js",
   "./_next/static/chunks/1a2y8_gx2uj93.js",
   "./_next/static/chunks/1enbc2myxc56-.js",
   "./_next/static/chunks/1hmey4frakwj1.js",
@@ -32,7 +32,7 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/1ro0ehqkq16w6.js",
   "./_next/static/chunks/1vw9seawp--po.js",
   "./_next/static/chunks/1yphnnmzofsyc.js",
-  "./_next/static/chunks/2hyduoelrti-q.js",
+  "./_next/static/chunks/2-n03zm7br9z_.js",
   "./_next/static/chunks/2i0_izef0jepq.js",
   "./_next/static/chunks/2i51e627rllld.js",
   "./_next/static/chunks/2k8z9dl0yc2lt.js",
@@ -56,9 +56,9 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/3rdrotu-j_eut.js",
   "./_next/static/chunks/3xcszk5q30s5c.js",
   "./_next/static/chunks/turbopack-34s8rp_rj3zqt.js",
-  "./_next/static/dZn4tC3uvlM9va4QIeas9/_buildManifest.js",
-  "./_next/static/dZn4tC3uvlM9va4QIeas9/_clientMiddlewareManifest.js",
-  "./_next/static/dZn4tC3uvlM9va4QIeas9/_ssgManifest.js",
+  "./_next/static/gTHOim37-kPJ9YVeKpRdh/_buildManifest.js",
+  "./_next/static/gTHOim37-kPJ9YVeKpRdh/_clientMiddlewareManifest.js",
+  "./_next/static/gTHOim37-kPJ9YVeKpRdh/_ssgManifest.js",
   "./_next/static/media/01e4147cff8141ee-s.p.3huc2loe0ie8a.woff2",
   "./_next/static/media/1f9e983605289f29-s.p.3aak_kra40y8r.woff2",
   "./_next/static/media/58c4895d0a0ef7cc-s.2vhvl9vrvk-va.woff2",
