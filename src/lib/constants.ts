@@ -43,7 +43,7 @@ export const CATEGORY_ORDER: ActivityCategory[] = [
   "other",
 ]
 
-export const COLOR_THEME_IDS: ColorTheme[] = ["earth", "forest", "blush"]
+export const COLOR_THEME_IDS: ColorTheme[] = ["forest", "earth", "blush"]
 
 export const COLOR_THEME_META: Record<ColorTheme, string> = {
   earth: "#6A6A53",
@@ -73,7 +73,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   language: "nl",
   timezone: "Europe/Amsterdam",
   theme: "system",
-  colorTheme: "earth",
+  colorTheme: "forest",
   highContrast: false,
   notifications: {
     tomorrowReminder: true,

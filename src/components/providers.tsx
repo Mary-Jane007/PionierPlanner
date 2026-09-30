@@ -14,7 +14,7 @@ import { useAppStore } from "@/lib/store"
 function ThemeSync() {
   const { setTheme } = useTheme()
   const theme = useAppStore((state) => state.settings.theme)
-  const colorTheme = useAppStore((state) => state.settings.colorTheme ?? "earth")
+  const colorTheme = useAppStore((state) => state.settings.colorTheme ?? "forest")
   const highContrast = useAppStore((state) => state.settings.highContrast)
 
   useEffect(() => {
