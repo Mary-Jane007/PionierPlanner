@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core"
 import { addMonths, subMonths } from "date-fns"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, CircleCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CATEGORY_ORDER } from "@/lib/constants"
@@ -188,6 +188,7 @@ function MonthGrid({
   onAdd: (date: string) => void
   onMove: (id: string) => void
 }) {
+  const t = useT()
   const lang = useLang()
   const days = useMemo(
     () => calendarGrid(cursor.getFullYear(), cursor.getMonth()),
@@ -212,6 +213,7 @@ function MonthGrid({
           const date = isoDate(day)
           const dayEvents = events.filter((event) => event.date === date)
           const hours = calculateHoursForDay(events, date)
+          const completedHours = calculateHoursForDay(events, date, ["completed"])
           const outside = !isSameMonthDate(day, cursor)
           const weekend = isoWeekday(day) >= 6
           return (
@@ -226,8 +228,17 @@ function MonthGrid({
                 isToday(day) && "cal-today"
               )}
             >
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-sm">{day.getDate()}</span>
+              <div className="mb-1 flex items-center justify-between gap-0.5">
+                <span className="flex min-w-0 items-center gap-0.5 text-sm">
+                  {completedHours > 0 ? (
+                    <CircleCheck
+                      className="size-3.5 shrink-0 text-primary"
+                      strokeWidth={2.5}
+                      aria-label={t("status.completed")}
+                    />
+                  ) : null}
+                  <span>{day.getDate()}</span>
+                </span>
                 {hours > 0 ? (
                   <span className="text-[10px] text-primary">
                     {formatHoursShort(hours, lang)}
@@ -394,7 +405,9 @@ export function TimelineItem({ event }: { event: CalendarEvent }) {
       }}
       className={cn(
         "cat-" + event.category,
-        "flex w-full gap-4 rounded-2xl p-4 text-left"
+        "flex w-full gap-4 rounded-2xl p-4 text-left",
+        event.status === "cancelled" && "line-through opacity-60",
+        event.status === "completed" && "event-done"
       )}
     >
       <div className="w-16 shrink-0 text-sm tabular-nums opacity-80">
@@ -402,12 +415,18 @@ export function TimelineItem({ event }: { event: CalendarEvent }) {
         <div className="my-1 ml-2 h-8 w-px bg-current opacity-40" />
         <p>{event.endTime}</p>
       </div>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <p className="text-xs tracking-[0.14em] uppercase opacity-70">
           {t(`category.${event.category}`)}
         </p>
-        <h3 className="font-heading text-2xl">{event.title}</h3>
+        <h3 className="font-heading flex items-center gap-2 text-2xl">
+          {event.title}
+          {event.status === "completed" ? (
+            <CircleCheck className="size-5 shrink-0" strokeWidth={2.5} aria-hidden />
+          ) : null}
+        </h3>
         <p className="mt-1 text-sm opacity-80">
+          {event.status === "completed" ? `${t("status.completed")} · ` : ""}
           {formatHoursShort(event.durationMinutes / 60, lang)}
           {event.companion ? ` · ${t("activity.companion")}: ${event.companion}` : ""}
         </p>

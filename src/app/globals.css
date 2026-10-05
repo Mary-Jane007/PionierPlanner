@@ -623,6 +623,10 @@ html.palette-blush.dark.high-contrast {
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 48%, transparent);
 }
 
+.event-done {
+  box-shadow: inset 2.5px 0 0 currentColor;
+}
+
 .stripe-field_service { border-left: 4px solid var(--cat-field); }
 .stripe-work { border-left: 4px solid var(--cat-work); }
 .stripe-meeting { border-left: 4px solid var(--cat-meeting); }
