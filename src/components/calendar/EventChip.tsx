@@ -2,7 +2,7 @@
 
 import { useDraggable, useDroppable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical } from "lucide-react"
+import { CircleCheck, GripVertical } from "lucide-react"
 import { formatHoursShort } from "@/lib/format"
 import { useT, useLang } from "@/lib/i18n"
 import { useUiStore } from "@/lib/ui-store"
@@ -25,6 +25,7 @@ export function EventChip({
     data: { event },
   })
   const hours = event.durationMinutes / 60
+  const done = event.status === "completed"
 
   return (
     <div
@@ -34,7 +35,7 @@ export function EventChip({
         "flex w-full items-stretch overflow-hidden rounded-md text-left text-[11px] leading-tight transition-opacity",
         isDragging && "opacity-40",
         event.status === "cancelled" && "line-through opacity-60",
-        event.status === "completed" && "opacity-80"
+        done && "event-done"
       )}
       style={{ transform: CSS.Translate.toString(transform) }}
     >
@@ -71,12 +72,27 @@ export function EventChip({
         </span>
         {!compact ? (
           <span className="block text-[10px] opacity-80">
-            {event.category === "field_service"
-              ? formatHoursShort(hours, lang)
-              : t(`category.${event.category}`)}
+            {done
+              ? `${t("status.completed")}${
+                  event.category === "field_service"
+                    ? ` · ${formatHoursShort(hours, lang)}`
+                    : ""
+                }`
+              : event.category === "field_service"
+                ? formatHoursShort(hours, lang)
+                : t(`category.${event.category}`)}
           </span>
         ) : null}
       </button>
+      {done ? (
+        <span
+          className="flex shrink-0 items-center pr-1"
+          title={t("status.completed")}
+          aria-label={t("status.completed")}
+        >
+          <CircleCheck className="size-3.5" strokeWidth={2.5} />
+        </span>
+      ) : null}
     </div>
   )
 }
