@@ -1362,6 +1362,13 @@ const messages = {
     es: "Burdeos, beige, burnt sienna y lino.",
     pap: "Bordeaux, beige, burnt sienna i linnen.",
   },
+  "settings.colorTheme.violet": { nl: "Violet", en: "Violet", es: "Violeta", pap: "Violet" },
+  "settings.colorTheme.violetHint": {
+    nl: "Violet, lila, goud en room.",
+    en: "Violet, lilac, gold, and cream.",
+    es: "Violeta, lila, oro y crema.",
+    pap: "Violet, lila, oro i krema.",
+  },
   "settings.privacy": { nl: "Privacy", en: "Privacy", es: "Privacidad", pap: "Privasidat" },
   "settings.data": { nl: "Gegevens", en: "Data", es: "Datos", pap: "Dato" },
   "settings.delete": { nl: "Account verwijderen", en: "Delete account", es: "Eliminar cuenta", pap: "Kita kuenta" },

@@ -43,18 +43,20 @@ export const CATEGORY_ORDER: ActivityCategory[] = [
   "other",
 ]
 
-export const COLOR_THEME_IDS: ColorTheme[] = ["forest", "earth", "blush"]
+export const COLOR_THEME_IDS: ColorTheme[] = ["forest", "earth", "blush", "violet"]
 
 export const COLOR_THEME_META: Record<ColorTheme, string> = {
   earth: "#6A6A53",
   forest: "#29483F",
   blush: "#6E2C3A",
+  violet: "#5B4578",
 }
 
 export const COLOR_THEME_SWATCHES: Record<ColorTheme, string[]> = {
   earth: ["#6A6A53", "#9B9879", "#4D342D", "#EDE7DB", "#DDCCB7"],
   forest: ["#29483F", "#708579", "#C68F68", "#F7F5EF", "#FFFFFF"],
   blush: ["#6E2C3A", "#F3E6D8", "#CAA697", "#E8D5C4"],
+  violet: ["#5B4578", "#B9A4D0", "#C4A35A", "#F3EEF6", "#2F243D"],
 }
 
 export const SURFACE_TONES = ["primary", "sage", "warm", "accent"] as const
