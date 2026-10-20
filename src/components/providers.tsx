@@ -9,7 +9,26 @@ import { OfflineBanner } from "@/components/pwa/OfflineBanner"
 import { CloudSync } from "@/components/cloud/CloudSync"
 import { NativeShell } from "@/components/native/NativeShell"
 import { COLOR_THEME_META } from "@/lib/constants"
+import { isNativeApp } from "@/lib/native"
 import { useAppStore } from "@/lib/store"
+
+let storeBoot: Promise<void> | null = null
+
+function bootStore() {
+  if (storeBoot) return storeBoot
+  storeBoot = (async () => {
+    if (typeof window === "undefined") return
+    if (isNativeApp()) {
+      const { restoreDurableStorage } = await import("@/lib/durable-storage")
+      await restoreDurableStorage()
+    }
+    if (!useAppStore.persist.hasHydrated()) {
+      await useAppStore.persist.rehydrate()
+    }
+    useAppStore.getState().setHydrated(true)
+  })()
+  return storeBoot
+}
 
 function ThemeSync() {
   const { setTheme } = useTheme()
@@ -42,13 +61,9 @@ function ThemeSync() {
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false
-    async function hydrate() {
-      const { restoreDurableStorage } = await import("@/lib/durable-storage")
-      await restoreDurableStorage()
-      await useAppStore.persist.rehydrate()
+    void bootStore().then(() => {
       if (!cancelled) useAppStore.getState().setHydrated(true)
-    }
-    void hydrate()
+    })
     return () => {
       cancelled = true
     }

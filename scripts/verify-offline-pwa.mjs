@@ -55,6 +55,11 @@ function checkGeneratedWorker() {
 
   const source = readFileSync(swPath, "utf8")
   assert(source.includes("pioniersplanner-"), "service worker cache name is missing")
+  assert(source.includes("async function openFromCache"), "navigation must open from the saved copy")
+  assert(
+    !source.includes("if (isNavigation(request)) return networkFirst"),
+    "navigation must not wait for the network",
+  )
   assert(!source.includes("__PRECACHE_URLS__"), "service worker template was not filled in")
   assert(!source.includes(".apk"), "service worker should not precache the APK")
 
@@ -211,8 +216,8 @@ async function checkInBrowser(origin) {
           const title = document.title || ""
           return (
             title.includes("Pioniersplanner") &&
-            text.includes("Je bent offline") &&
-            (text.length > 40 || text.includes("offline"))
+            text.length > 40 &&
+            !text.includes("Open de app opnieuw zodra je verbinding hebt")
           )
         },
         { timeout: 15000 },

@@ -3,7 +3,7 @@
   "short_name": "Pioniersplanner",
   "description": "Persoonlijke planner voor pioniers: kalender, urenplanning, voortgang en ervaringen. Werkt offline.",
   "id": "./",
-  "start_url": "./",
+  "start_url": "./vandaag/",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],

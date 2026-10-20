@@ -1,10 +1,25 @@
 /* Development / pre-build fallback. `npm run build` replaces out/sw.js with a full precache. */
 const CACHE_NAME = "pioniersplanner-dev"
-const PRECACHE_URLS = ["./", "./index.html", "./manifest.webmanifest", "./offline.html"]
+const PRECACHE_URLS = ["./", "./index.html", "./manifest.webmanifest", "./offline.html", "./vandaag/"]
 const NAV_FALLBACKS = ["./index.html", "./", "./offline.html"]
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(precache().then(() => self.skipWaiting()))
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME)
+      await Promise.all(
+        PRECACHE_URLS.map(async (url) => {
+          try {
+            const response = await fetch(url, { credentials: "same-origin" })
+            if (response && response.ok) await putCached(cache, url, response)
+          } catch {
+            // Ignore missing shell files during `next dev`.
+          }
+        }),
+      )
+    })(),
+  )
+  self.skipWaiting()
 })
 
 self.addEventListener("activate", (event) => {
@@ -50,37 +65,48 @@ function isImmutableAsset(url) {
   return url.pathname.includes("/_next/static/")
 }
 
-async function precache() {
-  const cache = await caches.open(CACHE_NAME)
-  await Promise.all(
-    PRECACHE_URLS.map(async (url) => {
-      try {
-        const response = await fetch(url, { cache: "reload", credentials: "same-origin" })
-        if (response.ok) await cache.put(url, response)
-      } catch {
-        // Ignore missing shell files during `next dev`.
-      }
+async function putCached(cache, key, response) {
+  const body = await response.clone().blob()
+  await cache.put(
+    key,
+    new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
     }),
   )
 }
 
 async function handleRequest(request, url) {
-  if (isNavigation(request)) return networkFirst(request)
+  if (isNavigation(request)) return openFromCache(request)
   if (isImmutableAsset(url)) return cacheFirst(request)
   return staleWhileRevalidate(request)
 }
 
-async function networkFirst(request) {
+async function openFromCache(request) {
   const cache = await caches.open(CACHE_NAME)
+  const cached = await matchNavigation(cache, request)
+  if (cached) return cached
   try {
     const response = await fetch(request)
-    if (response && response.ok) await cache.put(request, response.clone())
+    if (response && response.ok) await putCached(cache, request, response)
     return response
   } catch {
-    const cached = await cache.match(request, { ignoreSearch: true })
-    if (cached) return cached
     return matchFallbacks(cache)
   }
+}
+
+async function matchNavigation(cache, request) {
+  const direct = await cache.match(request, { ignoreSearch: true })
+  if (direct) return direct
+  const url = new URL(request.url)
+  const path = url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`
+  const candidates = [`${url.origin}${path}`, `${url.origin}${path}index.html`]
+  for (const candidate of candidates) {
+    const hit = await cache.match(candidate, { ignoreSearch: true })
+    if (hit) return hit
+  }
+  return null
 }
 
 async function cacheFirst(request) {
@@ -89,7 +115,7 @@ async function cacheFirst(request) {
   if (cached) return cached
   try {
     const response = await fetch(request)
-    if (response && response.ok) await cache.put(request, response.clone())
+    if (response && response.ok) await putCached(cache, request, response)
     return response
   } catch {
     return cachedResponseOrOffline(cache, request)
@@ -101,7 +127,7 @@ async function staleWhileRevalidate(request) {
   const cached = await cache.match(request, { ignoreSearch: true })
   const network = fetch(request)
     .then(async (response) => {
-      if (response && response.ok) await cache.put(request, response.clone())
+      if (response && response.ok) await putCached(cache, request, response)
       return response
     })
     .catch(() => cached)
