@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "pioniersplanner-87167786442a"
+const CACHE_NAME = "pioniersplanner-98f76581c570"
 const PRECACHE_URLS = [
   "./",
   "./404.html",
@@ -10,14 +10,12 @@ const PRECACHE_URLS = [
   "./__next._tree.txt",
   "./__online_check/",
   "./__online_check/index.html",
-  "./_next/static/TjDYNdliRbQsstYGTtPk8/_buildManifest.js",
-  "./_next/static/TjDYNdliRbQsstYGTtPk8/_clientMiddlewareManifest.js",
-  "./_next/static/TjDYNdliRbQsstYGTtPk8/_ssgManifest.js",
   "./_next/static/chunks/0bzsfs4t4s2ah.js",
   "./_next/static/chunks/0cngl-lvxytmm.js",
   "./_next/static/chunks/0cz1d0mv5g_q7.js",
   "./_next/static/chunks/0j9vxn8qg9vat.js",
   "./_next/static/chunks/0mpudkpr-hgcf.js",
+  "./_next/static/chunks/0nxax5dwa_sin.js",
   "./_next/static/chunks/0s8zbwc4z5feg.js",
   "./_next/static/chunks/0sjhjb97ms1ri.js",
   "./_next/static/chunks/0wjtx9mhaxxni.js",
@@ -57,9 +55,11 @@ const PRECACHE_URLS = [
   "./_next/static/chunks/3mc6dra1m0098.js",
   "./_next/static/chunks/3quudqo879p8t.js",
   "./_next/static/chunks/3rdrotu-j_eut.js",
-  "./_next/static/chunks/3zcq7rcue7fk6.js",
   "./_next/static/chunks/43g5-9haq8x94.js",
   "./_next/static/chunks/turbopack-34s8rp_rj3zqt.js",
+  "./_next/static/lL-WT_3ncuIsanp4K00cJ/_buildManifest.js",
+  "./_next/static/lL-WT_3ncuIsanp4K00cJ/_clientMiddlewareManifest.js",
+  "./_next/static/lL-WT_3ncuIsanp4K00cJ/_ssgManifest.js",
   "./_next/static/media/01e4147cff8141ee-s.p.3huc2loe0ie8a.woff2",
   "./_next/static/media/1f9e983605289f29-s.p.3aak_kra40y8r.woff2",
   "./_next/static/media/58c4895d0a0ef7cc-s.2vhvl9vrvk-va.woff2",
@@ -175,9 +175,28 @@ const PRECACHE_URLS = [
   "./window.svg"
 ]
 const NAV_FALLBACKS = ["./index.html", "./", "./offline.html"]
+const PRECACHE_CONCURRENCY = 6
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(precache().then(() => self.skipWaiting()))
+  // Activate as soon as the pages and scripts are cached. The rest of the
+  // export (RSC payloads) fills in afterwards so an update does not block opening.
+  // A failed install keeps the previous cache, so a flaky update cannot wipe offline use.
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME)
+      const shell = []
+      const rest = []
+      for (const url of PRECACHE_URLS) {
+        if (isShellUrl(url)) shell.push(url)
+        else rest.push(url)
+      }
+      const stored = await precacheUrls(cache, shell)
+      const minimum = shell.length === 0 ? 0 : Math.max(1, shell.length - 3)
+      if (stored < minimum) throw new Error("shell precache incomplete")
+      void precacheUrls(cache, rest)
+    })(),
+  )
+  self.skipWaiting()
 })
 
 self.addEventListener("activate", (event) => {
@@ -206,6 +225,10 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(request, url))
 })
 
+function isShellUrl(url) {
+  return !url.includes("__next.") && !url.endsWith(".txt")
+}
+
 function shouldBypass(url) {
   if (url.pathname.includes("/api/cloud")) return true
   if (url.pathname.includes("/downloads/") && /\.(apk|zip)$/i.test(url.pathname)) return true
@@ -224,37 +247,70 @@ function isImmutableAsset(url) {
   return url.pathname.includes("/_next/static/")
 }
 
-async function precache() {
-  const cache = await caches.open(CACHE_NAME)
-  await Promise.all(
-    PRECACHE_URLS.map(async (url) => {
+async function precacheUrls(cache, urls) {
+  const queue = urls.slice()
+  let stored = 0
+  const workers = Array.from({ length: Math.min(PRECACHE_CONCURRENCY, queue.length) }, async () => {
+    while (queue.length) {
+      const url = queue.shift()
       try {
-        const response = await fetch(url, { cache: "reload", credentials: "same-origin" })
-        if (response.ok) await cache.put(url, response)
+        const response = await fetch(url, { credentials: "same-origin" })
+        if (response && response.ok) {
+          await putCached(cache, url, response)
+          stored += 1
+        }
       } catch {
         // One missing file must not fail the whole install.
       }
+    }
+  })
+  await Promise.all(workers)
+  return stored
+}
+
+async function putCached(cache, key, response) {
+  const body = await response.clone().blob()
+  await cache.put(
+    key,
+    new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
     }),
   )
 }
 
 async function handleRequest(request, url) {
-  if (isNavigation(request)) return networkFirst(request)
+  if (isNavigation(request)) return openFromCache(request)
   if (isImmutableAsset(url)) return cacheFirst(request)
   return staleWhileRevalidate(request)
 }
 
-async function networkFirst(request) {
+async function openFromCache(request) {
   const cache = await caches.open(CACHE_NAME)
+  const cached = await matchNavigation(cache, request)
+  if (cached) return cached
   try {
     const response = await fetch(request)
-    if (response && response.ok) await cache.put(request, response.clone())
+    if (response && response.ok) await putCached(cache, request, response)
     return response
   } catch {
-    const cached = await cache.match(request, { ignoreSearch: true })
-    if (cached) return cached
     return matchFallbacks(cache)
   }
+}
+
+async function matchNavigation(cache, request) {
+  const direct = await cache.match(request, { ignoreSearch: true })
+  if (direct) return direct
+
+  const url = new URL(request.url)
+  const path = url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`
+  const candidates = [`${url.origin}${path}`, `${url.origin}${path}index.html`]
+  for (const candidate of candidates) {
+    const hit = await cache.match(candidate, { ignoreSearch: true })
+    if (hit) return hit
+  }
+  return null
 }
 
 async function cacheFirst(request) {
@@ -263,7 +319,7 @@ async function cacheFirst(request) {
   if (cached) return cached
   try {
     const response = await fetch(request)
-    if (response && response.ok) await cache.put(request, response.clone())
+    if (response && response.ok) await putCached(cache, request, response)
     return response
   } catch {
     return cachedResponseOrOffline(cache, request)
@@ -275,7 +331,7 @@ async function staleWhileRevalidate(request) {
   const cached = await cache.match(request, { ignoreSearch: true })
   const network = fetch(request)
     .then(async (response) => {
-      if (response && response.ok) await cache.put(request, response.clone())
+      if (response && response.ok) await putCached(cache, request, response)
       return response
     })
     .catch(() => cached)
