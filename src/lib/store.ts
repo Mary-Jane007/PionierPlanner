@@ -835,18 +835,7 @@ export const useAppStore = create<AppState>()(
         hiddenCategories: state.hiddenCategories,
         customTips: state.customTips,
       }),
-      merge: (persisted, current) => {
-        const stored = (persisted ?? {}) as Partial<AppState>
-        const merged =
-          current.user && !stored.user ? current : { ...current, ...stored }
-        return {
-          ...merged,
-          followUps: Array.isArray(merged.followUps) ? merged.followUps.map(normalizeFollowUp) : [],
-          history: historyFromEvents(merged.events ?? []),
-          growth: normalizeGrowth(merged.growth),
-          settings: { ...DEFAULT_SETTINGS, ...merged.settings },
-        }
-      },
+      merge: (persisted, current) => rehydrateState(persisted, current),
       onRehydrateStorage: () => (state) => {
         if (!saveLoginOnDevice()) {
           clearCloudSession()
@@ -856,6 +845,44 @@ export const useAppStore = create<AppState>()(
     }
   )
 )
+
+function rehydrateState(persisted: unknown, current: AppState): AppState {
+  const stored = (persisted ?? {}) as Partial<AppState>
+  const merged = current.user && !stored.user ? current : { ...current, ...stored }
+  const user =
+    merged.user ??
+    (merged.lastUser?.id === "demo-user" && merged.onboarded ? merged.lastUser : null)
+  return {
+    ...merged,
+    user,
+    followUps: Array.isArray(merged.followUps) ? merged.followUps.map(normalizeFollowUp) : [],
+    history: historyFromEvents(merged.events ?? []),
+    growth: normalizeGrowth(merged.growth),
+    settings: { ...DEFAULT_SETTINGS, ...merged.settings },
+  }
+}
+
+export function bootPersistedStore() {
+  if (typeof window === "undefined") return
+  if (useAppStore.getState().hydrated) return
+  try {
+    const raw = zustandDurableStorage.getItem(STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as { state?: Partial<AppState> }
+      const stored =
+        parsed && typeof parsed === "object" && "state" in parsed ? parsed.state : parsed
+      useAppStore.setState({
+        ...rehydrateState(stored, useAppStore.getState()),
+        hydrated: true,
+      })
+    } else {
+      useAppStore.setState({ hydrated: true })
+    }
+    if (!saveLoginOnDevice()) clearCloudSession()
+  } catch {
+    useAppStore.setState({ hydrated: true })
+  }
+}
 
 export function useCurrentTarget(): number {
   const pioneerType = useAppStore((s) => s.pioneerType)

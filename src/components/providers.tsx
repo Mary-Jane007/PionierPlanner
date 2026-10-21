@@ -10,9 +10,13 @@ import { CloudSync } from "@/components/cloud/CloudSync"
 import { NativeShell } from "@/components/native/NativeShell"
 import { COLOR_THEME_META } from "@/lib/constants"
 import { isNativeApp } from "@/lib/native"
-import { useAppStore } from "@/lib/store"
+import { bootPersistedStore, useAppStore } from "@/lib/store"
 
 let storeBoot: Promise<void> | null = null
+
+if (typeof window !== "undefined" && !isNativeApp()) {
+  bootPersistedStore()
+}
 
 function bootStore() {
   if (storeBoot) return storeBoot
@@ -21,6 +25,8 @@ function bootStore() {
     if (isNativeApp()) {
       const { restoreDurableStorage } = await import("@/lib/durable-storage")
       await restoreDurableStorage()
+    } else {
+      bootPersistedStore()
     }
     if (!useAppStore.persist.hasHydrated()) {
       await useAppStore.persist.rehydrate()

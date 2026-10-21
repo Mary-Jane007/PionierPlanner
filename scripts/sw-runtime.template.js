@@ -3,24 +3,17 @@ const CACHE_NAME = "__CACHE_NAME__"
 const PRECACHE_URLS = __PRECACHE_URLS__
 const NAV_FALLBACKS = ["./index.html", "./", "./offline.html"]
 const PRECACHE_CONCURRENCY = 6
+const NETWORK_WAIT_MS = 8000
 
 self.addEventListener("install", (event) => {
-  // Activate as soon as the pages and scripts are cached. The rest of the
-  // export (RSC payloads) fills in afterwards so an update does not block opening.
-  // A failed install keeps the previous cache, so a flaky update cannot wipe offline use.
+  // Copy the previous app first so an update never blanks the installed copy.
+  // Then refresh the shell (pages + scripts). RSC payloads finish on activate.
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME)
-      const shell = []
-      const rest = []
-      for (const url of PRECACHE_URLS) {
-        if (isShellUrl(url)) shell.push(url)
-        else rest.push(url)
-      }
-      const stored = await precacheUrls(cache, shell)
-      const minimum = shell.length === 0 ? 0 : Math.max(1, shell.length - 3)
-      if (stored < minimum) throw new Error("shell precache incomplete")
-      void precacheUrls(cache, rest)
+      await copyFromOldCaches(cache)
+      const shell = PRECACHE_URLS.filter(isShellUrl)
+      await precacheUrls(cache, shell)
     })(),
   )
   self.skipWaiting()
@@ -28,12 +21,16 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
-      )
-      .then(() => self.clients.claim()),
+    (async () => {
+      await self.clients.claim()
+      const cache = await caches.open(CACHE_NAME)
+      const rest = PRECACHE_URLS.filter((url) => !isShellUrl(url))
+      await precacheUrls(cache, rest)
+      const stored = await cache.keys()
+      if (stored.length < 20) return
+      const names = await caches.keys()
+      await Promise.all(names.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+    })(),
   )
 })
 
@@ -74,20 +71,39 @@ function isImmutableAsset(url) {
   return url.pathname.includes("/_next/static/")
 }
 
+async function copyFromOldCaches(target) {
+  const names = (await caches.keys()).filter((key) => key !== CACHE_NAME && key.startsWith("pioniersplanner"))
+  for (const name of names) {
+    const source = await caches.open(name)
+    const requests = await source.keys()
+    await Promise.all(
+      requests.map(async (request) => {
+        const already = await target.match(request)
+        if (already) return
+        const response = await source.match(request)
+        if (response) await target.put(request, response)
+      }),
+    )
+  }
+}
+
 async function precacheUrls(cache, urls) {
   const queue = urls.slice()
   let stored = 0
-  const workers = Array.from({ length: Math.min(PRECACHE_CONCURRENCY, queue.length) }, async () => {
+  const workers = Array.from({ length: Math.min(PRECACHE_CONCURRENCY, queue.length || 1) }, async () => {
     while (queue.length) {
       const url = queue.shift()
+      const existing = await cache.match(url, { ignoreSearch: true })
       try {
-        const response = await fetch(url, { credentials: "same-origin" })
+        const response = await fetch(url, { credentials: "same-origin", cache: "reload" })
         if (response && response.ok) {
           await putCached(cache, url, response)
           stored += 1
+        } else if (existing) {
+          stored += 1
         }
       } catch {
-        // One missing file must not fail the whole install.
+        if (existing) stored += 1
       }
     }
   })
@@ -114,16 +130,58 @@ async function handleRequest(request, url) {
 }
 
 async function openFromCache(request) {
-  const cache = await caches.open(CACHE_NAME)
-  const cached = await matchNavigation(cache, request)
-  if (cached) return cached
+  const cached = await matchAnyCache(request, true)
+  if (cached) {
+    void refreshInBackground(request)
+    return cached
+  }
   try {
-    const response = await fetch(request)
-    if (response && response.ok) await putCached(cache, request, response)
+    const response = await fetchWithTimeout(request, NETWORK_WAIT_MS)
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME)
+      await putCached(cache, request, response)
+    }
     return response
   } catch {
-    return matchFallbacks(cache)
+    return matchFallbacks()
   }
+}
+
+function fetchWithTimeout(request, ms) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), ms)
+  return fetch(request, { signal: controller.signal, credentials: "same-origin" }).finally(() =>
+    clearTimeout(timer),
+  )
+}
+
+function refreshInBackground(request) {
+  return fetch(request, { credentials: "same-origin", cache: "reload" })
+    .then(async (response) => {
+      if (response && response.ok) {
+        const cache = await caches.open(CACHE_NAME)
+        await putCached(cache, request, response)
+      }
+    })
+    .catch(() => undefined)
+}
+
+async function cacheNames() {
+  const names = await caches.keys()
+  return names
+    .filter((key) => key.startsWith("pioniersplanner"))
+    .sort((a, b) => (a === CACHE_NAME ? -1 : b === CACHE_NAME ? 1 : 0))
+}
+
+async function matchAnyCache(request, navigation) {
+  for (const name of await cacheNames()) {
+    const cache = await caches.open(name)
+    const hit = navigation
+      ? await matchNavigation(cache, request)
+      : await cache.match(request, { ignoreSearch: true })
+    if (hit) return hit
+  }
+  return null
 }
 
 async function matchNavigation(cache, request) {
@@ -141,42 +199,49 @@ async function matchNavigation(cache, request) {
 }
 
 async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME)
-  const cached = await cache.match(request, { ignoreSearch: true })
+  const cached = await matchAnyCache(request, false)
   if (cached) return cached
   try {
     const response = await fetch(request)
-    if (response && response.ok) await putCached(cache, request, response)
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME)
+      await putCached(cache, request, response)
+    }
     return response
   } catch {
-    return cachedResponseOrOffline(cache, request)
+    return cachedResponseOrOffline(request)
   }
 }
 
 async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME)
-  const cached = await cache.match(request, { ignoreSearch: true })
+  const cached = await matchAnyCache(request, false)
   const network = fetch(request)
     .then(async (response) => {
-      if (response && response.ok) await putCached(cache, request, response)
+      if (response && response.ok) {
+        const cache = await caches.open(CACHE_NAME)
+        await putCached(cache, request, response)
+      }
       return response
     })
     .catch(() => cached)
-  return cached || network || cachedResponseOrOffline(cache, request)
+  return cached || network || cachedResponseOrOffline(request)
 }
 
-async function matchFallbacks(cache) {
-  for (const url of NAV_FALLBACKS) {
-    const hit = await cache.match(url, { ignoreSearch: true })
-    if (hit) return hit
+async function matchFallbacks() {
+  for (const name of await cacheNames()) {
+    const cache = await caches.open(name)
+    for (const url of NAV_FALLBACKS) {
+      const hit = await cache.match(url, { ignoreSearch: true })
+      if (hit) return hit
+    }
   }
   return offlineResponse()
 }
 
-async function cachedResponseOrOffline(cache, request) {
-  const cached = await cache.match(request, { ignoreSearch: true })
+async function cachedResponseOrOffline(request) {
+  const cached = await matchAnyCache(request, isNavigation(request))
   if (cached) return cached
-  if (isNavigation(request)) return matchFallbacks(cache)
+  if (isNavigation(request)) return matchFallbacks()
   return new Response("", { status: 503, statusText: "Offline" })
 }
 

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import { Cormorant_Garamond, Manrope } from "next/font/google"
+import Script from "next/script"
 import { Providers } from "@/components/providers"
+import { basePath } from "@/lib/base-path"
 import "./globals.css"
 
 const manrope = Manrope({
@@ -50,6 +52,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        {process.env.NODE_ENV === "production" ? (
+          <Script id="pwa-register" strategy="beforeInteractive">
+            {`(function(){try{if(!("serviceWorker"in navigator)||!window.isSecureContext)return;var n=window.Capacitor;if(n&&typeof n.isNativePlatform==="function"&&n.isNativePlatform())return;var b=${JSON.stringify(basePath)};navigator.serviceWorker.register(b+"/sw.js",{scope:(b||"")+"/",updateViaCache:"none"});}catch(e){}})();`}
+          </Script>
+        ) : null}
         <Providers>{children}</Providers>
       </body>
     </html>

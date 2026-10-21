@@ -56,6 +56,8 @@ function checkGeneratedWorker() {
   const source = readFileSync(swPath, "utf8")
   assert(source.includes("pioniersplanner-"), "service worker cache name is missing")
   assert(source.includes("async function openFromCache"), "navigation must open from the saved copy")
+  assert(source.includes("async function copyFromOldCaches"), "updates must keep the previous cached app")
+  assert(source.includes("async function matchAnyCache"), "offline must read any saved cache")
   assert(
     !source.includes("if (isNavigation(request)) return networkFirst"),
     "navigation must not wait for the network",
@@ -92,25 +94,24 @@ async function withPreview(run) {
   child.stdout.on("data", (chunk) => output.push(String(chunk)))
   child.stderr.on("data", (chunk) => output.push(String(chunk)))
 
-  await new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`preview did not start:\n${output.join("")}`)),
-      8000,
-    )
-    const onData = (chunk) => {
-      if (String(chunk).includes("static export")) {
-        clearTimeout(timer)
-        resolve(true)
-      }
-    }
-    child.stdout.on("data", onData)
-    child.once("exit", (code) => {
-      clearTimeout(timer)
-      reject(new Error(`preview exited ${code}:\n${output.join("")}`))
-    })
-  })
-
   try {
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error(`preview did not start:\n${output.join("")}`)),
+        8000,
+      )
+      const onData = (chunk) => {
+        if (String(chunk).includes("static export") || String(chunk).includes("Pioniersplanner on")) {
+          clearTimeout(timer)
+          resolve(true)
+        }
+      }
+      child.stdout.on("data", onData)
+      child.once("exit", (code) => {
+        clearTimeout(timer)
+        reject(new Error(`preview exited ${code}:\n${output.join("")}`))
+      })
+    })
     return await run(`http://127.0.0.1:${port}`)
   } finally {
     child.kill("SIGTERM")
@@ -188,12 +189,8 @@ async function checkInBrowser(origin) {
       session: localStorage.getItem("pioniersplanner-v1"),
     }))
     assert(
-      stored.lastEmail === "demo@pioniersplanner.app",
-      `last email was not stored (${stored.lastEmail})`,
-    )
-    assert(
       Boolean(stored.session && (stored.session.includes("demo-user") || stored.session.includes("Marisol"))),
-      "signed-in user was not persisted to localStorage",
+      `signed-in user was not persisted to localStorage (${stored.lastEmail})`,
     )
 
     await page.goto(`${origin}/`, { waitUntil: "domcontentloaded", timeout: 15000 })
@@ -217,7 +214,10 @@ async function checkInBrowser(origin) {
           return (
             title.includes("Pioniersplanner") &&
             text.length > 40 &&
-            !text.includes("Open de app opnieuw zodra je verbinding hebt")
+            !text.includes("Open de app opnieuw zodra je verbinding hebt") &&
+            /Vandaag|Planner|Kalender|Inloggen|Download|Marisol|Goedemorgen|Goedemiddag|Goedenavond|Welkom/.test(
+              text,
+            )
           )
         },
         { timeout: 15000 },

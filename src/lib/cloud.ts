@@ -101,7 +101,11 @@ let healthPromise: Promise<boolean> | null = null
 export async function cloudAvailable(): Promise<boolean> {
   if (healthPromise) return healthPromise
   healthPromise = (async () => {
-    const result = await request<{ ok?: boolean }>("/health", { method: "GET" }, "")
+    const result = await request<{ ok?: boolean }>(
+      "/health",
+      { method: "GET", signal: AbortSignal.timeout(2500) },
+      "",
+    )
     if ("error" in result) {
       healthPromise = null
       return false
