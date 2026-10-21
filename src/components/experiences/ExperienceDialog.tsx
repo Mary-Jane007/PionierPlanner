@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Star } from "lucide-react"
+import { ImagePlus, Star } from "lucide-react"
+import { toast } from "sonner"
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { compressExperiencePhoto, isExperiencePhoto } from "@/lib/photo"
 import { experienceSchema } from "@/lib/validation"
 import { isoDate } from "@/lib/dates"
 import { emptyGoal, emptyStep, goalCategoryFromExperience, upsertById } from "@/lib/progress"
@@ -85,6 +87,7 @@ function ExperienceForm({
   const [learned, setLearned] = useState(existing?.learned ?? "")
   const [followUpDate, setFollowUpDate] = useState(existing?.followUpDate ?? "")
   const [visibility, setVisibility] = useState<ExperienceVisibility>(existing?.visibility ?? "private")
+  const [photo, setPhoto] = useState(existing?.photo)
   const [savedExperience, setSavedExperience] = useState<Experience | null>(null)
 
   function createGoalFromExperience(experience: Experience) {
@@ -114,6 +117,14 @@ function ExperienceForm({
           <DialogDescription>{t("progress.emptyGoalsHint")}</DialogDescription>
         </DialogHeader>
         <p className="text-sm leading-relaxed text-muted-foreground">{savedExperience.title}</p>
+        {isExperiencePhoto(savedExperience.photo) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={savedExperience.photo}
+            alt=""
+            className="h-36 w-full rounded-2xl object-cover"
+          />
+        ) : null}
         {savedExperience.learned ? (
           <p className="text-sm">{savedExperience.learned}</p>
         ) : null}
@@ -156,6 +167,7 @@ function ExperienceForm({
           const value: Experience = {
             id: existing?.id ?? crypto.randomUUID(),
             ...parsed.data,
+            photo: isExperiencePhoto(photo) ? photo : undefined,
             tags: [t(`exp.cat.${category}`).toLowerCase().replace(/\s+/g, "")],
             favorite: existing?.favorite ?? false,
             goalId: existing?.goalId,
@@ -199,6 +211,7 @@ function ExperienceForm({
           <Label>{t("exp.subtitle")}</Label>
           <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} required />
         </label>
+        <ExperiencePhotoField photo={photo} onChange={setPhoto} t={t} />
         <label className="grid gap-1.5">
           <Label>{t("exp.learned")}</Label>
           <Textarea value={learned} onChange={(e) => setLearned(e.target.value)} rows={2} />
@@ -227,5 +240,69 @@ function ExperienceForm({
         </DialogFooter>
       </form>
     </DialogContent>
+  )
+}
+
+function ExperiencePhotoField({
+  photo,
+  onChange,
+  t,
+}: {
+  photo?: string
+  onChange: (photo: string | undefined) => void
+  t: (key: string, vars?: Record<string, string | number>) => string
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function onFile(file: File | undefined) {
+    if (!file) return
+    setBusy(true)
+    try {
+      onChange(await compressExperiencePhoto(file))
+    } catch {
+      toast.error(t("exp.photoError"))
+    } finally {
+      setBusy(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="grid gap-1.5">
+      <Label>{t("exp.photo")}</Label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={(event) => void onFile(event.target.files?.[0])}
+      />
+      {isExperiencePhoto(photo) ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photo} alt="" className="h-40 w-full rounded-2xl object-cover" />
+      ) : (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-6 text-sm text-muted-foreground"
+        >
+          <ImagePlus className="size-5" />
+          {busy ? t("common.loading") : t("exp.photoAdd")}
+        </button>
+      )}
+      {isExperiencePhoto(photo) ? (
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
+            {busy ? t("common.loading") : t("exp.photoChange")}
+          </Button>
+          <Button type="button" variant="ghost" disabled={busy} onClick={() => onChange(undefined)}>
+            {t("exp.photoRemove")}
+          </Button>
+        </div>
+      ) : null}
+      <p className="text-xs text-muted-foreground">{t("exp.photoHint")}</p>
+    </div>
   )
 }

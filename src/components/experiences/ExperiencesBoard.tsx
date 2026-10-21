@@ -8,6 +8,7 @@ import { ConfirmDeleteButton } from "@/components/ui/confirm-delete"
 import { Input } from "@/components/ui/input"
 import { formatHumanDate, parseDate } from "@/lib/dates"
 import { useT, useLang } from "@/lib/i18n"
+import { isExperiencePhoto } from "@/lib/photo"
 import { surfaceClass } from "@/lib/constants"
 import { useAppStore } from "@/lib/store"
 import { useUiStore } from "@/lib/ui-store"
@@ -108,6 +109,14 @@ export function ExperiencesBoard() {
                 {formatHumanDate(parseDate(item.date), lang)}
               </p>
               <h2 className="font-heading mt-2 text-2xl">{item.title}</h2>
+              {isExperiencePhoto(item.photo) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.photo}
+                  alt={item.title}
+                  className="mt-3 h-44 w-full rounded-2xl object-cover"
+                />
+              ) : null}
               <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-muted-foreground">
                 {item.text}
               </p>

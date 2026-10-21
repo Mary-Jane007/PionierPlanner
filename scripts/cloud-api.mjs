@@ -6,7 +6,7 @@ const scrypt = promisify(scryptCb)
 const { Pool } = pg
 
 const TOKEN_DAYS = 180
-const MAX_BODY = 1_500_000
+const MAX_BODY = 8_000_000
 
 let pool
 let ready = false
