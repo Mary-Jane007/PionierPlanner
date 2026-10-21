@@ -1,9 +1,11 @@
 "use client"
 
+import { Logo } from "@/components/brand/Logo"
+
 export function PageLoader() {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background">
-      <div className="h-40 w-40 animate-pulse rounded-full bg-muted" />
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background">
+      <Logo />
     </div>
   )
 }

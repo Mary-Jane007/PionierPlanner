@@ -2,11 +2,13 @@
 const CACHE_NAME = "pioniersplanner-dev"
 const PRECACHE_URLS = ["./", "./index.html", "./manifest.webmanifest", "./offline.html", "./vandaag/"]
 const NAV_FALLBACKS = ["./index.html", "./", "./offline.html"]
+const NETWORK_WAIT_MS = 8000
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME)
+      await copyFromOldCaches(cache)
       await Promise.all(
         PRECACHE_URLS.map(async (url) => {
           try {
@@ -24,12 +26,14 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
-      )
-      .then(() => self.clients.claim()),
+    (async () => {
+      await self.clients.claim()
+      const cache = await caches.open(CACHE_NAME)
+      const stored = await cache.keys()
+      if (stored.length < 1) return
+      const names = await caches.keys()
+      await Promise.all(names.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+    })(),
   )
 })
 
@@ -49,6 +53,7 @@ self.addEventListener("fetch", (event) => {
 })
 
 function shouldBypass(url) {
+  if (url.pathname.includes("/api/cloud")) return true
   if (url.pathname.includes("/downloads/") && /\.(apk|zip)$/i.test(url.pathname)) return true
   if (url.pathname.includes("webpack-hmr")) return true
   if (url.pathname.includes("/_next/webpack")) return true
@@ -63,6 +68,22 @@ function isNavigation(request) {
 
 function isImmutableAsset(url) {
   return url.pathname.includes("/_next/static/")
+}
+
+async function copyFromOldCaches(target) {
+  const names = (await caches.keys()).filter((key) => key !== CACHE_NAME && key.startsWith("pioniersplanner"))
+  for (const name of names) {
+    const source = await caches.open(name)
+    const requests = await source.keys()
+    await Promise.all(
+      requests.map(async (request) => {
+        const already = await target.match(request)
+        if (already) return
+        const response = await source.match(request)
+        if (response) await target.put(request, response)
+      }),
+    )
+  }
 }
 
 async function putCached(cache, key, response) {
@@ -84,16 +105,40 @@ async function handleRequest(request, url) {
 }
 
 async function openFromCache(request) {
-  const cache = await caches.open(CACHE_NAME)
-  const cached = await matchNavigation(cache, request)
+  const cached = await matchAnyCache(request, true)
   if (cached) return cached
   try {
-    const response = await fetch(request)
-    if (response && response.ok) await putCached(cache, request, response)
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), NETWORK_WAIT_MS)
+    const response = await fetch(request, { signal: controller.signal, credentials: "same-origin" }).finally(() =>
+      clearTimeout(timer),
+    )
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME)
+      await putCached(cache, request, response)
+    }
     return response
   } catch {
-    return matchFallbacks(cache)
+    return matchFallbacks()
   }
+}
+
+async function cacheNames() {
+  const names = await caches.keys()
+  return names
+    .filter((key) => key.startsWith("pioniersplanner"))
+    .sort((a, b) => (a === CACHE_NAME ? -1 : b === CACHE_NAME ? 1 : 0))
+}
+
+async function matchAnyCache(request, navigation) {
+  for (const name of await cacheNames()) {
+    const cache = await caches.open(name)
+    const hit = navigation
+      ? await matchNavigation(cache, request)
+      : await cache.match(request, { ignoreSearch: true })
+    if (hit) return hit
+  }
+  return null
 }
 
 async function matchNavigation(cache, request) {
@@ -110,34 +155,41 @@ async function matchNavigation(cache, request) {
 }
 
 async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME)
-  const cached = await cache.match(request, { ignoreSearch: true })
+  const cached = await matchAnyCache(request, false)
   if (cached) return cached
   try {
     const response = await fetch(request)
-    if (response && response.ok) await putCached(cache, request, response)
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME)
+      await putCached(cache, request, response)
+    }
     return response
   } catch {
-    return cachedResponseOrOffline(cache, request)
+    return cachedResponseOrOffline(request)
   }
 }
 
 async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME)
-  const cached = await cache.match(request, { ignoreSearch: true })
+  const cached = await matchAnyCache(request, false)
   const network = fetch(request)
     .then(async (response) => {
-      if (response && response.ok) await putCached(cache, request, response)
+      if (response && response.ok) {
+        const cache = await caches.open(CACHE_NAME)
+        await putCached(cache, request, response)
+      }
       return response
     })
     .catch(() => cached)
-  return cached || network || cachedResponseOrOffline(cache, request)
+  return cached || network || cachedResponseOrOffline(request)
 }
 
-async function matchFallbacks(cache) {
-  for (const url of NAV_FALLBACKS) {
-    const hit = await cache.match(url, { ignoreSearch: true })
-    if (hit) return hit
+async function matchFallbacks() {
+  for (const name of await cacheNames()) {
+    const cache = await caches.open(name)
+    for (const url of NAV_FALLBACKS) {
+      const hit = await cache.match(url, { ignoreSearch: true })
+      if (hit) return hit
+    }
   }
   return new Response("Offline", {
     status: 503,
@@ -145,9 +197,9 @@ async function matchFallbacks(cache) {
   })
 }
 
-async function cachedResponseOrOffline(cache, request) {
-  const cached = await cache.match(request, { ignoreSearch: true })
+async function cachedResponseOrOffline(request) {
+  const cached = await matchAnyCache(request, isNavigation(request))
   if (cached) return cached
-  if (isNavigation(request)) return matchFallbacks(cache)
+  if (isNavigation(request)) return matchFallbacks()
   return new Response("", { status: 503, statusText: "Offline" })
 }
