@@ -258,6 +258,7 @@ export interface Experience {
   category: ExperienceCategory
   text: string
   learned?: string
+  photo?: string
   tags: string[]
   favorite: boolean
   visibility: ExperienceVisibility
